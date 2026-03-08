@@ -471,7 +471,9 @@
       let initialized = false;
       let params = null;
       let printState = null;
-      let interactionWired = false;
+      let wheelWired = false;
+      let pointerWired = false;
+      let pinchWired = false;
 
       const defaults = {
         preset: "custom",
@@ -580,6 +582,19 @@
 
       function clearViewport() {
         while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
+      }
+
+      function resetViewportTransform() {
+        viewport.removeAttribute("transform");
+
+        if (panZoom) {
+          try {
+            panZoom.resetZoom();
+            panZoom.resetPan();
+          } catch (err) {
+            console.warn("Could not reset panZoom cleanly:", err);
+          }
+        }
       }
 
       function makeEl(tag, attrs = {}) {
@@ -1008,6 +1023,7 @@
           zoom: panZoom.getZoom()
         } : null;
 
+        resetViewportTransform();
         clearViewport();
 
         const meta = getLayoutMeta();
@@ -1191,10 +1207,17 @@
           requestAnimationFrame(() => {
             panZoom.resize();
             panZoom.updateBBox();
+
             if (saved && keepZoom) {
+              panZoom.resetZoom();
+              panZoom.resetPan();
+              viewport.removeAttribute("transform");
               panZoom.zoom(saved.zoom);
               panZoom.pan(saved.pan);
             } else {
+              panZoom.resetZoom();
+              panZoom.resetPan();
+              viewport.removeAttribute("transform");
               fitToContainer();
             }
           });
@@ -1239,12 +1262,17 @@
         if (!panZoom) return;
         const fit = computeFit();
         if (!fit) return;
+
+        panZoom.resetZoom();
+        panZoom.resetPan();
+        viewport.removeAttribute("transform");
+
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
       }
 
       function wireWheelZoom() {
-        if (interactionWired) return;
+        if (wheelWired) return;
 
         container.addEventListener("wheel", (e) => {
           if (!panZoom) return;
@@ -1256,10 +1284,12 @@
             panZoom.zoomAtPoint(panZoom.getZoom() * factor, point);
           }
         }, { passive: false });
+
+        wheelWired = true;
       }
 
       function enablePointerPan() {
-        if (interactionWired) return;
+        if (pointerWired) return;
 
         let isPanning = false;
         let start = { x: 0, y: 0 };
@@ -1281,10 +1311,12 @@
         svg.addEventListener("pointerup", () => { isPanning = false; });
         svg.addEventListener("pointercancel", () => { isPanning = false; });
 
-        interactionWired = true;
+        pointerWired = true;
       }
 
       function enablePinchZoom() {
+        if (pinchWired) return;
+
         let pinchStart = null;
         let startZoom = 1;
 
@@ -1319,6 +1351,8 @@
         svg.addEventListener("touchend", () => {
           pinchStart = null;
         });
+
+        pinchWired = true;
       }
 
       function tryInit() {
@@ -1397,6 +1431,9 @@
         requestAnimationFrame(() => {
           panZoom.resize();
           panZoom.updateBBox();
+          panZoom.resetZoom();
+          panZoom.resetPan();
+          viewport.removeAttribute("transform");
           panZoom.zoom(printState.zoom);
           panZoom.pan(printState.pan);
           printState = null;
