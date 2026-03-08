@@ -62,7 +62,7 @@
       top: 58px;
       right: 12px;
       z-index: 10019;
-      width: 320px;
+      width: 325px;
       max-height: calc(100vh - 76px);
       overflow-y: auto;
       background: #fff;
@@ -448,8 +448,6 @@
       const selectedFontPreview = document.getElementById("selectedFontPreview");
       const fontOptions = document.querySelectorAll(".font-option");
 
-      const params = new URLSearchParams(window.location.search);
-
       let panZoom = null;
       let blockFit = false;
 
@@ -486,53 +484,24 @@
         showtails:      { male: "#cfe7f7", female: "#f6eed7", main: "#fbfaf4" }
       };
 
-      /* Base layout recreated from the original HTML, shifted into positive space */
-      const BASE = {
-        header: { x: 180, y: 130 },
-        ownerText: { x: 60, y: 1110 },
-        ownerLine: { x1: 60, x2: 370, y: 1100 },
-        signature: { x: 120, y: 1070, w: 220, h: 80 },
-        credit: { x: 1230, y: 1170 },
-
-        boxes: {
-          main:   { x: 180,  y: 550, gen: 1, sexType: "main"   },
-          sire:   { x: 530,  y: 270, gen: 2, sexType: "male"   },
-          dam:    { x: 530,  y: 820, gen: 2, sexType: "female" },
-
-          ssire:  { x: 880,  y: 135, gen: 3, sexType: "male"   },
-          sdam:   { x: 880,  y: 405, gen: 3, sexType: "female" },
-          dsire:  { x: 880,  y: 685, gen: 3, sexType: "male"   },
-          ddam:   { x: 880,  y: 955, gen: 3, sexType: "female" },
-
-          sssire: { x: 1230, y: 70,  gen: 4, sexType: "male"   },
-          ssdam:  { x: 1230, y: 205, gen: 4, sexType: "female" },
-          sdsire: { x: 1230, y: 340, gen: 4, sexType: "male"   },
-          sddam:  { x: 1230, y: 475, gen: 4, sexType: "female" },
-          dssire: { x: 1230, y: 620, gen: 4, sexType: "male"   },
-          dsdam:  { x: 1230, y: 755, gen: 4, sexType: "female" },
-          ddsire: { x: 1230, y: 890, gen: 4, sexType: "male"   },
-          dddam:  { x: 1230, y: 1025,gen: 4, sexType: "female" }
-        }
-      };
-
       const boxDefs = [
-        { id: "main",   titleChain: ["crabbitry","name"],       fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]],       extra: ["custom"],   wins: "win1"   },
-        { id: "sire",   titleChain: ["srabbitry","sire"],       fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]],         extra: ["scustom"], wins: "swin1"  },
-        { id: "dam",    titleChain: ["drabbitry","dam"],        fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]],         extra: ["dcustom"], wins: "dwin1"  },
+        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom"],   wins: "win1"   },
+        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustom"], wins: "swin1"  },
+        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustom"], wins: "dwin1"  },
 
-        { id: "ssire",  titleChain: ["ssrabbitry","ssire"],     fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]],   extra: ["sscustom"], wins: "sswin1" },
-        { id: "sdam",   titleChain: ["sdrabbitry","sdam"],      fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]],   extra: ["sdcustom"], wins: "sdwin1" },
-        { id: "dsire",  titleChain: ["dsrabbitry","dsire"],     fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]],   extra: ["dscustom"], wins: "dswin1" },
-        { id: "ddam",   titleChain: ["ddrabbitry","ddam"],      fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]],   extra: ["ddcustom"], wins: "ddwin1" },
+        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustom"], wins: "sswin1" },
+        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom"], wins: "sdwin1" },
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
+        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom"], wins: "ddwin1" },
 
-        { id: "sssire", titleChain: ["sssrabbitry","sssire"],   fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
-        { id: "ssdam",  titleChain: ["ssdrabbitry","ssdam"],    fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"], wins: "" },
-        { id: "sdsire", titleChain: ["sdsrabbitry","sdsire"],   fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"], wins: "" },
-        { id: "sddam",  titleChain: ["sddrabbitry","sddam"],    fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"], wins: "" },
-        { id: "dssire", titleChain: ["dssrabbitry","dssire"],   fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"], wins: "" },
-        { id: "dsdam",  titleChain: ["dsdrabbitry","dsdam"],    fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"], wins: "" },
-        { id: "ddsire", titleChain: ["ddsrabbitry","ddsire"],   fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"], wins: "" },
-        { id: "dddam",  titleChain: ["dddrabbitry","dddam"],    fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"], wins: "" }
+        { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
+        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"], wins: "" },
+        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"], wins: "" },
+        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"], wins: "" },
+        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"], wins: "" },
+        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"], wins: "" },
+        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"], wins: "" },
+        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"], wins: "" }
       ];
 
       const parentMap = [
@@ -544,6 +513,16 @@
         ["dsire","dssire"],["dsire","dsdam"],
         ["ddam","ddsire"],["ddam","dddam"]
       ];
+
+      function getSearchParams() {
+        let search = window.location.search || "";
+        while (search.startsWith("?")) {
+          search = search.slice(1);
+        }
+        return new URLSearchParams(search);
+      }
+
+      let params = getSearchParams();
 
       function getRawParam(name) {
         return params.get(name) || "";
@@ -651,8 +630,8 @@
 
       function getCanvas() {
         return layoutOrientation.value === "portrait"
-          ? { width: 1400, height: 1750 }
-          : { width: 1750, height: 1400 };
+          ? { width: 1100, height: 1500, baseWidth: 1750, baseHeight: 1400 }
+          : { width: 1750, height: 1400, baseWidth: 1750, baseHeight: 1400 };
       }
 
       function buildBoxText(def) {
@@ -675,9 +654,7 @@
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
-        const base = BASE.boxes[def.id];
-        if (!base || base.gen >= 4 || !def.wins) return;
-
+        if (def.gen >= 4 || !def.wins) return;
         const raw = getParam(def.wins);
         if (!raw) return;
 
@@ -703,7 +680,7 @@
       }
 
       function drawBox(group, winsLayer, def, x, y, boxW, boxH) {
-        const fill = getBoxFill(BASE.boxes[def.id].sexType);
+        const fill = getBoxFill(def.sexType);
 
         group.appendChild(makeEl("rect", {
           x, y,
@@ -744,6 +721,52 @@
         drawWins(winsLayer, def, x, y, boxW, boxH);
       }
 
+      function getBasePositions() {
+        return {
+          main:   { x: 180,  y: 550 },
+          sire:   { x: 530,  y: 270 },
+          dam:    { x: 530,  y: 820 },
+
+          ssire:  { x: 880,  y: 135 },
+          sdam:   { x: 880,  y: 405 },
+          dsire:  { x: 880,  y: 685 },
+          ddam:   { x: 880,  y: 955 },
+
+          sssire: { x: 1230, y: 70  },
+          ssdam:  { x: 1230, y: 205 },
+          sdsire: { x: 1230, y: 340 },
+          sddam:  { x: 1230, y: 475 },
+          dssire: { x: 1230, y: 620 },
+          dsdam:  { x: 1230, y: 755 },
+          ddsire: { x: 1230, y: 890 },
+          dddam:  { x: 1230, y: 1025 }
+        };
+      }
+
+      function getLayoutPositions(canvas) {
+        const base = getBasePositions();
+
+        if (layoutOrientation.value === "landscape") {
+          return base;
+        }
+
+        /* Portrait keeps the same tree direction, but compresses and shifts to fit the border */
+        const portrait = {};
+        const sx = 0.63;
+        const sy = 1.00;
+        const offsetX = -10;
+        const offsetY = 95;
+
+        Object.entries(base).forEach(([key, p]) => {
+          portrait[key] = {
+            x: p.x * sx + offsetX,
+            y: p.y * sy + offsetY
+          };
+        });
+
+        return portrait;
+      }
+
       function drawLine(group, childPos, parentPos, boxW, boxH) {
         const stroke = lineColorInput.value;
         const sw = lineThicknessInput.value;
@@ -768,62 +791,6 @@
             "stroke-width": sw
           }));
         }
-      }
-
-      function getRequestedBoxSize() {
-        return {
-          width: Number(boxWidthInput.value),
-          height: Number(boxHeightInput.value)
-        };
-      }
-
-      function getContentBounds(boxW, boxH, photoEnabled) {
-        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-
-        const consider = (x1, y1, x2, y2) => {
-          minX = Math.min(minX, x1);
-          minY = Math.min(minY, y1);
-          maxX = Math.max(maxX, x2);
-          maxY = Math.max(maxY, y2);
-        };
-
-        Object.values(BASE.boxes).forEach(b => {
-          consider(b.x, b.y, b.x + boxW, b.y + boxH);
-          if (b.gen < 4) {
-            consider(b.x, b.y + boxH, b.x + boxW, b.y + boxH + 48);
-          }
-        });
-
-        consider(BASE.header.x, BASE.header.y, BASE.header.x + 620, BASE.header.y + 190);
-        consider(BASE.ownerLine.x1, BASE.ownerLine.y - 10, BASE.ownerLine.x2, BASE.ownerLine.y + 45);
-        consider(BASE.signature.x, BASE.signature.y, BASE.signature.x + BASE.signature.w, BASE.signature.y + BASE.signature.h);
-        consider(BASE.credit.x - 380, BASE.credit.y - 20, BASE.credit.x, BASE.credit.y + 10);
-
-        if (photoEnabled) {
-          const photoW = 220;
-          const photoH = 185;
-          const main = BASE.boxes.main;
-          const photoX = main.x + (boxW - photoW) / 2;
-          const photoY = main.y - photoH - 18;
-          consider(photoX, photoY, photoX + photoW, photoY + photoH);
-        }
-
-        return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
-      }
-
-      function getRootTransform(canvas, boxW, boxH) {
-        const photoEnabled = toggleRabbitPhoto.checked && !!getUrlParam("rabbitphoto");
-        const b = getContentBounds(boxW, boxH, photoEnabled);
-
-        const margin = layoutOrientation.value === "portrait" ? 35 : 28;
-        const availW = canvas.width - margin * 2;
-        const availH = canvas.height - margin * 2;
-
-        const scale = Math.min(availW / b.width, availH / b.height);
-        const tx = margin + (availW - b.width * scale) / 2 - b.minX * scale;
-        const ty = margin + (availH - b.height * scale) / 2 - b.minY * scale;
-
-        return { scale, tx, ty };
       }
 
       function validBox(vb) {
@@ -948,17 +915,50 @@
         fitToContainer();
       }
 
+      function applyPresetIfNeeded() {
+        const selected = colorPreset.value;
+        if (selected === "custom") return;
+        const preset = presets[selected];
+        if (!preset) return;
+        maleBoxColor.value = preset.male;
+        femaleBoxColor.value = preset.female;
+        mainBoxColor.value = preset.main;
+      }
+
+      function resetDefaults() {
+        colorPreset.value = defaults.preset;
+        mainSexColorToggle.checked = defaults.mainSexColor;
+        mainBoxColor.value = defaults.main;
+        maleBoxColor.value = defaults.male;
+        femaleBoxColor.value = defaults.female;
+        fontColor.value = defaults.fontColor;
+        layoutOrientation.value = defaults.layout;
+        boxWidthInput.value = defaults.boxWidth;
+        boxHeightInput.value = defaults.boxHeight;
+        boxNameFontSizeInput.value = defaults.nameFont;
+        boxBodyFontSizeInput.value = defaults.bodyFont;
+        lineStyleInput.value = defaults.lineStyle;
+        lineColorInput.value = defaults.lineColor;
+        lineThicknessInput.value = defaults.lineThickness;
+        toggleWatermark.checked = defaults.watermarkEnabled;
+        watermarkOpacity.value = defaults.watermarkOpacity;
+        watermarkSize.value = defaults.watermarkSize;
+        toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
+        applyFont(defaults.fontFamily);
+        render();
+      }
+
       function render(keepZoom) {
+        params = getSearchParams();
         const saved = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
         blockFit = true;
 
         clearSvg();
 
         const canvas = getCanvas();
-        const box = getRequestedBoxSize();
-        const boxW = box.width;
-        const boxH = box.height;
-        const rootTransform = getRootTransform(canvas, boxW, boxH);
+        const positions = getLayoutPositions(canvas);
+        const boxW = Number(boxWidthInput.value);
+        const boxH = Number(boxHeightInput.value);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
         svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
@@ -975,10 +975,7 @@
 
         const bgLayer = makeEl("g");
         const watermarkLayer = makeEl("g");
-        const root = makeEl("g", {
-          transform: `translate(${rootTransform.tx},${rootTransform.ty}) scale(${rootTransform.scale})`
-        });
-
+        const contentLayer = makeEl("g");
         const headerLayer = makeEl("g");
         const lineLayer = makeEl("g");
         const photoLayer = makeEl("g");
@@ -986,8 +983,8 @@
         const winsLayer = makeEl("g");
         const footerLayer = makeEl("g");
 
-        svg.append(bgLayer, watermarkLayer, root);
-        root.append(headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
+        svg.append(bgLayer, watermarkLayer, contentLayer);
+        contentLayer.append(headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
 
         const bgUrl = getUrlParam("background-image");
         if (bgUrl) {
@@ -1033,33 +1030,37 @@
           watermarkLayer.appendChild(wm);
         }
 
+        const headerScale = layoutOrientation.value === "portrait" ? 0.90 : 1.00;
+        const headerX = layoutOrientation.value === "portrait" ? 120 : 180;
+        const headerY = layoutOrientation.value === "portrait" ? 135 : 130;
+
         if (logoUrl) {
           headerLayer.appendChild(makeEl("image", {
             href: logoUrl,
-            x: BASE.header.x,
-            y: BASE.header.y - 40,
-            width: 140,
-            height: 140,
+            x: headerX,
+            y: headerY - 40,
+            width: 140 * headerScale,
+            height: 140 * headerScale,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        const headerTextX = BASE.header.x + 160;
-        const headerTextY = BASE.header.y - 10;
-        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 20, getParam("street"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 40, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 60, getParam("phone"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 80, getParam("email"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 110, "Breed:", { size: 16, weight: 700 });
-        addText(headerLayer, headerTextX + 60, headerTextY + 110, getParam("breed"), { size: 16, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 130, "DOB:", { size: 16, weight: 700 });
-        addText(headerLayer, headerTextX + 60, headerTextY + 130, getParam("dob"), { size: 16, weight: 700 });
+        const headerTextX = headerX + 160 * headerScale;
+        const headerTextY = headerY - 10;
+        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20 * headerScale, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 20 * headerScale, getParam("street"), { size: 16 * headerScale, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 40 * headerScale, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16 * headerScale, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 60 * headerScale, getParam("phone"), { size: 16 * headerScale, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 80 * headerScale, getParam("email"), { size: 16 * headerScale, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 110 * headerScale, "Breed:", { size: 16 * headerScale, weight: 700 });
+        addText(headerLayer, headerTextX + 60 * headerScale, headerTextY + 110 * headerScale, getParam("breed"), { size: 16 * headerScale, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 130 * headerScale, "DOB:", { size: 16 * headerScale, weight: 700 });
+        addText(headerLayer, headerTextX + 60 * headerScale, headerTextY + 130 * headerScale, getParam("dob"), { size: 16 * headerScale, weight: 700 });
 
         if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
           const photoW = 220;
           const photoH = 185;
-          const main = BASE.boxes.main;
+          const main = positions.main;
           const photoX = main.x + (boxW - photoW) / 2;
           const photoY = main.y - photoH - 18;
 
@@ -1077,52 +1078,55 @@
 
           photoLayer.appendChild(makeEl("image", {
             href: getUrlParam("rabbitphoto"),
-            x: photoX + 6,
-            y: photoY + 6,
-            width: photoW - 12,
-            height: photoH - 12,
-            preserveAspectRatio: "xMidYMid meet"
+            x: photoX,
+            y: photoY,
+            width: photoW,
+            height: photoH,
+            preserveAspectRatio: "xMidYMid slice",
+            clipPath: ""
           }));
         }
 
         parentMap.forEach(([childId, parentId]) => {
-          drawLine(lineLayer, BASE.boxes[childId], BASE.boxes[parentId], boxW, boxH);
+          drawLine(lineLayer, positions[childId], positions[parentId], boxW, boxH);
         });
 
         boxDefs.forEach(def => {
-          const base = BASE.boxes[def.id];
-          drawBox(boxLayer, winsLayer, def, base.x, base.y, boxW, boxH);
+          drawBox(boxLayer, winsLayer, def, positions[def.id].x, positions[def.id].y, boxW, boxH);
         });
 
-        addText(footerLayer, BASE.ownerText.x, BASE.ownerText.y - 80, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
+        const footerX = layoutOrientation.value === "portrait" ? 40 : 60;
+        const footerY = layoutOrientation.value === "portrait" ? 1275 : 1230;
+        const sigUrl = getUrlParam("signature");
+
+        addText(footerLayer, footerX, footerY - 70, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
 
         footerLayer.appendChild(makeEl("line", {
-          x1: BASE.ownerLine.x1,
-          y1: BASE.ownerLine.y,
-          x2: BASE.ownerLine.x2,
-          y2: BASE.ownerLine.y,
+          x1: footerX,
+          y1: footerY + 10,
+          x2: footerX + 310,
+          y2: footerY + 10,
           stroke: "#000000",
           "stroke-width": 1
         }));
 
-        const sigUrl = getUrlParam("signature");
         if (sigUrl) {
           footerLayer.appendChild(makeEl("image", {
             href: sigUrl,
-            x: BASE.signature.x,
-            y: BASE.signature.y,
-            width: BASE.signature.w,
-            height: BASE.signature.h,
+            x: footerX,
+            y: footerY - 55,
+            width: 220,
+            height: 80,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        addText(footerLayer, BASE.ownerText.x, BASE.ownerText.y + 20, getParam("owner"), { size: 16, weight: 700 });
+        addText(footerLayer, footerX, footerY + 35, getParam("owner"), { size: 16, weight: 700 });
 
         addText(
           footerLayer,
-          BASE.credit.x,
-          BASE.credit.y,
+          layoutOrientation.value === "portrait" ? 940 : 1560,
+          layoutOrientation.value === "portrait" ? 1320 : 1290,
           "Pedigree built on the ShowTails LLC platform - www.showtails.com",
           { size: 12, anchor: "end" }
         );
@@ -1141,39 +1145,6 @@
         } else {
           blockFit = false;
         }
-      }
-
-      function applyPresetIfNeeded() {
-        const selected = colorPreset.value;
-        if (selected === "custom") return;
-        const preset = presets[selected];
-        if (!preset) return;
-        maleBoxColor.value = preset.male;
-        femaleBoxColor.value = preset.female;
-        mainBoxColor.value = preset.main;
-      }
-
-      function resetDefaults() {
-        colorPreset.value = defaults.preset;
-        mainSexColorToggle.checked = defaults.mainSexColor;
-        mainBoxColor.value = defaults.main;
-        maleBoxColor.value = defaults.male;
-        femaleBoxColor.value = defaults.female;
-        fontColor.value = defaults.fontColor;
-        layoutOrientation.value = defaults.layout;
-        boxWidthInput.value = defaults.boxWidth;
-        boxHeightInput.value = defaults.boxHeight;
-        boxNameFontSizeInput.value = defaults.nameFont;
-        boxBodyFontSizeInput.value = defaults.bodyFont;
-        lineStyleInput.value = defaults.lineStyle;
-        lineColorInput.value = defaults.lineColor;
-        lineThicknessInput.value = defaults.lineThickness;
-        toggleWatermark.checked = defaults.watermarkEnabled;
-        watermarkOpacity.value = defaults.watermarkOpacity;
-        watermarkSize.value = defaults.watermarkSize;
-        toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
-        applyFont(defaults.fontFamily);
-        render();
       }
 
       menuToggle.addEventListener("click", () => {
