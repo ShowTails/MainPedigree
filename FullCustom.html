@@ -168,6 +168,16 @@
       cursor: pointer;
     }
 
+    .menu-actions button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    #menu-save-btn {
+      background: #2f6f86;
+      color: #fff;
+    }
+
     #menu-print-btn {
       background: #234a57;
       color: #fff;
@@ -273,9 +283,11 @@
 
     <div class="menu-section">
       <div class="menu-actions">
+        <button id="menu-save-btn" type="button">Save Settings</button>
         <button id="menu-print-btn" type="button">Print / Save PDF</button>
         <button id="reset-styles-btn" type="button">Reset Defaults</button>
       </div>
+      <div class="menu-note" id="save-status" style="margin-top:8px; margin-bottom:0;"></div>
     </div>
 
     <div class="menu-section">
@@ -411,6 +423,8 @@
       const svgNS = "http://www.w3.org/2000/svg";
       const xlinkNS = "http://www.w3.org/1999/xlink";
 
+      const SAVE_SETTINGS_WEBHOOK = "https://go.glideapps.com/api/container/plugin/webhook-trigger/8lcj30iX3DO7vjRtX1XK/624b9f6d-a5cf-4408-bb59-a4004e64dae8";
+
       const svg = document.getElementById("pedigree-svg");
       const viewport = document.getElementById("viewport");
       const container = document.getElementById("pedigree-container");
@@ -445,6 +459,8 @@
       const toggleRabbitPhoto = document.getElementById("toggle-rabbit-photo");
       const resetStylesBtn = document.getElementById("reset-styles-btn");
       const printBtn = document.getElementById("menu-print-btn");
+      const saveBtn = document.getElementById("menu-save-btn");
+      const saveStatus = document.getElementById("save-status");
 
       const fontPicker = document.getElementById("fontPicker");
       const fontPickerButton = document.getElementById("fontPickerButton");
@@ -497,7 +513,7 @@
 
         { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustom"], wins: "sswin1" },
         { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom"], wins: "sdwin1" },
-        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","ddsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
         { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom"], wins: "ddwin1" },
 
         { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
@@ -858,6 +874,116 @@
         }
       }
 
+      function getCurrentSettings() {
+        return {
+          preset: colorPreset.value,
+          mainSexColor: mainSexColorToggle.checked,
+          main: mainBoxColor.value,
+          male: maleBoxColor.value,
+          female: femaleBoxColor.value,
+          fontColor: fontColor.value,
+          fontFamily: getCurrentFont(),
+          layout: layoutOrientation.value,
+          boxWidth: Number(boxWidthInput.value),
+          boxHeight: Number(boxHeightInput.value),
+          nameFont: Number(boxNameFontSizeInput.value),
+          bodyFont: Number(boxBodyFontSizeInput.value),
+          lineStyle: lineStyleInput.value,
+          lineColor: lineColorInput.value,
+          lineThickness: Number(lineThicknessInput.value),
+          watermarkEnabled: toggleWatermark.checked,
+          watermarkOpacity: Number(watermarkOpacity.value),
+          watermarkSize: Number(watermarkSize.value),
+          rabbitPhotoEnabled: toggleRabbitPhoto.checked
+        };
+      }
+
+      function applySettings(settings, shouldRender = true) {
+        if (!settings || typeof settings !== "object") return;
+
+        if (settings.preset != null) colorPreset.value = settings.preset;
+        if (settings.mainSexColor != null) mainSexColorToggle.checked = !!settings.mainSexColor;
+        if (settings.main) mainBoxColor.value = settings.main;
+        if (settings.male) maleBoxColor.value = settings.male;
+        if (settings.female) femaleBoxColor.value = settings.female;
+        if (settings.fontColor) fontColor.value = settings.fontColor;
+        if (settings.layout) layoutOrientation.value = settings.layout;
+        if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
+        if (settings.boxHeight != null) boxHeightInput.value = settings.boxHeight;
+        if (settings.nameFont != null) boxNameFontSizeInput.value = settings.nameFont;
+        if (settings.bodyFont != null) boxBodyFontSizeInput.value = settings.bodyFont;
+        if (settings.lineStyle) lineStyleInput.value = settings.lineStyle;
+        if (settings.lineColor) lineColorInput.value = settings.lineColor;
+        if (settings.lineThickness != null) lineThicknessInput.value = settings.lineThickness;
+        if (settings.watermarkEnabled != null) toggleWatermark.checked = !!settings.watermarkEnabled;
+        if (settings.watermarkOpacity != null) watermarkOpacity.value = settings.watermarkOpacity;
+        if (settings.watermarkSize != null) watermarkSize.value = settings.watermarkSize;
+        if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
+
+        if (settings.fontFamily) {
+          applyFont(settings.fontFamily, false);
+        }
+
+        if (shouldRender) render(false);
+      }
+
+      function getSavedSettingsFromUrl() {
+        const raw = getRawParam("saved");
+        if (!raw) return null;
+
+        try {
+          return JSON.parse(decodeParam(raw));
+        } catch (err) {
+          console.warn("Could not parse saved settings:", err);
+          return null;
+        }
+      }
+
+      async function saveSettingsToShowTails() {
+        const settings = getCurrentSettings();
+        const email = getParam("email").trim();
+
+        if (!email) {
+          saveStatus.textContent = "Unable to save: missing email address.";
+          return;
+        }
+
+        saveStatus.textContent = "Saving settings...";
+        saveBtn.disabled = true;
+
+        try {
+          const response = await fetch(SAVE_SETTINGS_WEBHOOK, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              email: email,
+              savedPedigreeSettings: JSON.stringify(settings)
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          saveStatus.textContent = "Settings saved.";
+
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set("saved", encodeURIComponent(JSON.stringify(settings)));
+            window.history.replaceState({}, "", url.toString());
+          } catch (historyErr) {
+            console.warn("Could not update URL with saved settings:", historyErr);
+          }
+        } catch (error) {
+          console.error("Error saving settings:", error);
+          saveStatus.textContent = "Could not save settings.";
+        } finally {
+          saveBtn.disabled = false;
+        }
+      }
+
       function render(keepZoom = false) {
         refreshParams();
 
@@ -1211,7 +1337,7 @@
         initialized = true;
       }
 
-      function resetDefaults() {
+      function resetDefaults(shouldRender = true) {
         colorPreset.value = defaults.preset;
         mainSexColorToggle.checked = defaults.mainSexColor;
         mainBoxColor.value = defaults.main;
@@ -1230,8 +1356,10 @@
         watermarkOpacity.value = defaults.watermarkOpacity;
         watermarkSize.value = defaults.watermarkSize;
         toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
+        saveStatus.textContent = "";
         applyFont(defaults.fontFamily, false);
-        render(false);
+
+        if (shouldRender) render(false);
       }
 
       function capturePrintState() {
@@ -1322,7 +1450,8 @@
         toggleRabbitPhoto
       ].forEach(el => el.addEventListener("change", () => render(true)));
 
-      resetStylesBtn.addEventListener("click", resetDefaults);
+      saveBtn.addEventListener("click", saveSettingsToShowTails);
+      resetStylesBtn.addEventListener("click", () => resetDefaults(true));
 
       printBtn.addEventListener("click", () => {
         prepareForPrint();
@@ -1347,8 +1476,14 @@
 
       window.addEventListener("load", () => {
         refreshParams();
-        applyFont(defaults.fontFamily, false);
-        resetDefaults();
+        resetDefaults(false);
+
+        const savedSettings = getSavedSettingsFromUrl();
+        if (savedSettings) {
+          applySettings(savedSettings, false);
+        }
+
+        render(false);
         tryInit();
       });
     })();
