@@ -628,7 +628,7 @@
         selectedFontPreview.style.fontFamily = fontValue;
         document.documentElement.style.setProperty("--menu-font", fontValue);
         setActiveFontOption(fontValue);
-        if (shouldRender) render(true);
+        if (shouldRender) render(false);
       }
 
       function getMainRabbitSex() {
@@ -662,21 +662,19 @@
         if (layoutOrientation.value === "portrait") {
           return {
             canvas,
-            inner: { left: 84, top: 82, right: 785, bottom: 1015 },
-            tree:  { left: 86, top: 285, right: 745, bottom: 920 },
-            header: { x: 102, y: 46, logoSize: 72 },
-            footer: { x: 54, y: 987, right: 790, taglineY: 1062 },
+            tree:  { left: 92, top: 235, right: 760, bottom: 935 },
+            header: { x: 105, y: 48, logoSize: 52 },
+            footer: { x: 80, y: 975, right: 795, taglineY: 1065 },
             photoGap: 12
           };
         }
 
         return {
           canvas,
-          inner: { left: 64, top: 56, right: 1042, bottom: 790 },
-          tree:  { left: 66, top: 160, right: 968, bottom: 655 },
-          header: { x: 82, y: 28, logoSize: 64 },
-          footer: { x: 42, y: 738, right: 1048, taglineY: 814 },
-          photoGap: 12
+          tree:  { left: 42, top: 86, right: 1035, bottom: 675 },
+          header: { x: 36, y: 20, logoSize: 42 },
+          footer: { x: 34, y: 712, right: 1060, taglineY: 814 },
+          photoGap: 10
         };
       }
 
@@ -684,49 +682,67 @@
         const meta = getLayoutMeta();
         const tree = meta.tree;
 
-        const availW = tree.right - tree.left;
-        const availH = tree.bottom - tree.top;
+        const left1 = tree.left;
+        const left2 = tree.left + 158;
+        const left3 = tree.left + 470;
+        const left4 = tree.left + 690;
 
-        const x1 = tree.left;
-        const x2 = tree.left + Math.round(availW * 0.27);
-        const x3 = tree.left + Math.round(availW * 0.61);
-        const x4 = tree.left + Math.round(availW * 0.84);
+        if (layoutOrientation.value === "portrait") {
+          const gap2 = 150;
+          const gap3 = 42;
+          const gap4 = 12;
+          const mainY = 430;
+          const row2Top = 310;
+          const row3Top = 250;
+          const row4Top = 205;
 
-        const row2Top = tree.top + Math.round(availH * 0.15);
-        const row3Top = tree.top + Math.round(availH * 0.03);
-        const row4Top = tree.top - 10;
+          return {
+            main:   { x: left1, y: mainY },
+            sire:   { x: left2, y: row2Top },
+            dam:    { x: left2, y: row2Top + boxH + gap2 },
 
-        const gap2 = Math.max(65, Math.round((availH - (2 * boxH)) / 1));
-        const gap3 = Math.max(30, Math.round((availH - (4 * boxH)) / 3));
-        const gap4 = Math.max(10, Math.round((availH - (8 * boxH)) / 7));
+            ssire:  { x: left3, y: row3Top },
+            sdam:   { x: left3, y: row3Top + boxH + gap3 },
+            dsire:  { x: left3, y: row3Top + (boxH + gap3) * 2 },
+            ddam:   { x: left3, y: row3Top + (boxH + gap3) * 3 },
 
-        const mainY = tree.top + Math.round((availH - boxH) / 2);
-        const sireY = row2Top;
-        const damY = row2Top + boxH + gap2;
+            sssire: { x: left4, y: row4Top + (boxH + gap4) * 0 },
+            ssdam:  { x: left4, y: row4Top + (boxH + gap4) * 1 },
+            sdsire: { x: left4, y: row4Top + (boxH + gap4) * 2 },
+            sddam:  { x: left4, y: row4Top + (boxH + gap4) * 3 },
+            dssire: { x: left4, y: row4Top + (boxH + gap4) * 4 },
+            dsdam:  { x: left4, y: row4Top + (boxH + gap4) * 5 },
+            ddsire: { x: left4, y: row4Top + (boxH + gap4) * 6 },
+            dddam:  { x: left4, y: row4Top + (boxH + gap4) * 7 }
+          };
+        }
 
-        const ssireY = row3Top;
-        const sdamY = row3Top + boxH + gap3;
-        const dsireY = row3Top + (boxH + gap3) * 2;
-        const ddamY = row3Top + (boxH + gap3) * 3;
+        const gap2 = 100;
+        const gap3 = 18;
+        const gap4 = 6;
+        const mainY = 270;
+        const row2Top = 165;
+        const row3Top = 105;
+        const row4Top = 70;
 
         return {
-          main:   { x: x1, y: mainY },
-          sire:   { x: x2, y: sireY },
-          dam:    { x: x2, y: damY },
+          main:   { x: left1, y: mainY },
+          sire:   { x: left2, y: row2Top },
+          dam:    { x: left2, y: row2Top + boxH + gap2 },
 
-          ssire:  { x: x3, y: ssireY },
-          sdam:   { x: x3, y: sdamY },
-          dsire:  { x: x3, y: dsireY },
-          ddam:   { x: x3, y: ddamY },
+          ssire:  { x: left3, y: row3Top },
+          sdam:   { x: left3, y: row3Top + boxH + gap3 },
+          dsire:  { x: left3, y: row3Top + (boxH + gap3) * 2 },
+          ddam:   { x: left3, y: row3Top + (boxH + gap3) * 3 },
 
-          sssire: { x: x4, y: row4Top + (boxH + gap4) * 0 },
-          ssdam:  { x: x4, y: row4Top + (boxH + gap4) * 1 },
-          sdsire: { x: x4, y: row4Top + (boxH + gap4) * 2 },
-          sddam:  { x: x4, y: row4Top + (boxH + gap4) * 3 },
-          dssire: { x: x4, y: row4Top + (boxH + gap4) * 4 },
-          dsdam:  { x: x4, y: row4Top + (boxH + gap4) * 5 },
-          ddsire: { x: x4, y: row4Top + (boxH + gap4) * 6 },
-          dddam:  { x: x4, y: row4Top + (boxH + gap4) * 7 }
+          sssire: { x: left4, y: row4Top + (boxH + gap4) * 0 },
+          ssdam:  { x: left4, y: row4Top + (boxH + gap4) * 1 },
+          sdsire: { x: left4, y: row4Top + (boxH + gap4) * 2 },
+          sddam:  { x: left4, y: row4Top + (boxH + gap4) * 3 },
+          dssire: { x: left4, y: row4Top + (boxH + gap4) * 4 },
+          dsdam:  { x: left4, y: row4Top + (boxH + gap4) * 5 },
+          ddsire: { x: left4, y: row4Top + (boxH + gap4) * 6 },
+          dddam:  { x: left4, y: row4Top + (boxH + gap4) * 7 }
         };
       }
 
@@ -971,7 +987,7 @@
 
           try {
             const url = new URL(window.location.href);
-            url.searchParams.set("saved", encodeURIComponent(JSON.stringify(settings)));
+            url.searchParams.set("saved", JSON.stringify(settings));
             window.history.replaceState({}, "", url.toString());
           } catch (historyErr) {
             console.warn("Could not update URL with saved settings:", historyErr);
@@ -1001,7 +1017,7 @@
         const positions = getPositions(boxW, boxH);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute("preserveAspectRatio", "none");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
         boxWidthValue.textContent = boxW;
         boxHeightValue.textContent = boxH;
@@ -1069,22 +1085,22 @@
         }
 
         const hs = layoutOrientation.value === "portrait" ? 0.86 : 0.88;
-        const headerTextX = meta.header.x + meta.header.logoSize + 12;
-        const headerTextY = meta.header.y + 12;
+        const headerTextX = meta.header.x + meta.header.logoSize + 8;
+        const headerTextY = meta.header.y + 10;
 
-        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 18 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 18 * hs, getParam("street"), { size: 14 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 34 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 14 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 50 * hs, getParam("phone"), { size: 14 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 66 * hs, getParam("email"), { size: 14 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 90 * hs, "Breed:", { size: 14 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 48 * hs, headerTextY + 90 * hs, getParam("breed"), { size: 14 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 106 * hs, "DOB:", { size: 14 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 38 * hs, headerTextY + 106 * hs, getParam("dob"), { size: 14 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 14 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 14 * hs, getParam("street"), { size: 11 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 27 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 11 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 40 * hs, getParam("phone"), { size: 11 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 53 * hs, getParam("email"), { size: 11 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 68 * hs, "Breed:", { size: 11 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 38 * hs, headerTextY + 68 * hs, getParam("breed"), { size: 11 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 81 * hs, "DOB:", { size: 11 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 30 * hs, headerTextY + 81 * hs, getParam("dob"), { size: 11 * hs, weight: 700 });
 
         if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
-          const photoW = Math.min(boxW, layoutOrientation.value === "portrait" ? 165 : 178);
-          const photoH = layoutOrientation.value === "portrait" ? 130 : 138;
+          const photoW = Math.min(boxW, layoutOrientation.value === "portrait" ? 85 : 92);
+          const photoH = layoutOrientation.value === "portrait" ? 68 : 72;
           const main = positions.main;
           const photoX = main.x + Math.max(0, (boxW - photoW) / 2);
           const photoY = main.y - photoH - meta.photoGap;
@@ -1116,7 +1132,7 @@
             "stroke-width": 1.1
           }));
 
-          const img = makeEl("image", {
+          photoLayer.appendChild(makeEl("image", {
             href: getUrlParam("rabbitphoto"),
             x: photoX,
             y: photoY,
@@ -1124,8 +1140,7 @@
             height: photoH,
             preserveAspectRatio: "xMidYMid slice",
             "clip-path": `url(#${clipId})`
-          });
-          photoLayer.appendChild(img);
+          }));
         }
 
         parentMap.forEach(([childId, parentId]) => {
@@ -1140,13 +1155,13 @@
         const footerY = meta.footer.y;
         const sigUrl = getUrlParam("signature");
 
-        addText(footerLayer, footerX, footerY - 32, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 11.5, weight: 600 });
+        addText(footerLayer, footerX, footerY - 18, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 7.5, weight: 600 });
 
         footerLayer.appendChild(makeEl("line", {
           x1: footerX,
-          y1: footerY + 8,
-          x2: footerX + 200,
-          y2: footerY + 8,
+          y1: footerY + 5,
+          x2: footerX + 145,
+          y2: footerY + 5,
           stroke: "#000000",
           "stroke-width": 1
         }));
@@ -1155,28 +1170,28 @@
           footerLayer.appendChild(makeEl("image", {
             href: sigUrl,
             x: footerX,
-            y: footerY - 24,
-            width: 62,
-            height: 42,
+            y: footerY - 16,
+            width: 44,
+            height: 28,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        addText(footerLayer, footerX, footerY + 22, getParam("owner"), { size: 11.5, weight: 700 });
+        addText(footerLayer, footerX, footerY + 16, getParam("owner"), { size: 8, weight: 700 });
 
         addText(
           footerLayer,
           meta.footer.right,
           meta.footer.taglineY,
           "Pedigree built on the ShowTails LLC platform - www.showtails.com",
-          { size: 9, anchor: "end" }
+          { size: 7.5, anchor: "end" }
         );
 
         if (panZoom) {
           requestAnimationFrame(() => {
             panZoom.resize();
             panZoom.updateBBox();
-            if (saved) {
+            if (saved && keepZoom) {
               panZoom.zoom(saved.zoom);
               panZoom.pan(saved.pan);
             } else {
@@ -1265,11 +1280,11 @@
 
         svg.addEventListener("pointerup", () => { isPanning = false; });
         svg.addEventListener("pointercancel", () => { isPanning = false; });
+
+        interactionWired = true;
       }
 
       function enablePinchZoom() {
-        if (interactionWired) return;
-
         let pinchStart = null;
         let startZoom = 1;
 
@@ -1304,8 +1319,6 @@
         svg.addEventListener("touchend", () => {
           pinchStart = null;
         });
-
-        interactionWired = true;
       }
 
       function tryInit() {
@@ -1407,7 +1420,8 @@
 
       fontOptions.forEach(option => {
         option.addEventListener("click", () => {
-          applyFont(option.dataset.font, true);
+          applyFont(option.dataset.font, false);
+          render(false);
           fontPicker.classList.remove("open");
         });
       });
@@ -1420,7 +1434,7 @@
 
       colorPreset.addEventListener("change", () => {
         applyPresetIfNeeded();
-        render(true);
+        render(false);
       });
 
       [
@@ -1441,14 +1455,14 @@
         watermarkOpacity,
         watermarkSize,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("input", () => render(true)));
+      ].forEach(el => el.addEventListener("input", () => render(false)));
 
       [
         mainSexColorToggle,
         layoutOrientation,
         toggleWatermark,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("change", () => render(true)));
+      ].forEach(el => el.addEventListener("change", () => render(false)));
 
       saveBtn.addEventListener("click", saveSettingsToShowTails);
       resetStylesBtn.addEventListener("click", () => resetDefaults(true));
