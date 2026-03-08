@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>4-Generation Rabbit Pedigree</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,63 +20,23 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: white;
+      background: #fff;
       font-family: var(--menu-font);
     }
 
     #pedigree-container {
       width: 100vw;
       height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #fff;
       position: relative;
       overflow: hidden;
-      background: white;
     }
 
-    svg {
+    #pedigree-svg {
+      width: 100%;
+      height: 100%;
       display: block;
-      width: 100% !important;
-      height: 100% !important;
-      transform: none !important;
-      margin: 0 auto !important;
-      background: white !important;
-      page-break-inside: avoid !important;
-      touch-action: none !important;
-      -ms-touch-action: none !important;
-    }
-
-    #background-image,
-    #watermark-image,
-    #rabbit-photo {
-      pointer-events: none;
-    }
-
-    .box {
-      rx: 10;
-      ry: 10;
-      stroke: black;
-      stroke-width: 1.5;
-      fill: white;
-    }
-
-    .main-rabbit-box { fill: #ffffff; }
-    .male { fill: #cce5ff; }
-    .female { fill: #f8d7da; }
-
-    text {
-      font-size: 14px;
-      font-family: Arial, sans-serif;
-      fill: #000000;
-    }
-
-    .name { font-weight: bold; font-size: 16px; }
-    .title { font-weight: bold; font-size: 20px; }
-
-    .credit {
-      font-size: 12px;
-      fill: #000;
+      background: #fff;
     }
 
     #menu-toggle {
@@ -87,7 +47,7 @@
       border: none;
       border-radius: 10px;
       background: #234a57;
-      color: #ffffff;
+      color: #fff;
       padding: 10px 14px;
       font-size: 14px;
       font-weight: 600;
@@ -100,10 +60,10 @@
       top: 58px;
       right: 12px;
       z-index: 10019;
-      width: 290px;
+      width: 310px;
       max-height: calc(100vh - 76px);
       overflow-y: auto;
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #d8e1e8;
       border-radius: 14px;
       box-shadow: 0 14px 34px rgba(0,0,0,0.16);
@@ -143,8 +103,7 @@
       margin-top: 0;
     }
 
-    .menu-section label,
-    .menu-section .section-label {
+    .menu-section label {
       display: block;
       font-size: 12px;
       font-weight: 700;
@@ -165,7 +124,7 @@
       height: 38px;
       border: 1px solid #cfd9e1;
       border-radius: 8px;
-      background: #ffffff;
+      background: #fff;
     }
 
     .toggle-row {
@@ -209,7 +168,7 @@
 
     #menu-print-btn {
       background: #234a57;
-      color: #ffffff;
+      color: #fff;
     }
 
     #reset-styles-btn {
@@ -228,14 +187,13 @@
       padding: 10px 12px;
       border: 1px solid #cfd9e1;
       border-radius: 8px;
-      background: #ffffff;
+      background: #fff;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
       font-size: 14px;
       color: #234a57;
-      box-sizing: border-box;
     }
 
     .font-picker-arrow {
@@ -249,7 +207,7 @@
       top: calc(100% + 6px);
       left: 0;
       right: 0;
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #cfd9e1;
       border-radius: 10px;
       box-shadow: 0 8px 22px rgba(0,0,0,0.12);
@@ -283,52 +241,12 @@
       font-weight: 700;
     }
 
-    @page {
-      size: 11in 8.5in landscape;
-      margin: 0;
-    }
-
     @media print {
-      html, body {
+      html, body, #pedigree-container {
         width: 100%;
         height: 100%;
-        margin: 0;
-        padding: 0;
         overflow: hidden !important;
-        background: white;
-      }
-
-      #pedigree-container {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-        padding: 0;
-        background: white;
-        overflow: hidden;
-      }
-
-      svg {
-        width: 100% !important;
-        height: 100% !important;
-        transform: none !important;
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden;
-      }
-
-      #pedigree-container svg {
-        transform: scale(1) translate(0, 0) !important;
-        position: absolute !important;
-        top: 0;
-        left: 0;
-      }
-
-      #pedigree-container > * {
-        transform: none !important;
+        background: #fff;
       }
 
       #menu-toggle,
@@ -336,26 +254,15 @@
         display: none !important;
         visibility: hidden !important;
       }
+
+      #pedigree-svg {
+        width: 100% !important;
+        height: 100% !important;
+      }
     }
   </style>
-
-  <script>
-    function getParam(name) {
-      const params = new URLSearchParams(window.location.search);
-      const value = params.get(name) || '';
-      return value
-        .replaceAll('+', ' ')
-        .replace(/%26/g, '&')
-        .replace(/%27/g, "'")
-        .replace(/%20/g, ' ')
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
-  </script>
 </head>
 <body>
-
   <button id="menu-toggle" type="button">Customize / Print</button>
 
   <div id="pedigree-menu">
@@ -363,18 +270,26 @@
     <div class="menu-note">Choose a preset or fine-tune colors below.</div>
 
     <div class="menu-section">
-      <label for="color-preset">Preset Color Pairings</label>
+      <label for="color-preset">Preset Male / Female Pairings</label>
       <select id="color-preset">
         <option value="custom">Custom</option>
-        <option value="classicBlue">Classic Blue / Pink</option>
-        <option value="softPastel">Soft Pastel</option>
-        <option value="earthy">Earthy Natural</option>
-        <option value="monochrome">Monochrome Blue</option>
-        <option value="showtails">ShowTails Blue Theme</option>
+        <option value="classicBluePink">Classic Blue / Pink</option>
+        <option value="navyBlush">Navy / Blush</option>
+        <option value="sagePeach">Sage / Peach</option>
+        <option value="tealLavender">Teal / Lavender</option>
+        <option value="steelRose">Steel / Rose</option>
+        <option value="iceCoral">Ice Blue / Coral</option>
+        <option value="forestCream">Forest / Cream</option>
+        <option value="showtails">ShowTails Blue / Mauve</option>
       </select>
     </div>
 
     <div class="menu-section">
+      <div class="toggle-row">
+        <span>Main Rabbit Uses Sex Color</span>
+        <input type="checkbox" id="main-sex-color-toggle">
+      </div>
+
       <label for="main-box-color">Main Rabbit Box Color</label>
       <input type="color" id="main-box-color" value="#ffffff">
 
@@ -414,13 +329,28 @@
         <option value="portrait">Portrait</option>
       </select>
 
-      <label for="box-width-scale">Box Width</label>
-      <input type="range" id="box-width-scale" min="85" max="115" step="1" value="100">
-      <div class="range-readout"><span id="box-width-scale-value">100</span>%</div>
+      <label for="box-width">Box Width</label>
+      <input type="range" id="box-width" min="180" max="340" step="5" value="240">
+      <div class="range-readout"><span id="box-width-value">240</span> px</div>
 
-      <label for="box-height-scale">Box Height</label>
-      <input type="range" id="box-height-scale" min="85" max="115" step="1" value="100">
-      <div class="range-readout"><span id="box-height-scale-value">100</span>%</div>
+      <label for="box-height">Box Height</label>
+      <input type="range" id="box-height" min="110" max="220" step="5" value="140">
+      <div class="range-readout"><span id="box-height-value">140</span> px</div>
+    </div>
+
+    <div class="menu-section">
+      <label for="line-style">Pedigree Line Style</label>
+      <select id="line-style">
+        <option value="diagonal">Diagonal</option>
+        <option value="tree">Standard Tree</option>
+      </select>
+
+      <label for="line-color">Line Color</label>
+      <input type="color" id="line-color" value="#000000">
+
+      <label for="line-thickness">Line Thickness</label>
+      <input type="range" id="line-thickness" min="1" max="6" step="0.5" value="1.5">
+      <div class="range-readout"><span id="line-thickness-value">1.5</span> px</div>
     </div>
 
     <div class="menu-section">
@@ -455,449 +385,68 @@
   </div>
 
   <div id="pedigree-container">
-    <svg id="pedigree-svg" viewBox="-80 -170 1750 1400" preserveAspectRatio="none">
-
-      <image
-        id="background-image"
-        x="-125"
-        y="-290"
-        width="1800"
-        height="1500"
-        preserveAspectRatio="xMidYMid meet"
-      />
-
-      <image
-        id="watermark-image"
-        x="350"
-        y="150"
-        width="700"
-        height="700"
-        preserveAspectRatio="xMidYMid meet"
-        opacity="0.10"
-        style="display:none;"
-      />
-
-      <g id="pedigree-root">
-
-        <g id="header" transform="translate(100, -40)">
-          <image
-            id="logo"
-            x="0"
-            y="-40"
-            width="140"
-            height="140"
-            preserveAspectRatio="xMidYMid meet"
-          />
-
-          <g transform="translate(160, -10)">
-            <text x="0" y="0" text-anchor="start" class="title" data-field="rabbitry"></text>
-            <text x="0" y="20" text-anchor="start" class="name" data-field="street"></text>
-            <text x="0" y="40" text-anchor="start" class="name" data-chain="city,state,zip"></text>
-            <text x="0" y="60" text-anchor="start" class="name" data-field="phone"></text>
-            <text x="0" y="80" text-anchor="start" class="name" data-field="email"></text>
-            <text x="0" y="110" text-anchor="start" class="name">Breed:</text>
-            <text x="60" y="110" text-anchor="start" class="name" data-field="breed"></text>
-            <text x="0" y="130" text-anchor="start" class="name">DOB:</text>
-            <text x="60" y="130" text-anchor="start" class="name" data-field="dob"></text>
-          </g>
-        </g>
-
-        <g id="rabbit-photo-group" style="display:none;">
-          <rect id="rabbit-photo-frame" x="100" y="235" width="220" height="120" rx="10" ry="10" fill="#ffffff" stroke="#000000" stroke-width="1.5"></rect>
-          <image
-            id="rabbit-photo"
-            x="105"
-            y="240"
-            width="210"
-            height="110"
-            preserveAspectRatio="xMidYMid slice"
-          />
-        </g>
-
-        <g transform="translate(20,740)">
-          <text class="name" x="40" y="200">I hereby certify that this pedigree is correct to the best of my knowledge.</text>
-          <line x1="40" y1="260" x2="350" y2="260" stroke="#000" stroke-width="1" />
-          <text x="40" y="280" text-anchor="start" class="name" data-field="owner"></text>
-        </g>
-
-        <image
-          id="signature"
-          x="40"
-          y="950"
-          width="220"
-          height="80"
-          preserveAspectRatio="xMidYMid meet"
-        />
-
-        <rect id="main-rabbit-box" x="100" y="380" width="220" height="125" class="box main-rabbit-box"/>
-        <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
-        <text x="110" y="420" text-anchor="left" class="label">Color:</text>
-        <text x="150" y="420" text-anchor="left" data-field="color"></text>
-        <text x="110" y="440" text-anchor="left" class="label">Ear#:</text>
-        <text x="150" y="440" text-anchor="left" data-field="ear number"></text>
-        <text x="270" y="440" text-anchor="left" class="label">Weight:</text>
-        <text x="320" y="440" text-anchor="left" data-field="weight"></text>
-        <text x="110" y="460" text-anchor="left" class="label">Sex:</text>
-        <text x="150" y="460" text-anchor="left" data-field="sex"></text>
-        <text x="270" y="460" text-anchor="left" class="label">Legs:</text>
-        <text x="310" y="460" text-anchor="left" data-field="legs"></text>
-        <text x="110" y="480" text-anchor="left" class="label">Reg#:</text>
-        <text x="150" y="480" text-anchor="left" data-field="reg"></text>
-        <text x="270" y="480" text-anchor="left" class="label">GC#:</text>
-        <text x="310" y="480" text-anchor="left" data-field="gc"></text>
-        <text x="110" y="500" text-anchor="left" data-field="custom"></text>
-        <text x="110" y="530" text-anchor="left" data-field="win1"></text>
-
-        <line x1="420" y1="440" x2="450" y2="165" stroke="black"/>
-        <line x1="420" y1="440" x2="450" y2="715" stroke="black"/>
-
-        <rect x="450" y="100" width="220" height="125" class="box male" data-slot="sire"/>
-        <text x="460" y="120" text-anchor="left" class="name" data-chain="srabbitry,sire"></text>
-        <text x="460" y="140" text-anchor="left" class="label">Color:</text>
-        <text x="500" y="140" text-anchor="left" data-field="scolor"></text>
-        <text x="460" y="160" text-anchor="left" class="label">Ear#:</text>
-        <text x="500" y="160" text-anchor="left" data-field="sear"></text>
-        <text x="620" y="160" text-anchor="left" class="label">Weight:</text>
-        <text x="680" y="160" text-anchor="left" data-field="sweight"></text>
-        <text x="460" y="180" text-anchor="left" class="label">Sex:</text>
-        <text x="500" y="180" text-anchor="left" data-field="ssex"></text>
-        <text x="620" y="180" text-anchor="left" class="label">Legs:</text>
-        <text x="680" y="180" text-anchor="left" data-field="slegs"></text>
-        <text x="460" y="200" text-anchor="left" class="label">Reg#:</text>
-        <text x="500" y="200" text-anchor="left" data-field="sreg"></text>
-        <text x="620" y="200" text-anchor="left" class="label">GC#:</text>
-        <text x="680" y="200" text-anchor="left" data-field="sgc"></text>
-        <text x="460" y="220" text-anchor="left" data-field="scustom"></text>
-        <text x="460" y="250" text-anchor="left" data-field="swin1"></text>
-
-        <line x1="770" y1="165" x2="800" y2="35" stroke="black"/>
-        <line x1="770" y1="165" x2="800" y2="300" stroke="black"/>
-
-        <rect x="450" y="650" width="220" height="125" class="box female"/>
-        <text x="460" y="670" text-anchor="left" class="name" data-chain="drabbitry,dam"></text>
-        <text x="460" y="690" text-anchor="left" class="label">Color:</text>
-        <text x="500" y="690" text-anchor="left" data-field="dcolor"></text>
-        <text x="460" y="710" text-anchor="left" class="label">Ear#:</text>
-        <text x="500" y="710" text-anchor="left" data-field="dear"></text>
-        <text x="620" y="710" text-anchor="left" class="label">Weight:</text>
-        <text x="680" y="710" text-anchor="left" data-field="dweight"></text>
-        <text x="460" y="730" text-anchor="left" class="label">Sex:</text>
-        <text x="500" y="730" text-anchor="left" data-field="dsex"></text>
-        <text x="620" y="730" text-anchor="left" class="label">Legs:</text>
-        <text x="680" y="730" text-anchor="left" data-field="dlegs"></text>
-        <text x="460" y="750" text-anchor="left" class="label">Reg#:</text>
-        <text x="500" y="750" text-anchor="left" data-field="dreg"></text>
-        <text x="620" y="750" text-anchor="left" class="label">GC#:</text>
-        <text x="680" y="750" text-anchor="left" data-field="dgc"></text>
-        <text x="460" y="770" text-anchor="left" data-field="dcustom"></text>
-        <text x="460" y="810" text-anchor="left" data-field="dwin1"></text>
-
-        <line x1="770" y1="715" x2="800" y2="580" stroke="black"/>
-        <line x1="770" y1="715" x2="800" y2="850" stroke="black"/>
-
-        <rect x="800" y="-35" width="220" height="125" class="box male"/>
-        <text x="810" y="-15" text-anchor="left" class="name" data-chain="ssrabbitry,ssire"></text>
-        <text x="810" y="5" text-anchor="left" class="label">Color:</text>
-        <text x="850" y="5" text-anchor="left" data-field="sscolor"></text>
-        <text x="810" y="25" text-anchor="left" class="label">Ear#:</text>
-        <text x="850" y="25" text-anchor="left" data-field="ssear"></text>
-        <text x="980" y="25" text-anchor="left" class="label">Weight:</text>
-        <text x="1030" y="25" text-anchor="left" data-field="ssweight"></text>
-        <text x="810" y="45" text-anchor="left" class="label">Sex:</text>
-        <text x="850" y="45" text-anchor="left" data-field="sssex"></text>
-        <text x="980" y="45" text-anchor="left" class="label">Legs:</text>
-        <text x="1030" y="45" text-anchor="left" data-field="sslegs"></text>
-        <text x="810" y="65" text-anchor="left" class="label">Reg#:</text>
-        <text x="850" y="65" text-anchor="left" data-field="ssreg"></text>
-        <text x="980" y="65" text-anchor="left" class="label">GC#:</text>
-        <text x="1030" y="65" text-anchor="left" data-field="ssgc"></text>
-        <text x="810" y="85" text-anchor="left" data-field="sscustom"></text>
-        <text x="810" y="115" text-anchor="left" data-field="sswin1"></text>
-
-        <line x1="1120" y1="35" x2="1150" y2="-35" stroke="black"/>
-        <line x1="1120" y1="35" x2="1150" y2="100" stroke="black"/>
-
-        <rect x="800" y="235" width="220" height="125" class="box female"/>
-        <text x="810" y="255" text-anchor="left" class="name" data-chain="sdrabbitry,sdam"></text>
-        <text x="810" y="275" text-anchor="left" class="label">Color:</text>
-        <text x="850" y="275" text-anchor="left" data-field="sdcolor"></text>
-        <text x="810" y="295" text-anchor="left" class="label">Ear#:</text>
-        <text x="850" y="295" text-anchor="left" data-field="sdear"></text>
-        <text x="980" y="295" text-anchor="left" class="label">Weight:</text>
-        <text x="1030" y="295" text-anchor="left" data-field="sdweight"></text>
-        <text x="810" y="315" text-anchor="left" class="label">Sex:</text>
-        <text x="850" y="315" text-anchor="left" data-field="sdsex"></text>
-        <text x="980" y="315" text-anchor="left" class="label">Legs:</text>
-        <text x="1030" y="315" text-anchor="left" data-field="sdlegs"></text>
-        <text x="810" y="335" text-anchor="left" class="label">Reg#:</text>
-        <text x="850" y="335" text-anchor="left" data-field="sdreg"></text>
-        <text x="980" y="335" text-anchor="left" class="label">GC#:</text>
-        <text x="1030" y="335" text-anchor="left" data-field="sdgc"></text>
-        <text x="810" y="355" text-anchor="left" data-field="sdcustom"></text>
-        <text x="810" y="385" text-anchor="left" data-field="sdwin1"></text>
-
-        <line x1="1120" y1="300" x2="1150" y2="235" stroke="black"/>
-        <line x1="1120" y1="300" x2="1150" y2="370" stroke="black"/>
-
-        <rect x="800" y="515" width="220" height="125" class="box male"/>
-        <text x="810" y="535" text-anchor="left" class="name" data-chain="dsrabbitry,dsire"></text>
-        <text x="810" y="555" text-anchor="left" class="label">Color:</text>
-        <text x="850" y="555" text-anchor="left" data-field="dscolor"></text>
-        <text x="810" y="575" text-anchor="left" class="label">Ear#:</text>
-        <text x="850" y="575" text-anchor="left" data-field="dsear"></text>
-        <text x="980" y="575" text-anchor="left" class="label">Weight:</text>
-        <text x="1030" y="575" text-anchor="left" data-field="dsweight"></text>
-        <text x="810" y="595" text-anchor="left" class="label">Sex:</text>
-        <text x="850" y="595" text-anchor="left" data-field="dssex"></text>
-        <text x="980" y="595" text-anchor="left" class="label">Legs:</text>
-        <text x="1030" y="595" text-anchor="left" data-field="dslegs"></text>
-        <text x="810" y="615" text-anchor="left" class="label">Reg#:</text>
-        <text x="850" y="615" text-anchor="left" data-field="dsreg"></text>
-        <text x="980" y="615" text-anchor="left" class="label">GC#:</text>
-        <text x="1030" y="615" text-anchor="left" data-field="dsgc"></text>
-        <text x="810" y="635" text-anchor="left" data-field="dscustom"></text>
-        <text x="810" y="665" text-anchor="left" data-field="dswin1"></text>
-
-        <line x1="1120" y1="580" x2="1150" y2="515" stroke="black"/>
-        <line x1="1120" y1="580" x2="1150" y2="650" stroke="black"/>
-
-        <rect x="800" y="785" width="220" height="125" class="box female"/>
-        <text x="810" y="805" text-anchor="left" class="name" data-chain="ddrabbitry,ddam"></text>
-        <text x="810" y="825" text-anchor="left" class="label">Color:</text>
-        <text x="850" y="825" text-anchor="left" data-field="ddcolor"></text>
-        <text x="810" y="845" text-anchor="left" class="label">Ear#:</text>
-        <text x="850" y="845" text-anchor="left" data-field="ddear"></text>
-        <text x="980" y="845" text-anchor="left" class="label">Weight:</text>
-        <text x="1030" y="845" text-anchor="left" data-field="ddweight"></text>
-        <text x="810" y="865" text-anchor="left" class="label">Sex:</text>
-        <text x="850" y="865" text-anchor="left" data-field="ddsex"></text>
-        <text x="980" y="865" text-anchor="left" class="label">Legs:</text>
-        <text x="1030" y="865" text-anchor="left" data-field="ddlegs"></text>
-        <text x="810" y="885" text-anchor="left" class="label">Reg#:</text>
-        <text x="850" y="885" text-anchor="left" data-field="ddreg"></text>
-        <text x="980" y="885" text-anchor="left" class="label">GC#:</text>
-        <text x="1030" y="885" text-anchor="left" data-field="ddgc"></text>
-        <text x="810" y="905" text-anchor="left" data-field="ddcustom"></text>
-        <text x="810" y="935" text-anchor="left" data-field="ddwin1"></text>
-
-        <line x1="1120" y1="850" x2="1150" y2="785" stroke="black"/>
-        <line x1="1120" y1="850" x2="1150" y2="920" stroke="black"/>
-
-        <rect x="1150" y="-100" width="220" height="125" class="box male"/>
-        <text x="1160" y="-80" text-anchor="left" class="name" data-chain="sssrabbitry,sssire"></text>
-        <text x="1160" y="-60" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="-60" text-anchor="left" data-field="ssscolor"></text>
-        <text x="1160" y="-40" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="-40" text-anchor="left" data-field="sssear"></text>
-        <text x="1330" y="-40" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="-40" text-anchor="left" data-field="sssweight"></text>
-        <text x="1160" y="-20" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="-20" text-anchor="left" data-field="ssssex"></text>
-        <text x="1330" y="-20" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="-20" text-anchor="left" data-field="ssslegs"></text>
-        <text x="1160" y="0" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="0" text-anchor="left" data-field="sssreg"></text>
-        <text x="1330" y="0" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="0" text-anchor="left" data-field="sssgc"></text>
-        <text x="1160" y="20" text-anchor="left" data-field="ssscustom"></text>
-
-        <rect x="1150" y="35" width="220" height="125" class="box female"/>
-        <text x="1160" y="55" text-anchor="left" class="name" data-chain="ssdrabbitry,ssdam"></text>
-        <text x="1160" y="75" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="75" text-anchor="left" data-field="ssdcolor"></text>
-        <text x="1160" y="95" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="95" text-anchor="left" data-field="ssdear"></text>
-        <text x="1330" y="95" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="95" text-anchor="left" data-field="ssdweight"></text>
-        <text x="1160" y="115" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="115" text-anchor="left" data-field="ssdsex"></text>
-        <text x="1330" y="115" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="115" text-anchor="left" data-field="ssdlegs"></text>
-        <text x="1160" y="135" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="135" text-anchor="left" data-field="ssdreg"></text>
-        <text x="1330" y="135" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="135" text-anchor="left" data-field="ssdgc"></text>
-        <text x="1160" y="155" text-anchor="left" data-field="ssdcustom"></text>
-
-        <rect x="1150" y="170" width="220" height="125" class="box male"/>
-        <text x="1160" y="190" text-anchor="left" class="name" data-chain="sdsrabbitry,sdsire"></text>
-        <text x="1160" y="210" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="210" text-anchor="left" data-field="sdscolor"></text>
-        <text x="1160" y="230" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="230" text-anchor="left" data-field="sdsear"></text>
-        <text x="1330" y="230" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="230" text-anchor="left" data-field="sdsweight"></text>
-        <text x="1160" y="250" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="250" text-anchor="left" data-field="sdssex"></text>
-        <text x="1330" y="250" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="250" text-anchor="left" data-field="sdslegs"></text>
-        <text x="1160" y="270" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="270" text-anchor="left" data-field="sdsreg"></text>
-        <text x="1330" y="270" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="270" text-anchor="left" data-field="sdsgc"></text>
-        <text x="1160" y="290" text-anchor="left" data-field="sdscustom"></text>
-
-        <rect x="1150" y="305" width="220" height="125" class="box female"/>
-        <text x="1160" y="325" text-anchor="left" class="name" data-chain="sddrabbitry,sddam"></text>
-        <text x="1160" y="345" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="345" text-anchor="left" data-field="sddcolor"></text>
-        <text x="1160" y="365" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="365" text-anchor="left" data-field="sddear"></text>
-        <text x="1330" y="365" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="365" text-anchor="left" data-field="sddweight"></text>
-        <text x="1160" y="385" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="385" text-anchor="left" data-field="sddsex"></text>
-        <text x="1330" y="385" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="385" text-anchor="left" data-field="sddlegs"></text>
-        <text x="1160" y="405" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="405" text-anchor="left" data-field="sddreg"></text>
-        <text x="1330" y="405" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="405" text-anchor="left" data-field="sddgc"></text>
-        <text x="1160" y="425" text-anchor="left" data-field="sddcustom"></text>
-
-        <rect x="1150" y="450" width="220" height="125" class="box male"/>
-        <text x="1160" y="470" text-anchor="left" class="name" data-chain="dssrabbitry,dssire"></text>
-        <text x="1160" y="490" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="490" text-anchor="left" data-field="dsscolor"></text>
-        <text x="1160" y="510" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="510" text-anchor="left" data-field="dssear"></text>
-        <text x="1330" y="510" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="510" text-anchor="left" data-field="dssweight"></text>
-        <text x="1160" y="530" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="530" text-anchor="left" data-field="dsssex"></text>
-        <text x="1330" y="530" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="530" text-anchor="left" data-field="dsslegs"></text>
-        <text x="1160" y="550" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="550" text-anchor="left" data-field="dssreg"></text>
-        <text x="1330" y="550" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="550" text-anchor="left" data-field="dssgc"></text>
-        <text x="1160" y="570" text-anchor="left" data-field="dsscustom"></text>
-
-        <rect x="1150" y="585" width="220" height="125" class="box female"/>
-        <text x="1160" y="605" text-anchor="left" class="name" data-chain="dsdrabbitry,dsdam"></text>
-        <text x="1160" y="625" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="625" text-anchor="left" data-field="dsdcolor"></text>
-        <text x="1160" y="645" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="645" text-anchor="left" data-field="dsdear"></text>
-        <text x="1330" y="645" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="645" text-anchor="left" data-field="dsdweight"></text>
-        <text x="1160" y="665" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="665" text-anchor="left" data-field="dsdsex"></text>
-        <text x="1330" y="665" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="665" text-anchor="left" data-field="dsdlegs"></text>
-        <text x="1160" y="685" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="685" text-anchor="left" data-field="dsdreg"></text>
-        <text x="1330" y="685" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="685" text-anchor="left" data-field="dsdgc"></text>
-        <text x="1160" y="705" text-anchor="left" data-field="dsdcustom"></text>
-
-        <rect x="1150" y="720" width="220" height="125" class="box male"/>
-        <text x="1160" y="740" text-anchor="left" class="name" data-chain="ddsrabbitry,ddsire"></text>
-        <text x="1160" y="760" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="760" text-anchor="left" data-field="ddscolor"></text>
-        <text x="1160" y="780" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="780" text-anchor="left" data-field="ddsear"></text>
-        <text x="1330" y="780" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="780" text-anchor="left" data-field="ddsweight"></text>
-        <text x="1160" y="800" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="800" text-anchor="left" data-field="ddssex"></text>
-        <text x="1330" y="800" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="800" text-anchor="left" data-field="ddslegs"></text>
-        <text x="1160" y="820" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="820" text-anchor="left" data-field="ddsreg"></text>
-        <text x="1330" y="820" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="820" text-anchor="left" data-field="ddsgc"></text>
-        <text x="1160" y="840" text-anchor="left" data-field="ddscustom"></text>
-
-        <rect x="1150" y="855" width="220" height="125" class="box female"/>
-        <text x="1160" y="875" text-anchor="left" class="name" data-chain="dddrabbitry,dddam"></text>
-        <text x="1160" y="895" text-anchor="left" class="label">Color:</text>
-        <text x="1200" y="895" text-anchor="left" data-field="dddcolor"></text>
-        <text x="1160" y="915" text-anchor="left" class="label">Ear#:</text>
-        <text x="1200" y="915" text-anchor="left" data-field="dddear"></text>
-        <text x="1330" y="915" text-anchor="left" class="label">Weight:</text>
-        <text x="1380" y="915" text-anchor="left" data-field="dddweight"></text>
-        <text x="1160" y="935" text-anchor="left" class="label">Sex:</text>
-        <text x="1200" y="935" text-anchor="left" data-field="dddsex"></text>
-        <text x="1330" y="935" text-anchor="left" class="label">Legs:</text>
-        <text x="1380" y="935" text-anchor="left" data-field="dddlegs"></text>
-        <text x="1160" y="955" text-anchor="left" class="label">Reg#:</text>
-        <text x="1200" y="955" text-anchor="left" data-field="dddreg"></text>
-        <text x="1330" y="955" text-anchor="left" class="label">GC#:</text>
-        <text x="1380" y="955" text-anchor="left" data-field="dddgc"></text>
-        <text x="1160" y="975" text-anchor="left" data-field="dddcustom"></text>
-
-        <text
-          id="pedigree-credit"
-          class="credit"
-          x="1150"
-          y="1000"
-          text-anchor="end"
-          aria-label="Pedigree credit">
-          Pedigree built on the ShowTails LLC platform - www.showtails.com
-        </text>
-      </g>
-    </svg>
+    <svg id="pedigree-svg" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
 
   <style id="print-page-style">
     @page { size: 11in 8.5in landscape; margin: 0; }
   </style>
 
-  <script src="pedigree.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-
   <script>
     (function () {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const xlinkNS = "http://www.w3.org/1999/xlink";
+
+      const svg = document.getElementById("pedigree-svg");
+      const menuToggle = document.getElementById("menu-toggle");
+      const pedigreeMenu = document.getElementById("pedigree-menu");
+      const printPageStyle = document.getElementById("print-page-style");
+
+      const colorPreset = document.getElementById("color-preset");
+      const mainSexColorToggle = document.getElementById("main-sex-color-toggle");
+      const mainBoxColor = document.getElementById("main-box-color");
+      const maleBoxColor = document.getElementById("male-box-color");
+      const femaleBoxColor = document.getElementById("female-box-color");
+      const fontColor = document.getElementById("font-color");
+      const layoutOrientation = document.getElementById("layout-orientation");
+      const boxWidthInput = document.getElementById("box-width");
+      const boxHeightInput = document.getElementById("box-height");
+      const boxWidthValue = document.getElementById("box-width-value");
+      const boxHeightValue = document.getElementById("box-height-value");
+      const lineStyleInput = document.getElementById("line-style");
+      const lineColorInput = document.getElementById("line-color");
+      const lineThicknessInput = document.getElementById("line-thickness");
+      const lineThicknessValue = document.getElementById("line-thickness-value");
+      const toggleWatermark = document.getElementById("toggle-watermark");
+      const watermarkOpacity = document.getElementById("watermark-opacity");
+      const watermarkSize = document.getElementById("watermark-size");
+      const watermarkOpacityValue = document.getElementById("watermark-opacity-value");
+      const watermarkSizeValue = document.getElementById("watermark-size-value");
+      const toggleRabbitPhoto = document.getElementById("toggle-rabbit-photo");
+      const resetStylesBtn = document.getElementById("reset-styles-btn");
+      const printBtn = document.getElementById("menu-print-btn");
+
+      const fontPicker = document.getElementById("fontPicker");
+      const fontPickerButton = document.getElementById("fontPickerButton");
+      const selectedFontPreview = document.getElementById("selectedFontPreview");
+      const fontOptions = document.querySelectorAll(".font-option");
+
       const params = new URLSearchParams(window.location.search);
-      const svg = document.getElementById('pedigree-svg');
-      const container = document.getElementById('pedigree-container');
-      const pedigreeRoot = document.getElementById('pedigree-root');
-      const watermarkImage = document.getElementById('watermark-image');
-      const rabbitPhotoGroup = document.getElementById('rabbit-photo-group');
-      const rabbitPhoto = document.getElementById('rabbit-photo');
-
-      const menuToggle = document.getElementById('menu-toggle');
-      const pedigreeMenu = document.getElementById('pedigree-menu');
-
-      const colorPreset = document.getElementById('color-preset');
-      const mainBoxColor = document.getElementById('main-box-color');
-      const maleBoxColor = document.getElementById('male-box-color');
-      const femaleBoxColor = document.getElementById('female-box-color');
-      const fontColor = document.getElementById('font-color');
-      const layoutOrientation = document.getElementById('layout-orientation');
-      const boxWidthScale = document.getElementById('box-width-scale');
-      const boxHeightScale = document.getElementById('box-height-scale');
-      const boxWidthScaleValue = document.getElementById('box-width-scale-value');
-      const boxHeightScaleValue = document.getElementById('box-height-scale-value');
-      const toggleWatermark = document.getElementById('toggle-watermark');
-      const watermarkOpacity = document.getElementById('watermark-opacity');
-      const watermarkSize = document.getElementById('watermark-size');
-      const watermarkOpacityValue = document.getElementById('watermark-opacity-value');
-      const watermarkSizeValue = document.getElementById('watermark-size-value');
-      const toggleRabbitPhoto = document.getElementById('toggle-rabbit-photo');
-      const resetStylesBtn = document.getElementById('reset-styles-btn');
-
-      const fontPicker = document.getElementById('fontPicker');
-      const fontPickerButton = document.getElementById('fontPickerButton');
-      const selectedFontPreview = document.getElementById('selectedFontPreview');
-      const fontOptions = document.querySelectorAll('.font-option');
-      const printBtn = document.getElementById('menu-print-btn');
-      const printPageStyle = document.getElementById('print-page-style');
-
-      let panZoom = null;
-      let initialized = false;
 
       const defaults = {
-        preset: 'custom',
-        main: '#ffffff',
-        male: '#cce5ff',
-        female: '#f8d7da',
-        fontColor: '#000000',
-        fontFamily: 'Arial, sans-serif',
-        layout: 'landscape',
-        widthScale: 100,
-        heightScale: 100,
+        preset: "custom",
+        mainSexColor: false,
+        main: "#ffffff",
+        male: "#cce5ff",
+        female: "#f8d7da",
+        fontColor: "#000000",
+        fontFamily: "Arial, sans-serif",
+        layout: "landscape",
+        boxWidth: 240,
+        boxHeight: 140,
+        lineStyle: "diagonal",
+        lineColor: "#000000",
+        lineThickness: 1.5,
         watermarkEnabled: false,
         watermarkOpacity: 0.10,
         watermarkSize: 55,
@@ -905,563 +454,640 @@
       };
 
       const presets = {
-        classicBlue: { main: '#eef5ff', male: '#cce5ff', female: '#f8d7da' },
-        softPastel: { main: '#fff7df', male: '#dbeafe', female: '#fce7f3' },
-        earthy: { main: '#efe3d3', male: '#d8e2dc', female: '#ead7d1' },
-        monochrome: { main: '#dbeafe', male: '#c7d2fe', female: '#e0e7ff' },
-        showtails: { main: '#e9f4f8', male: '#cfe6ef', female: '#eadde9' }
+        classicBluePink: { male: "#cce5ff", female: "#f8d7da", main: "#ffffff" },
+        navyBlush:      { male: "#b8cbe6", female: "#f1d0db", main: "#f9fbfd" },
+        sagePeach:      { male: "#cfe1d0", female: "#f7d7c3", main: "#fffaf3" },
+        tealLavender:   { male: "#bfe4e8", female: "#ddd0f1", main: "#f8fcfd" },
+        steelRose:      { male: "#ccd6e3", female: "#efc9d2", main: "#fbfbfc" },
+        iceCoral:       { male: "#d7eefb", female: "#f8cfc4", main: "#fffdfb" },
+        forestCream:    { male: "#cad8c7", female: "#f2e8d2", main: "#fffdf7" },
+        showtails:      { male: "#cfe6ef", female: "#eadde9", main: "#eef7fa" }
       };
 
-      function validBox(vb) {
-        return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
+      const boxDefs = [
+        { id: "main", sexType: "main", titleChain: ["crabbitry","name"], fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom","win1"] },
+        { id: "sire", sexType: "male", titleChain: ["srabbitry","sire"], fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustom","swin1"] },
+        { id: "dam", sexType: "female", titleChain: ["drabbitry","dam"], fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustom","dwin1"] },
+
+        { id: "ssire", sexType: "male", titleChain: ["ssrabbitry","ssire"], fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustom","sswin1"] },
+        { id: "sdam", sexType: "female", titleChain: ["sdrabbitry","sdam"], fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom","sdwin1"] },
+        { id: "dsire", sexType: "male", titleChain: ["dsrabbitry","dsire"], fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom","dswin1"] },
+        { id: "ddam", sexType: "female", titleChain: ["ddrabbitry","ddam"], fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom","ddwin1"] },
+
+        { id: "sssire", sexType: "male", titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"] },
+        { id: "ssdam", sexType: "female", titleChain: ["ssdrabbitry","ssdam"], fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"] },
+        { id: "sdsire", sexType: "male", titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"] },
+        { id: "sddam", sexType: "female", titleChain: ["sddrabbitry","sddam"], fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"] },
+        { id: "dssire", sexType: "male", titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"] },
+        { id: "dsdam", sexType: "female", titleChain: ["dsdrabbitry","dsdam"], fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"] },
+        { id: "ddsire", sexType: "male", titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"] },
+        { id: "dddam", sexType: "female", titleChain: ["dddrabbitry","dddam"], fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"] }
+      ];
+
+      const parentMap = [
+        ["main","sire"],["main","dam"],
+        ["sire","ssire"],["sire","sdam"],
+        ["dam","dsire"],["dam","ddam"],
+        ["ssire","sssire"],["ssire","ssdam"],
+        ["sdam","sdsire"],["sdam","sddam"],
+        ["dsire","dssire"],["dsire","dsdam"],
+        ["ddam","ddsire"],["ddam","dddam"]
+      ];
+
+      function getParam(name) {
+        const raw = params.get(name) || "";
+        const urlDecoded = decodeURIComponent(raw.replace(/\+/g, " "));
+        const ta = document.createElement("textarea");
+        ta.innerHTML = urlDecoded;
+        return ta.value;
       }
 
-      function setSvgImage(id, paramName) {
-        const url = params.get(paramName);
-        if (!url) return;
-        const decoded = decodeURIComponent(url);
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.setAttribute('href', decoded);
-        el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', decoded);
+      function getChain(keys) {
+        return keys.map(k => getParam(k)).filter(Boolean).join(" ");
       }
 
-      function getBoxScaleX() {
-        return Number(boxWidthScale.value || 100) / 100;
-      }
-
-      function getBoxScaleY() {
-        return Number(boxHeightScale.value || 100) / 100;
-      }
-
-      function applyRootTransform() {
-        const sx = getBoxScaleX();
-        const sy = getBoxScaleY();
-
-        if (layoutOrientation.value === 'portrait') {
-          const portraitScale = 0.86;
-          const portraitX = 110;
-          const portraitY = 8;
-          pedigreeRoot.setAttribute(
-            'transform',
-            'translate(' + portraitX + ', ' + portraitY + ') scale(' + (sx * portraitScale) + ', ' + (sy * 1.02) + ')'
-          );
+      function setPrintPage() {
+        if (layoutOrientation.value === "portrait") {
+          printPageStyle.textContent = "@page { size: 8.5in 11in portrait; margin: 0; }";
         } else {
-          pedigreeRoot.setAttribute('transform', 'scale(' + sx + ', ' + sy + ')');
+          printPageStyle.textContent = "@page { size: 11in 8.5in landscape; margin: 0; }";
         }
       }
 
-      function applyBoxColors(main, male, female) {
-        document.querySelectorAll('#main-rabbit-box').forEach(el => {
-          el.style.fill = main;
-        });
-
-        document.querySelectorAll('.box.male').forEach(el => {
-          el.style.fill = male;
-        });
-
-        document.querySelectorAll('.box.female').forEach(el => {
-          el.style.fill = female;
-        });
-
-        mainBoxColor.value = main;
-        maleBoxColor.value = male;
-        femaleBoxColor.value = female;
+      function clearSvg() {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
       }
 
-      function applyFontColor(color) {
-        svg.querySelectorAll('text').forEach(el => {
-          el.style.fill = color;
+      function makeEl(tag, attrs = {}) {
+        const el = document.createElementNS(svgNS, tag);
+        Object.entries(attrs).forEach(([k,v]) => {
+          if (k === "href") {
+            el.setAttributeNS(xlinkNS, "xlink:href", v);
+            el.setAttribute("href", v);
+          } else {
+            el.setAttribute(k, v);
+          }
         });
-        fontColor.value = color;
+        return el;
       }
 
-      function applyFont(fontValue) {
-        svg.querySelectorAll('text').forEach(el => {
-          el.style.fontFamily = fontValue;
+      function addText(group, x, y, text, opts = {}) {
+        const t = makeEl("text", {
+          x, y,
+          "text-anchor": opts.anchor || "start"
         });
-        selectedFontPreview.textContent = getFontLabel(fontValue);
-        selectedFontPreview.style.fontFamily = fontValue;
-        document.documentElement.style.setProperty('--menu-font', fontValue);
-        setActiveFontOption(fontValue);
+        t.style.fontFamily = getCurrentFont();
+        t.style.fill = fontColor.value;
+        t.style.fontSize = (opts.size || 14) + "px";
+        if (opts.weight) t.style.fontWeight = opts.weight;
+        t.textContent = text || "";
+        group.appendChild(t);
+        return t;
+      }
+
+      function addMultiline(group, x, y, lines, opts = {}) {
+        const t = makeEl("text", { x, y, "text-anchor": opts.anchor || "start" });
+        t.style.fontFamily = getCurrentFont();
+        t.style.fill = fontColor.value;
+        t.style.fontSize = (opts.size || 12) + "px";
+        if (opts.weight) t.style.fontWeight = opts.weight;
+        const lineHeight = opts.lineHeight || 14;
+        lines.forEach((line, i) => {
+          const ts = makeEl("tspan", {
+            x,
+            dy: i === 0 ? 0 : lineHeight
+          });
+          ts.textContent = line;
+          t.appendChild(ts);
+        });
+        group.appendChild(t);
+        return t;
+      }
+
+      function getCurrentFont() {
+        const active = Array.from(fontOptions).find(opt => opt.classList.contains("active"));
+        return active ? active.dataset.font : defaults.fontFamily;
       }
 
       function getFontLabel(fontValue) {
         const option = Array.from(fontOptions).find(opt => opt.dataset.font === fontValue);
-        return option ? option.textContent.trim() : 'Arial';
+        return option ? option.textContent.trim() : "Arial";
       }
 
       function setActiveFontOption(fontValue) {
-        fontOptions.forEach(opt => {
-          opt.classList.toggle('active', opt.dataset.font === fontValue);
-        });
+        fontOptions.forEach(opt => opt.classList.toggle("active", opt.dataset.font === fontValue));
       }
 
-      function setCustomMode() {
-        colorPreset.value = 'custom';
+      function applyFont(fontValue) {
+        selectedFontPreview.textContent = getFontLabel(fontValue);
+        selectedFontPreview.style.fontFamily = fontValue;
+        document.documentElement.style.setProperty("--menu-font", fontValue);
+        setActiveFontOption(fontValue);
+        render();
       }
 
-      function updateScaleReadouts() {
-        boxWidthScaleValue.textContent = boxWidthScale.value;
-        boxHeightScaleValue.textContent = boxHeightScale.value;
+      function getMainRabbitSex() {
+        const sex = getParam("sex").trim().toLowerCase();
+        if (sex.startsWith("m") || sex === "buck") return "male";
+        if (sex.startsWith("f") || sex === "doe") return "female";
+        return "main";
       }
 
-      function updatePrintStyle() {
-        if (layoutOrientation.value === 'portrait') {
-          printPageStyle.textContent = '@page { size: 8.5in 11in portrait; margin: 0; }';
+      function getBoxFill(sexType) {
+        if (sexType === "main") {
+          if (mainSexColorToggle.checked) {
+            const mainSex = getMainRabbitSex();
+            if (mainSex === "male") return maleBoxColor.value;
+            if (mainSex === "female") return femaleBoxColor.value;
+          }
+          return mainBoxColor.value;
+        }
+        return sexType === "male" ? maleBoxColor.value : femaleBoxColor.value;
+      }
+
+      function getCanvas() {
+        if (layoutOrientation.value === "portrait") {
+          return { width: 1100, height: 1600 };
+        }
+        return { width: 1800, height: 1150 };
+      }
+
+      function getLayoutPositions(boxW, boxH, canvas) {
+        const layout = layoutOrientation.value;
+        const pos = {};
+
+        if (layout === "landscape") {
+          const left = 110;
+          const right = canvas.width - 110;
+          const usableW = right - left - boxW;
+          const cols = [
+            left,
+            left + usableW * (1/3),
+            left + usableW * (2/3),
+            right - boxW
+          ];
+
+          const topTree = 200;
+          const bottomTree = canvas.height - 220 - boxH;
+          const usableH = bottomTree - topTree;
+
+          function spread(count) {
+            if (count === 1) return [topTree + usableH / 2];
+            const step = usableH / (count - 1);
+            return Array.from({length: count}, (_, i) => topTree + step * i);
+          }
+
+          const ys1 = spread(1);
+          const ys2 = spread(2);
+          const ys4 = spread(4);
+          const ys8 = spread(8);
+
+          pos.main   = { x: cols[0], y: ys1[0] };
+          pos.sire   = { x: cols[1], y: ys2[0] };
+          pos.dam    = { x: cols[1], y: ys2[1] };
+
+          pos.ssire  = { x: cols[2], y: ys4[0] };
+          pos.sdam   = { x: cols[2], y: ys4[1] };
+          pos.dsire  = { x: cols[2], y: ys4[2] };
+          pos.ddam   = { x: cols[2], y: ys4[3] };
+
+          pos.sssire = { x: cols[3], y: ys8[0] };
+          pos.ssdam  = { x: cols[3], y: ys8[1] };
+          pos.sdsire = { x: cols[3], y: ys8[2] };
+          pos.sddam  = { x: cols[3], y: ys8[3] };
+          pos.dssire = { x: cols[3], y: ys8[4] };
+          pos.dsdam  = { x: cols[3], y: ys8[5] };
+          pos.ddsire = { x: cols[3], y: ys8[6] };
+          pos.dddam  = { x: cols[3], y: ys8[7] };
         } else {
-          printPageStyle.textContent = '@page { size: 11in 8.5in landscape; margin: 0; }';
+          const top = 250;
+          const bottom = canvas.height - 210;
+          const usableH = bottom - top - boxH;
+          const rows = [
+            top,
+            top + usableH * (1/3),
+            top + usableH * (2/3),
+            bottom - boxH
+          ];
+
+          function spreadX(count) {
+            const left = 80;
+            const right = canvas.width - 80 - boxW;
+            if (count === 1) return [left + (right - left)/2];
+            const step = (right - left) / (count - 1);
+            return Array.from({length: count}, (_, i) => left + step * i);
+          }
+
+          const xs1 = spreadX(1);
+          const xs2 = spreadX(2);
+          const xs4 = spreadX(4);
+          const xs8 = spreadX(8);
+
+          pos.main   = { x: xs1[0], y: rows[0] };
+          pos.sire   = { x: xs2[0], y: rows[1] };
+          pos.dam    = { x: xs2[1], y: rows[1] };
+
+          pos.ssire  = { x: xs4[0], y: rows[2] };
+          pos.sdam   = { x: xs4[1], y: rows[2] };
+          pos.dsire  = { x: xs4[2], y: rows[2] };
+          pos.ddam   = { x: xs4[3], y: rows[2] };
+
+          pos.sssire = { x: xs8[0], y: rows[3] };
+          pos.ssdam  = { x: xs8[1], y: rows[3] };
+          pos.sdsire = { x: xs8[2], y: rows[3] };
+          pos.sddam  = { x: xs8[3], y: rows[3] };
+          pos.dssire = { x: xs8[4], y: rows[3] };
+          pos.dsdam  = { x: xs8[5], y: rows[3] };
+          pos.ddsire = { x: xs8[6], y: rows[3] };
+          pos.dddam  = { x: xs8[7], y: rows[3] };
+        }
+
+        return pos;
+      }
+
+      function drawLine(group, a, b, boxW, boxH) {
+        const layout = layoutOrientation.value;
+        const lineStyle = lineStyleInput.value;
+        const stroke = lineColorInput.value;
+        const sw = lineThicknessInput.value;
+
+        let p1, p2, path;
+
+        if (layout === "landscape") {
+          p1 = { x: a.x + boxW, y: a.y + boxH / 2 };
+          p2 = { x: b.x, y: b.y + boxH / 2 };
+
+          if (lineStyle === "diagonal") {
+            group.appendChild(makeEl("line", {
+              x1: p1.x, y1: p1.y,
+              x2: p2.x, y2: p2.y,
+              stroke, "stroke-width": sw
+            }));
+          } else {
+            const midX = (p1.x + p2.x) / 2;
+            path = `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`;
+            group.appendChild(makeEl("path", {
+              d: path,
+              fill: "none",
+              stroke,
+              "stroke-width": sw
+            }));
+          }
+        } else {
+          p1 = { x: a.x + boxW / 2, y: a.y + boxH };
+          p2 = { x: b.x + boxW / 2, y: b.y };
+
+          if (lineStyle === "diagonal") {
+            group.appendChild(makeEl("line", {
+              x1: p1.x, y1: p1.y,
+              x2: p2.x, y2: p2.y,
+              stroke, "stroke-width": sw
+            }));
+          } else {
+            const midY = (p1.y + p2.y) / 2;
+            path = `M ${p1.x} ${p1.y} L ${p1.x} ${midY} L ${p2.x} ${midY} L ${p2.x} ${p2.y}`;
+            group.appendChild(makeEl("path", {
+              d: path,
+              fill: "none",
+              stroke,
+              "stroke-width": sw
+            }));
+          }
         }
       }
 
-      function updateWatermarkVisibility() {
-        const href =
-          watermarkImage.getAttribute('href') ||
-          watermarkImage.getAttributeNS('http://www.w3.org/1999/xlink', 'href') ||
-          '';
+      function buildBoxText(def) {
+        const lines = [];
+        const title = getChain(def.titleChain);
+        lines.push({ text: title, type: "title" });
 
-        watermarkImage.style.display = (toggleWatermark.checked && href) ? 'block' : 'none';
+        def.fields.forEach(([label, key]) => {
+          const value = getParam(key);
+          lines.push({ text: `${label}: ${value}`, type: "field" });
+        });
+
+        def.extra.forEach(key => {
+          const raw = getParam(key);
+          if (!raw) return;
+          raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
+            if (line.trim()) lines.push({ text: line, type: "extra" });
+          });
+        });
+
+        return lines;
       }
 
-      function updateWatermarkOpacity() {
-        watermarkImage.style.opacity = watermarkOpacity.value;
+      function drawBox(group, def, x, y, boxW, boxH) {
+        const fill = getBoxFill(def.sexType);
+
+        group.appendChild(makeEl("rect", {
+          x, y,
+          width: boxW,
+          height: boxH,
+          rx: 10,
+          ry: 10,
+          fill,
+          stroke: "#000000",
+          "stroke-width": 1.5
+        }));
+
+        const textLines = buildBoxText(def);
+
+        const padX = 10;
+        const startY = y + 18;
+        const lineHeight = Math.max(12, Math.min(18, boxH / 10));
+        const fieldSize = Math.max(10, Math.min(13, boxH / 13));
+        const titleSize = Math.max(13, Math.min(16, boxH / 10));
+        const maxLines = Math.floor((boxH - 18) / lineHeight);
+
+        const visible = textLines.slice(0, maxLines);
+
+        const t = makeEl("text", { x: x + padX, y: startY });
+        t.style.fontFamily = getCurrentFont();
+        t.style.fill = fontColor.value;
+
+        visible.forEach((line, i) => {
+          const ts = makeEl("tspan", {
+            x: x + padX,
+            dy: i === 0 ? 0 : lineHeight
+          });
+          ts.textContent = line.text;
+          ts.style.fontSize = (line.type === "title" ? titleSize : fieldSize) + "px";
+          if (line.type === "title") ts.style.fontWeight = "700";
+          t.appendChild(ts);
+        });
+
+        group.appendChild(t);
+      }
+
+      function render() {
+        clearSvg();
+
+        const canvas = getCanvas();
+        const boxW = Number(boxWidthInput.value);
+        const boxH = Number(boxHeightInput.value);
+        const positions = getLayoutPositions(boxW, boxH, canvas);
+
+        svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        boxWidthValue.textContent = boxW;
+        boxHeightValue.textContent = boxH;
+        lineThicknessValue.textContent = lineThicknessInput.value;
         watermarkOpacityValue.textContent = Number(watermarkOpacity.value).toFixed(2);
-      }
+        watermarkSizeValue.textContent = watermarkSize.value;
 
-      function updateWatermarkSize() {
-        const pct = Number(watermarkSize.value);
-        const size = 1200 * (pct / 100);
-        const x = (1750 - size) / 2 - 80;
-        const y = (1060 - size) / 2 - 60;
+        setPrintPage();
 
-        watermarkImage.setAttribute('width', size);
-        watermarkImage.setAttribute('height', size);
-        watermarkImage.setAttribute('x', x);
-        watermarkImage.setAttribute('y', y);
+        const bgLayer = makeEl("g");
+        const watermarkLayer = makeEl("g");
+        const headerLayer = makeEl("g");
+        const lineLayer = makeEl("g");
+        const photoLayer = makeEl("g");
+        const boxLayer = makeEl("g");
+        const footerLayer = makeEl("g");
 
-        watermarkSizeValue.textContent = pct;
-      }
+        svg.append(bgLayer, watermarkLayer, headerLayer, lineLayer, photoLayer, boxLayer, footerLayer);
 
-      function updateRabbitPhotoVisibility() {
-        const href =
-          rabbitPhoto.getAttribute('href') ||
-          rabbitPhoto.getAttributeNS('http://www.w3.org/1999/xlink', 'href') ||
-          '';
+        const bgUrl = getParam("background-image");
+        if (bgUrl) {
+          const bg = makeEl("image", {
+            href: bgUrl,
+            preserveAspectRatio: "xMidYMid meet"
+          });
 
-        rabbitPhotoGroup.style.display = (toggleRabbitPhoto.checked && href) ? 'block' : 'none';
-      }
-
-      function computeFit() {
-        const vb = svg.viewBox.baseVal;
-        if (!validBox(vb)) return null;
-
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!cw || !ch) return null;
-
-        const scale = Math.min(cw / vb.width, ch / vb.height);
-        if (!isFinite(scale) || scale <= 0) return null;
-
-        return {
-          scale,
-          pan: {
-            x: (cw - vb.width * scale) / 2,
-            y: (ch - vb.height * scale) / 2
+          if (layoutOrientation.value === "portrait") {
+            bg.setAttribute("x", 0);
+            bg.setAttribute("y", 0);
+            bg.setAttribute("width", canvas.height);
+            bg.setAttribute("height", canvas.width);
+            bg.setAttribute("transform", `translate(${canvas.width},0) rotate(90)`);
+          } else {
+            bg.setAttribute("x", 0);
+            bg.setAttribute("y", 0);
+            bg.setAttribute("width", canvas.width);
+            bg.setAttribute("height", canvas.height);
           }
-        };
-      }
 
-      window.computeFit = computeFit;
+          bg.style.pointerEvents = "none";
+          bgLayer.appendChild(bg);
+        }
 
-      function fitToContainer() {
-        if (!panZoom) return;
-        const fit = computeFit();
-        if (!fit) return;
-        panZoom.zoom(fit.scale);
-        panZoom.pan(fit.pan);
-      }
+        const logoUrl = getParam("logo");
+        if (logoUrl && toggleWatermark.checked) {
+          const pct = Number(watermarkSize.value) / 100;
+          const wmBase = Math.min(canvas.width, canvas.height) * pct;
+          const wmX = (canvas.width - wmBase) / 2;
+          const wmY = (canvas.height - wmBase) / 2 + 40;
 
-      function wireWheelZoom() {
-        container.addEventListener('wheel', (e) => {
-          if (!panZoom) return;
-          const rect = svg.getBoundingClientRect();
-          const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const delta = e.deltaY;
-          const factor = delta > 0 ? 0.9 : 1.1;
-          e.preventDefault();
-          if (isFinite(point.x) && isFinite(point.y)) {
-            panZoom.zoomAtPoint(factor, point);
-          }
-        }, { passive: false });
-      }
+          const wm = makeEl("image", {
+            href: logoUrl,
+            x: wmX,
+            y: wmY,
+            width: wmBase,
+            height: wmBase,
+            preserveAspectRatio: "xMidYMid meet",
+            opacity: watermarkOpacity.value
+          });
 
-      function enablePointerPan() {
-        let isPanning = false;
-        let start = { x: 0, y: 0 };
+          wm.style.pointerEvents = "none";
+          watermarkLayer.appendChild(wm);
+        }
 
-        svg.addEventListener('pointerdown', (e) => {
-          isPanning = true;
-          start = { x: e.clientX, y: e.clientY };
-          svg.setPointerCapture(e.pointerId);
+        const logoSize = layoutOrientation.value === "portrait" ? 120 : 140;
+        const logoX = 40;
+        const logoY = 25;
+
+        if (logoUrl) {
+          headerLayer.appendChild(makeEl("image", {
+            href: logoUrl,
+            x: logoX,
+            y: logoY,
+            width: logoSize,
+            height: logoSize,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
+        }
+
+        const headerTextX = logoX + logoSize + 22;
+        const headerTop = 55;
+        addText(headerLayer, headerTextX, headerTop, getParam("rabbitry"), { size: 24, weight: 700 });
+        addText(headerLayer, headerTextX, headerTop + 26, getParam("street"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTop + 50, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTop + 74, getParam("phone"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTop + 98, getParam("email"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTop + 126, `Breed: ${getParam("breed")}`, { size: 16, weight: 700 });
+        addText(headerLayer, headerTextX, headerTop + 150, `DOB: ${getParam("dob")}`, { size: 16, weight: 700 });
+
+        if (toggleRabbitPhoto.checked && getParam("rabbitphoto")) {
+          const photoW = layoutOrientation.value === "portrait" ? 210 : 230;
+          const photoH = layoutOrientation.value === "portrait" ? 170 : 180;
+          const photoX = canvas.width - photoW - 40;
+          const photoY = 40;
+
+          photoLayer.appendChild(makeEl("rect", {
+            x: photoX,
+            y: photoY,
+            width: photoW,
+            height: photoH,
+            rx: 10,
+            ry: 10,
+            fill: "#ffffff",
+            stroke: "#000000",
+            "stroke-width": 1.5
+          }));
+
+          photoLayer.appendChild(makeEl("image", {
+            href: getParam("rabbitphoto"),
+            x: photoX + 6,
+            y: photoY + 6,
+            width: photoW - 12,
+            height: photoH - 12,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
+        }
+
+        parentMap.forEach(([childId, parentId]) => {
+          drawLine(lineLayer, positions[childId], positions[parentId], boxW, boxH);
         });
 
-        svg.addEventListener('pointermove', (e) => {
-          if (!isPanning || !panZoom) return;
-          const dx = e.clientX - start.x;
-          const dy = e.clientY - start.y;
-          panZoom.panBy({ x: dx, y: dy });
-          start = { x: e.clientX, y: e.clientY };
+        boxDefs.forEach(def => {
+          const p = positions[def.id];
+          drawBox(boxLayer, def, p.x, p.y, boxW, boxH);
         });
 
-        svg.addEventListener('pointerup', () => (isPanning = false));
-        svg.addEventListener('pointercancel', () => (isPanning = false));
-      }
+        const sigUrl = getParam("signature");
+        const footerY = canvas.height - 90;
+        addText(footerLayer, 40, footerY - 40, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
 
-      function enablePinchZoom() {
-        let pinchStart = null;
-        let startZoom = 1;
+        footerLayer.appendChild(makeEl("line", {
+          x1: 40, y1: footerY + 10,
+          x2: 350, y2: footerY + 10,
+          stroke: "#000000",
+          "stroke-width": 1
+        }));
 
-        svg.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 2 && window.panZoomInstance) {
-            e.preventDefault();
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            pinchStart = Math.hypot(dx, dy);
-            startZoom = window.panZoomInstance.getZoom();
-          }
-        }, { passive: false });
-
-        svg.addEventListener('touchmove', (e) => {
-          if (e.touches.length === 2 && window.panZoomInstance && pinchStart) {
-            e.preventDefault();
-            const dx = e.touches[0].clientX - e.touches[1].clientX;
-            const dy = e.touches[0].clientY - e.touches[1].clientY;
-            const pinchNow = Math.hypot(dx, dy);
-            const zoomRatio = pinchNow / pinchStart;
-
-            const rect = svg.getBoundingClientRect();
-            const mid = {
-              x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
-              y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
-            };
-
-            window.panZoomInstance.zoomAtPoint(startZoom * zoomRatio, mid);
-          }
-        }, { passive: false });
-
-        svg.addEventListener('touchend', () => {
-          pinchStart = null;
-        });
-      }
-
-      function tryInit() {
-        if (initialized) return;
-
-        if (typeof window.svgPanZoom !== 'function') {
-          console.error('svg-pan-zoom not loaded. If this only happens inside Glide, host the script yourself or allow this CDN.');
-          return;
+        if (sigUrl) {
+          footerLayer.appendChild(makeEl("image", {
+            href: sigUrl,
+            x: 40,
+            y: footerY - 55,
+            width: 220,
+            height: 70,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
         }
 
-        const vb = svg.viewBox.baseVal;
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!validBox(vb) || !cw || !ch) return;
+        addText(footerLayer, 40, footerY + 34, getParam("owner"), { size: 16, weight: 700 });
 
-        panZoom = svgPanZoom(svg, {
-          panEnabled: true,
-          zoomEnabled: true,
-          mouseWheelZoomEnabled: true,
-          controlIconsEnabled: false,
-          fit: false,
-          center: true,
-          minZoom: 0.25,
-          maxZoom: 10,
-          dblClickZoomEnabled: true,
-          onUpdatedCTM: function() {}
-        });
-
-        window.panZoomInstance = panZoom;
-        fitToContainer();
-        enablePointerPan();
-        enablePinchZoom();
-        wireWheelZoom();
-        initialized = true;
+        addText(
+          footerLayer,
+          canvas.width - 40,
+          canvas.height - 28,
+          "Pedigree built on the ShowTails LLC platform - www.showtails.com",
+          { size: 12, anchor: "end" }
+        );
       }
 
-      function refreshAfterLayoutChange() {
-        applyRootTransform();
-        updatePrintStyle();
-
-        if (window.panZoomInstance) {
-          setTimeout(() => {
-            fitToContainer();
-          }, 30);
-        }
-      }
-
-      function resetForPrint() {
-        const inst = window.panZoomInstance;
-        if (!inst) return;
-
-        window._savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
-        inst.resetZoom();
-        inst.center();
-
-        if (layoutOrientation.value === 'portrait') {
-          inst.zoom(1.15);
-          inst.pan({ x: 120, y: 70 });
-        } else {
-          inst.zoom(1.45);
-          inst.pan({ x: 55, y: 125 });
-        }
-      }
-
-      function restoreAfterPrint() {
-        const inst = window.panZoomInstance;
-        const s = window._savedState;
-        if (inst && s) {
-          inst.zoom(s.zoom);
-          inst.pan(s.pan);
-        }
-      }
-
-      menuToggle.addEventListener('click', () => {
-        pedigreeMenu.classList.toggle('open');
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!pedigreeMenu.contains(event.target) && event.target !== menuToggle) {
-          pedigreeMenu.classList.remove('open');
-        }
-      });
-
-      fontPickerButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        fontPicker.classList.toggle('open');
-      });
-
-      fontOptions.forEach(option => {
-        option.addEventListener('click', () => {
-          applyFont(option.dataset.font);
-          fontPicker.classList.remove('open');
-        });
-      });
-
-      document.addEventListener('click', (event) => {
-        if (!fontPicker.contains(event.target)) {
-          fontPicker.classList.remove('open');
-        }
-      });
-
-      colorPreset.addEventListener('change', () => {
+      function applyPresetIfNeeded() {
         const selected = colorPreset.value;
-        if (selected === 'custom') return;
+        if (selected === "custom") return;
         const preset = presets[selected];
         if (!preset) return;
-        applyBoxColors(preset.main, preset.male, preset.female);
-      });
+        maleBoxColor.value = preset.male;
+        femaleBoxColor.value = preset.female;
+        mainBoxColor.value = preset.main;
+      }
 
-      mainBoxColor.addEventListener('input', () => {
-        document.querySelectorAll('#main-rabbit-box').forEach(el => {
-          el.style.fill = mainBoxColor.value;
-        });
-        setCustomMode();
-      });
-
-      maleBoxColor.addEventListener('input', () => {
-        document.querySelectorAll('.box.male').forEach(el => {
-          el.style.fill = maleBoxColor.value;
-        });
-        setCustomMode();
-      });
-
-      femaleBoxColor.addEventListener('input', () => {
-        document.querySelectorAll('.box.female').forEach(el => {
-          el.style.fill = femaleBoxColor.value;
-        });
-        setCustomMode();
-      });
-
-      fontColor.addEventListener('input', () => {
-        applyFontColor(fontColor.value);
-      });
-
-      layoutOrientation.addEventListener('change', () => {
-        refreshAfterLayoutChange();
-      });
-
-      boxWidthScale.addEventListener('input', () => {
-        updateScaleReadouts();
-        refreshAfterLayoutChange();
-      });
-
-      boxHeightScale.addEventListener('input', () => {
-        updateScaleReadouts();
-        refreshAfterLayoutChange();
-      });
-
-      toggleWatermark.addEventListener('change', updateWatermarkVisibility);
-      watermarkOpacity.addEventListener('input', updateWatermarkOpacity);
-      watermarkSize.addEventListener('input', updateWatermarkSize);
-
-      toggleRabbitPhoto.addEventListener('change', updateRabbitPhotoVisibility);
-
-      resetStylesBtn.addEventListener('click', () => {
+      function resetDefaults() {
         colorPreset.value = defaults.preset;
-        applyBoxColors(defaults.main, defaults.male, defaults.female);
-
-        applyFont(defaults.fontFamily);
-        applyFontColor(defaults.fontColor);
-
+        mainSexColorToggle.checked = defaults.mainSexColor;
+        mainBoxColor.value = defaults.main;
+        maleBoxColor.value = defaults.male;
+        femaleBoxColor.value = defaults.female;
+        fontColor.value = defaults.fontColor;
         layoutOrientation.value = defaults.layout;
-        boxWidthScale.value = defaults.widthScale;
-        boxHeightScale.value = defaults.heightScale;
-        updateScaleReadouts();
-        refreshAfterLayoutChange();
-
+        boxWidthInput.value = defaults.boxWidth;
+        boxHeightInput.value = defaults.boxHeight;
+        lineStyleInput.value = defaults.lineStyle;
+        lineColorInput.value = defaults.lineColor;
+        lineThicknessInput.value = defaults.lineThickness;
         toggleWatermark.checked = defaults.watermarkEnabled;
         watermarkOpacity.value = defaults.watermarkOpacity;
         watermarkSize.value = defaults.watermarkSize;
-        updateWatermarkOpacity();
-        updateWatermarkSize();
-        updateWatermarkVisibility();
-
         toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
-        updateRabbitPhotoVisibility();
+        applyFont(defaults.fontFamily);
+        render();
+      }
+
+      menuToggle.addEventListener("click", () => {
+        pedigreeMenu.classList.toggle("open");
       });
 
-      setSvgImage('logo', 'logo');
-      setSvgImage('signature', 'signature');
-      setSvgImage('background-image', 'background-image');
-      setSvgImage('watermark-image', 'logo');
-      setSvgImage('rabbit-photo', 'rabbitphoto');
+      document.addEventListener("click", (event) => {
+        if (!pedigreeMenu.contains(event.target) && event.target !== menuToggle) {
+          pedigreeMenu.classList.remove("open");
+        }
+      });
 
-      applyBoxColors(defaults.main, defaults.male, defaults.female);
+      fontPickerButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        fontPicker.classList.toggle("open");
+      });
+
+      fontOptions.forEach(option => {
+        option.addEventListener("click", () => {
+          applyFont(option.dataset.font);
+          fontPicker.classList.remove("open");
+        });
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!fontPicker.contains(event.target)) {
+          fontPicker.classList.remove("open");
+        }
+      });
+
+      colorPreset.addEventListener("change", () => {
+        applyPresetIfNeeded();
+        render();
+      });
+
+      [
+        mainSexColorToggle,
+        mainBoxColor,
+        maleBoxColor,
+        femaleBoxColor,
+        fontColor,
+        layoutOrientation,
+        boxWidthInput,
+        boxHeightInput,
+        lineStyleInput,
+        lineColorInput,
+        lineThicknessInput,
+        toggleWatermark,
+        watermarkOpacity,
+        watermarkSize,
+        toggleRabbitPhoto
+      ].forEach(el => el.addEventListener("input", render));
+
+      [
+        mainSexColorToggle,
+        layoutOrientation,
+        toggleWatermark,
+        toggleRabbitPhoto
+      ].forEach(el => el.addEventListener("change", render));
+
+      resetStylesBtn.addEventListener("click", resetDefaults);
+
+      printBtn.addEventListener("click", () => {
+        window.print();
+      });
+
+      window.addEventListener("resize", render);
+
       applyFont(defaults.fontFamily);
-      applyFontColor(defaults.fontColor);
-      updateScaleReadouts();
-      applyRootTransform();
-      updatePrintStyle();
-      updateWatermarkOpacity();
-      updateWatermarkSize();
-      updateWatermarkVisibility();
-      updateRabbitPhotoVisibility();
-
-      const ro = new ResizeObserver(() => {
-        if (!initialized) tryInit();
-        else fitToContainer();
-      });
-      ro.observe(container);
-
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          if (!initialized) tryInit();
-          else fitToContainer();
-        }
-      });
-
-      window.addEventListener('load', tryInit);
-
-      window.addEventListener('beforeprint', resetForPrint);
-      window.addEventListener('afterprint', restoreAfterPrint);
-
-      printBtn.addEventListener('click', () => {
-        resetForPrint();
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            window.print();
-            setTimeout(restoreAfterPrint, 800);
-          }, 200);
-        });
-      });
-
-      printBtn.addEventListener('click', (event) => {
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (!isMobile) return;
-
-        event.preventDefault();
-
-        const inst = window.panZoomInstance;
-        if (!container || !inst) return;
-
-        const savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
-
-        inst.resetZoom();
-        if (layoutOrientation.value === 'portrait') {
-          inst.zoom(2.05);
-          inst.pan({ x: 110, y: 70 });
-        } else {
-          inst.zoom(2.65);
-          inst.pan({ x: 65, y: 100 });
-        }
-
-        requestAnimationFrame(() => {
-          const svgMarkup = container.innerHTML;
-
-          inst.zoom(savedState.zoom);
-          inst.pan(savedState.pan);
-
-          const styleBlocks = Array.from(document.querySelectorAll('style'))
-            .map(styleEl => styleEl.outerHTML)
-            .join('\n');
-
-          const popup = window.open('', '_blank', 'width=1200,height=800');
-          if (!popup) {
-            alert('Please allow pop-ups for ShowTails to print pedigrees.');
-            return;
-          }
-
-          const pageStyle = layoutOrientation.value === 'portrait'
-            ? '@page { size: portrait; margin: 0; } html, body { width: 7.4in; height: 10.25in; } #pedigree-container { width: 7.4in; height: 10.25in; } svg { width: 7.4in !important; height: 10.25in !important; }'
-            : '@page { size: landscape; margin: 0; } html, body { width: 10.25in; height: 7.4in; } #pedigree-container { width: 10.25in; height: 7.4in; } svg { width: 10.25in !important; height: 7.4in !important; }';
-
-          popup.document.write(`
-            <html>
-              <head>
-                <title>Print Pedigree</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.2">
-                ${styleBlocks}
-                <style>
-                  ${pageStyle}
-                  html, body {
-                    overflow: hidden;
-                    margin: 0;
-                    padding: 0;
-                    background: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  }
-                  #pedigree-container {
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    overflow: hidden;
-                  }
-                  svg {
-                    background: white !important;
-                    margin: 0;
-                    display: block;
-                    transform: none !important;
-                  }
-                </style>
-              </head>
-              <body>
-                <div id="pedigree-container">${svgMarkup}</div>
-              </body>
-            </html>
-          `);
-          popup.document.close();
-
-          setTimeout(() => {
-            popup.focus();
-            popup.print();
-            setTimeout(() => popup.close(), 1500);
-          }, 600);
-        });
-      });
+      resetDefaults();
     })();
   </script>
 </body>
