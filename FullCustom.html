@@ -422,7 +422,6 @@
     (function () {
       const svgNS = "http://www.w3.org/2000/svg";
       const xlinkNS = "http://www.w3.org/1999/xlink";
-
       const SAVE_SETTINGS_WEBHOOK = "https://go.glideapps.com/api/container/plugin/webhook-trigger/8lcj30iX3DO7vjRtX1XK/624b9f6d-a5cf-4408-bb59-a4004e64dae8";
 
       const svg = document.getElementById("pedigree-svg");
@@ -470,7 +469,6 @@
       let panZoom = null;
       let params = null;
       let printState = null;
-
       let wheelWired = false;
       let pointerWired = false;
       let pinchWired = false;
@@ -615,11 +613,7 @@
 
       function destroyPanZoom() {
         if (panZoom) {
-          try {
-            panZoom.destroy();
-          } catch (err) {
-            console.warn("Could not destroy previous panZoom instance:", err);
-          }
+          try { panZoom.destroy(); } catch (err) {}
           panZoom = null;
         }
         viewport.removeAttribute("transform");
@@ -735,8 +729,8 @@
 
       function getCanvas() {
         return layoutOrientation.value === "portrait"
-          ? { width: 850, height: 1100 }
-          : { width: 1100, height: 850 };
+          ? { width: 1275, height: 1650 }
+          : { width: 1650, height: 1275 };
       }
 
       function getLayoutMeta() {
@@ -745,87 +739,73 @@
         if (layoutOrientation.value === "portrait") {
           return {
             canvas,
-            tree:  { left: 92, top: 235, right: 760, bottom: 935 },
-            header: { x: 105, y: 48, logoSize: 52 },
-            footer: { x: 80, y: 975, right: 795, taglineY: 1065 },
-            photoGap: 12
+            header: { x: 118, y: 72, logoSize: 88, textScale: 1.0 },
+            tree: { left: 92, top: 270, right: 1130, bottom: 1500 },
+            footer: { x: 92, y: 1490, right: 1180, taglineY: 1608 },
+            photoGap: 16,
+            photoSize: { w: 178, h: 142 }
           };
         }
 
         return {
           canvas,
-          tree:  { left: 42, top: 86, right: 1035, bottom: 675 },
-          header: { x: 36, y: 20, logoSize: 42 },
-          footer: { x: 34, y: 712, right: 1060, taglineY: 814 },
-          photoGap: 10
+          header: { x: 58, y: 42, logoSize: 74, textScale: 1.0 },
+          tree: { left: 82, top: 170, right: 1490, bottom: 1115 },
+          footer: { x: 60, y: 1100, right: 1585, taglineY: 1220 },
+          photoGap: 14,
+          photoSize: { w: 188, h: 150 }
         };
       }
 
       function getPositions(boxW, boxH) {
         const meta = getLayoutMeta();
-        const tree = meta.tree;
-
-        const left1 = tree.left;
-        const left2 = tree.left + 158;
-        const left3 = tree.left + 470;
-        const left4 = tree.left + 690;
 
         if (layoutOrientation.value === "portrait") {
-          const gap2 = 150;
-          const gap3 = 42;
-          const gap4 = 12;
-          const mainY = 430;
-          const row2Top = 310;
-          const row3Top = 250;
-          const row4Top = 205;
+          const scaleX = meta.canvas.width / 1100;
+          const scaleY = meta.canvas.height / 1500;
 
           return {
-            main:   { x: left1, y: mainY },
-            sire:   { x: left2, y: row2Top },
-            dam:    { x: left2, y: row2Top + boxH + gap2 },
+            main:   { x: 92 * scaleX,  y: 675 * scaleY },
+            sire:   { x: 315 * scaleX, y: 440 * scaleY },
+            dam:    { x: 315 * scaleX, y: 920 * scaleY },
 
-            ssire:  { x: left3, y: row3Top },
-            sdam:   { x: left3, y: row3Top + boxH + gap3 },
-            dsire:  { x: left3, y: row3Top + (boxH + gap3) * 2 },
-            ddam:   { x: left3, y: row3Top + (boxH + gap3) * 3 },
+            ssire:  { x: 555 * scaleX, y: 310 * scaleY },
+            sdam:   { x: 555 * scaleX, y: 560 * scaleY },
+            dsire:  { x: 555 * scaleX, y: 835 * scaleY },
+            ddam:   { x: 555 * scaleX, y: 1100 * scaleY },
 
-            sssire: { x: left4, y: row4Top + (boxH + gap4) * 0 },
-            ssdam:  { x: left4, y: row4Top + (boxH + gap4) * 1 },
-            sdsire: { x: left4, y: row4Top + (boxH + gap4) * 2 },
-            sddam:  { x: left4, y: row4Top + (boxH + gap4) * 3 },
-            dssire: { x: left4, y: row4Top + (boxH + gap4) * 4 },
-            dsdam:  { x: left4, y: row4Top + (boxH + gap4) * 5 },
-            ddsire: { x: left4, y: row4Top + (boxH + gap4) * 6 },
-            dddam:  { x: left4, y: row4Top + (boxH + gap4) * 7 }
+            sssire: { x: 835 * scaleX, y: 220 * scaleY },
+            ssdam:  { x: 835 * scaleX, y: 355 * scaleY },
+            sdsire: { x: 835 * scaleX, y: 490 * scaleY },
+            sddam:  { x: 835 * scaleX, y: 625 * scaleY },
+            dssire: { x: 835 * scaleX, y: 820 * scaleY },
+            dsdam:  { x: 835 * scaleX, y: 955 * scaleY },
+            ddsire: { x: 835 * scaleX, y: 1090 * scaleY },
+            dddam:  { x: 835 * scaleX, y: 1225 * scaleY }
           };
         }
 
-        const gap2 = 100;
-        const gap3 = 18;
-        const gap4 = 6;
-        const mainY = 270;
-        const row2Top = 165;
-        const row3Top = 105;
-        const row4Top = 70;
+        const scaleX = meta.canvas.width / 1750;
+        const scaleY = meta.canvas.height / 1400;
 
         return {
-          main:   { x: left1, y: mainY },
-          sire:   { x: left2, y: row2Top },
-          dam:    { x: left2, y: row2Top + boxH + gap2 },
+          main:   { x: 110 * scaleX,  y: 560 * scaleY },
+          sire:   { x: 390 * scaleX,  y: 300 * scaleY },
+          dam:    { x: 390 * scaleX,  y: 830 * scaleY },
 
-          ssire:  { x: left3, y: row3Top },
-          sdam:   { x: left3, y: row3Top + boxH + gap3 },
-          dsire:  { x: left3, y: row3Top + (boxH + gap3) * 2 },
-          ddam:   { x: left3, y: row3Top + (boxH + gap3) * 3 },
+          ssire:  { x: 740 * scaleX,  y: 165 * scaleY },
+          sdam:   { x: 740 * scaleX,  y: 425 * scaleY },
+          dsire:  { x: 740 * scaleX,  y: 695 * scaleY },
+          ddam:   { x: 740 * scaleX,  y: 965 * scaleY },
 
-          sssire: { x: left4, y: row4Top + (boxH + gap4) * 0 },
-          ssdam:  { x: left4, y: row4Top + (boxH + gap4) * 1 },
-          sdsire: { x: left4, y: row4Top + (boxH + gap4) * 2 },
-          sddam:  { x: left4, y: row4Top + (boxH + gap4) * 3 },
-          dssire: { x: left4, y: row4Top + (boxH + gap4) * 4 },
-          dsdam:  { x: left4, y: row4Top + (boxH + gap4) * 5 },
-          ddsire: { x: left4, y: row4Top + (boxH + gap4) * 6 },
-          dddam:  { x: left4, y: row4Top + (boxH + gap4) * 7 }
+          sssire: { x: 1095 * scaleX, y: 100 * scaleY },
+          ssdam:  { x: 1095 * scaleX, y: 235 * scaleY },
+          sdsire: { x: 1095 * scaleX, y: 370 * scaleY },
+          sddam:  { x: 1095 * scaleX, y: 505 * scaleY },
+          dssire: { x: 1095 * scaleX, y: 650 * scaleY },
+          dsdam:  { x: 1095 * scaleX, y: 785 * scaleY },
+          ddsire: { x: 1095 * scaleX, y: 920 * scaleY },
+          dddam:  { x: 1095 * scaleX, y: 1055 * scaleY }
         };
       }
 
@@ -1171,29 +1151,28 @@
           }));
         }
 
-        const hs = layoutOrientation.value === "portrait" ? 0.86 : 0.88;
-        const headerTextX = meta.header.x + meta.header.logoSize + 8;
-        const headerTextY = meta.header.y + 10;
+        const hs = meta.header.textScale;
+        const headerTextX = meta.header.x + meta.header.logoSize + 18;
+        const headerTextY = meta.header.y + 18;
 
-        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 14 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 14 * hs, getParam("street"), { size: 11 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 27 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 11 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 40 * hs, getParam("phone"), { size: 11 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 53 * hs, getParam("email"), { size: 11 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 68 * hs, "Breed:", { size: 11 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 38 * hs, headerTextY + 68 * hs, getParam("breed"), { size: 11 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 81 * hs, "DOB:", { size: 11 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 30 * hs, headerTextY + 81 * hs, getParam("dob"), { size: 11 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 20 * hs, getParam("street"), { size: 16 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 40 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 60 * hs, getParam("phone"), { size: 16 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 80 * hs, getParam("email"), { size: 16 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 108 * hs, "Breed:", { size: 16 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 108 * hs, getParam("breed"), { size: 16 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 128 * hs, "DOB:", { size: 16 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 128 * hs, getParam("dob"), { size: 16 * hs, weight: 700 });
 
         if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
-          const photoW = Math.min(boxW, layoutOrientation.value === "portrait" ? 85 : 92);
-          const photoH = layoutOrientation.value === "portrait" ? 68 : 72;
           const main = positions.main;
-          const photoX = main.x + Math.max(0, (boxW - photoW) / 2);
+          const photoW = Math.min(boxW - 30, meta.photoSize.w);
+          const photoH = meta.photoSize.h;
+          const photoX = main.x + (boxW - photoW) / 2;
           const photoY = main.y - photoH - meta.photoGap;
 
           const clipId = "rabbit-photo-clip";
-
           const defs = makeEl("defs");
           const clip = makeEl("clipPath", { id: clipId });
           clip.appendChild(makeEl("rect", {
@@ -1201,8 +1180,8 @@
             y: photoY,
             width: photoW,
             height: photoH,
-            rx: 8,
-            ry: 8
+            rx: 10,
+            ry: 10
           }));
           defs.appendChild(clip);
           photoLayer.appendChild(defs);
@@ -1212,11 +1191,11 @@
             y: photoY,
             width: photoW,
             height: photoH,
-            rx: 8,
-            ry: 8,
+            rx: 10,
+            ry: 10,
             fill: "#ffffff",
             stroke: "#000000",
-            "stroke-width": 1.1
+            "stroke-width": 1.3
           }));
 
           photoLayer.appendChild(makeEl("image", {
@@ -1242,13 +1221,13 @@
         const footerY = meta.footer.y;
         const sigUrl = getUrlParam("signature");
 
-        addText(footerLayer, footerX, footerY - 18, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 7.5, weight: 600 });
+        addText(footerLayer, footerX, footerY - 48, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 13, weight: 600 });
 
         footerLayer.appendChild(makeEl("line", {
           x1: footerX,
-          y1: footerY + 5,
-          x2: footerX + 145,
-          y2: footerY + 5,
+          y1: footerY + 8,
+          x2: footerX + 285,
+          y2: footerY + 8,
           stroke: "#000000",
           "stroke-width": 1
         }));
@@ -1257,21 +1236,21 @@
           footerLayer.appendChild(makeEl("image", {
             href: sigUrl,
             x: footerX,
-            y: footerY - 16,
-            width: 44,
-            height: 28,
+            y: footerY - 34,
+            width: 84,
+            height: 54,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        addText(footerLayer, footerX, footerY + 16, getParam("owner"), { size: 8, weight: 700 });
+        addText(footerLayer, footerX, footerY + 28, getParam("owner"), { size: 14, weight: 700 });
 
         addText(
           footerLayer,
           meta.footer.right,
           meta.footer.taglineY,
           "Pedigree built on the ShowTails LLC platform - www.showtails.com",
-          { size: 7.5, anchor: "end" }
+          { size: 11, anchor: "end" }
         );
 
         requestAnimationFrame(() => {
@@ -1501,8 +1480,8 @@
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          if (panZoom) fitToContainer();
+        if (document.visibilityState === "visible" && panZoom) {
+          fitToContainer();
         }
       });
 
