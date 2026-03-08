@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{
+    :root {
       --menu-font: Arial, sans-serif;
     }
 
@@ -27,9 +27,9 @@
     #pedigree-container {
       width: 100vw;
       height: 100vh;
-      background: #fff;
       position: relative;
       overflow: hidden;
+      background: #fff;
     }
 
     #pedigree-svg {
@@ -340,12 +340,12 @@
       </select>
 
       <label for="box-width">Box Width</label>
-      <input type="range" id="box-width" min="180" max="340" step="5" value="220">
+      <input type="range" id="box-width" min="180" max="320" step="5" value="220">
       <div class="range-readout"><span id="box-width-value">220</span> px</div>
 
       <label for="box-height">Box Height</label>
-      <input type="range" id="box-height" min="110" max="220" step="5" value="135">
-      <div class="range-readout"><span id="box-height-value">135</span> px</div>
+      <input type="range" id="box-height" min="110" max="180" step="5" value="125">
+      <div class="range-readout"><span id="box-height-value">125</span> px</div>
     </div>
 
     <div class="menu-section">
@@ -463,7 +463,7 @@
         fontFamily: "Arial, sans-serif",
         layout: "landscape",
         boxWidth: 220,
-        boxHeight: 135,
+        boxHeight: 125,
         nameFont: 15,
         bodyFont: 11,
         lineStyle: "diagonal",
@@ -486,24 +486,53 @@
         showtails:      { male: "#cfe7f7", female: "#f6eed7", main: "#fbfaf4" }
       };
 
+      /* Base layout recreated from the original HTML, shifted into positive space */
+      const BASE = {
+        header: { x: 180, y: 130 },
+        ownerText: { x: 60, y: 1110 },
+        ownerLine: { x1: 60, x2: 370, y: 1100 },
+        signature: { x: 120, y: 1070, w: 220, h: 80 },
+        credit: { x: 1230, y: 1170 },
+
+        boxes: {
+          main:   { x: 180,  y: 550, gen: 1, sexType: "main"   },
+          sire:   { x: 530,  y: 270, gen: 2, sexType: "male"   },
+          dam:    { x: 530,  y: 820, gen: 2, sexType: "female" },
+
+          ssire:  { x: 880,  y: 135, gen: 3, sexType: "male"   },
+          sdam:   { x: 880,  y: 405, gen: 3, sexType: "female" },
+          dsire:  { x: 880,  y: 685, gen: 3, sexType: "male"   },
+          ddam:   { x: 880,  y: 955, gen: 3, sexType: "female" },
+
+          sssire: { x: 1230, y: 70,  gen: 4, sexType: "male"   },
+          ssdam:  { x: 1230, y: 205, gen: 4, sexType: "female" },
+          sdsire: { x: 1230, y: 340, gen: 4, sexType: "male"   },
+          sddam:  { x: 1230, y: 475, gen: 4, sexType: "female" },
+          dssire: { x: 1230, y: 620, gen: 4, sexType: "male"   },
+          dsdam:  { x: 1230, y: 755, gen: 4, sexType: "female" },
+          ddsire: { x: 1230, y: 890, gen: 4, sexType: "male"   },
+          dddam:  { x: 1230, y: 1025,gen: 4, sexType: "female" }
+        }
+      };
+
       const boxDefs = [
-        { id: "main", gen: 1, sexType: "main", titleChain: ["crabbitry","name"], fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom"], wins: "win1" },
-        { id: "sire", gen: 2, sexType: "male", titleChain: ["srabbitry","sire"], fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustom"], wins: "swin1" },
-        { id: "dam", gen: 2, sexType: "female", titleChain: ["drabbitry","dam"], fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustom"], wins: "dwin1" },
+        { id: "main",   titleChain: ["crabbitry","name"],       fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]],       extra: ["custom"],   wins: "win1"   },
+        { id: "sire",   titleChain: ["srabbitry","sire"],       fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]],         extra: ["scustom"], wins: "swin1"  },
+        { id: "dam",    titleChain: ["drabbitry","dam"],        fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]],         extra: ["dcustom"], wins: "dwin1"  },
 
-        { id: "ssire", gen: 3, sexType: "male", titleChain: ["ssrabbitry","ssire"], fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustom"], wins: "sswin1" },
-        { id: "sdam", gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"], fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom"], wins: "sdwin1" },
-        { id: "dsire", gen: 3, sexType: "male", titleChain: ["dsrabbitry","dsire"], fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
-        { id: "ddam", gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"], fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom"], wins: "ddwin1" },
+        { id: "ssire",  titleChain: ["ssrabbitry","ssire"],     fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]],   extra: ["sscustom"], wins: "sswin1" },
+        { id: "sdam",   titleChain: ["sdrabbitry","sdam"],      fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]],   extra: ["sdcustom"], wins: "sdwin1" },
+        { id: "dsire",  titleChain: ["dsrabbitry","dsire"],     fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]],   extra: ["dscustom"], wins: "dswin1" },
+        { id: "ddam",   titleChain: ["ddrabbitry","ddam"],      fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]],   extra: ["ddcustom"], wins: "ddwin1" },
 
-        { id: "sssire", gen: 4, sexType: "male", titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
-        { id: "ssdam", gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"], fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"], wins: "" },
-        { id: "sdsire", gen: 4, sexType: "male", titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"], wins: "" },
-        { id: "sddam", gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"], fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"], wins: "" },
-        { id: "dssire", gen: 4, sexType: "male", titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"], wins: "" },
-        { id: "dsdam", gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"], fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"], wins: "" },
-        { id: "ddsire", gen: 4, sexType: "male", titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"], wins: "" },
-        { id: "dddam", gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"], fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"], wins: "" }
+        { id: "sssire", titleChain: ["sssrabbitry","sssire"],   fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
+        { id: "ssdam",  titleChain: ["ssdrabbitry","ssdam"],    fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"], wins: "" },
+        { id: "sdsire", titleChain: ["sdsrabbitry","sdsire"],   fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"], wins: "" },
+        { id: "sddam",  titleChain: ["sddrabbitry","sddam"],    fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"], wins: "" },
+        { id: "dssire", titleChain: ["dssrabbitry","dssire"],   fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"], wins: "" },
+        { id: "dsdam",  titleChain: ["dsdrabbitry","dsdam"],    fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"], wins: "" },
+        { id: "ddsire", titleChain: ["ddsrabbitry","ddsire"],   fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"], wins: "" },
+        { id: "dddam",  titleChain: ["dddrabbitry","dddam"],    fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"], wins: "" }
       ];
 
       const parentMap = [
@@ -554,7 +583,7 @@
 
       function makeEl(tag, attrs = {}) {
         const el = document.createElementNS(svgNS, tag);
-        Object.entries(attrs).forEach(([k,v]) => {
+        Object.entries(attrs).forEach(([k, v]) => {
           if (k === "href") {
             el.setAttributeNS(xlinkNS, "xlink:href", v);
             el.setAttribute("href", v);
@@ -621,112 +650,17 @@
       }
 
       function getCanvas() {
-        if (layoutOrientation.value === "portrait") {
-          return { width: 1100, height: 1600 };
-        }
-        return { width: 1800, height: 1150 };
-      }
-
-      function getSafeArea(canvas) {
-        if (layoutOrientation.value === "portrait") {
-          return {
-            left: 70,
-            right: canvas.width - 70,
-            top: 180,
-            bottom: canvas.height - 210
-          };
-        }
-        return {
-          left: 90,
-          right: canvas.width - 90,
-          top: 175,
-          bottom: canvas.height - 155
-        };
-      }
-
-      function getLayoutPositions(boxW, boxH, canvas) {
-        const safe = getSafeArea(canvas);
-        const pos = {};
-
-        const left = safe.left;
-        const right = safe.right;
-        const usableW = right - left - boxW;
-
-        const col1 = left;
-        const col2 = left + usableW * 0.30;
-        const col3 = left + usableW * 0.60;
-        const col4 = right - boxW;
-
-        const top = safe.top;
-        const bottom = safe.bottom;
-        const usableH = bottom - top - boxH;
-
-        function spread(count) {
-          if (count === 1) return [top + usableH / 2];
-          const step = usableH / (count - 1);
-          return Array.from({length: count}, (_, i) => top + step * i);
-        }
-
-        const ys1 = spread(1);
-        const ys2 = spread(2);
-        const ys4 = spread(4);
-        const ys8 = spread(8);
-
-        pos.main   = { x: col1, y: ys1[0] };
-        pos.sire   = { x: col2, y: ys2[0] };
-        pos.dam    = { x: col2, y: ys2[1] };
-
-        pos.ssire  = { x: col3, y: ys4[0] };
-        pos.sdam   = { x: col3, y: ys4[1] };
-        pos.dsire  = { x: col3, y: ys4[2] };
-        pos.ddam   = { x: col3, y: ys4[3] };
-
-        pos.sssire = { x: col4, y: ys8[0] };
-        pos.ssdam  = { x: col4, y: ys8[1] };
-        pos.sdsire = { x: col4, y: ys8[2] };
-        pos.sddam  = { x: col4, y: ys8[3] };
-        pos.dssire = { x: col4, y: ys8[4] };
-        pos.dsdam  = { x: col4, y: ys8[5] };
-        pos.ddsire = { x: col4, y: ys8[6] };
-        pos.dddam  = { x: col4, y: ys8[7] };
-
-        return pos;
-      }
-
-      function drawLine(group, a, b, boxW, boxH) {
-        const lineStyle = lineStyleInput.value;
-        const stroke = lineColorInput.value;
-        const sw = lineThicknessInput.value;
-
-        const p1 = { x: a.x + boxW, y: a.y + boxH / 2 };
-        const p2 = { x: b.x, y: b.y + boxH / 2 };
-
-        if (lineStyle === "diagonal") {
-          group.appendChild(makeEl("line", {
-            x1: p1.x, y1: p1.y,
-            x2: p2.x, y2: p2.y,
-            stroke, "stroke-width": sw
-          }));
-        } else {
-          const midX = (p1.x + p2.x) / 2;
-          const path = `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`;
-          group.appendChild(makeEl("path", {
-            d: path,
-            fill: "none",
-            stroke,
-            "stroke-width": sw
-          }));
-        }
+        return layoutOrientation.value === "portrait"
+          ? { width: 1400, height: 1750 }
+          : { width: 1750, height: 1400 };
       }
 
       function buildBoxText(def) {
         const lines = [];
-        const title = getChain(def.titleChain);
-        lines.push({ text: title, type: "title" });
+        lines.push({ text: getChain(def.titleChain), type: "title" });
 
         def.fields.forEach(([label, key]) => {
-          const value = getParam(key);
-          lines.push({ text: `${label}: ${value}`, type: "field" });
+          lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
         });
 
         def.extra.forEach(key => {
@@ -741,17 +675,17 @@
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
-        if (def.gen >= 4 || !def.wins) return;
+        const base = BASE.boxes[def.id];
+        if (!base || base.gen >= 4 || !def.wins) return;
+
         const raw = getParam(def.wins);
         if (!raw) return;
 
         const lines = raw.replace(/\\n/g, "\n").split("\n").filter(Boolean);
         if (!lines.length) return;
 
-        const winsY = y + boxH + 16;
         const size = Math.max(10, Number(boxBodyFontSizeInput.value));
-
-        const textEl = makeEl("text", { x: x + 6, y: winsY });
+        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 18 });
         textEl.style.fontFamily = getCurrentFont();
         textEl.style.fill = fontColor.value;
         textEl.style.fontSize = size + "px";
@@ -769,7 +703,7 @@
       }
 
       function drawBox(group, winsLayer, def, x, y, boxW, boxH) {
-        const fill = getBoxFill(def.sexType);
+        const fill = getBoxFill(BASE.boxes[def.id].sexType);
 
         group.appendChild(makeEl("rect", {
           x, y,
@@ -785,9 +719,9 @@
         const textLines = buildBoxText(def);
         const padX = 10;
         const startY = y + 18;
-        const lineHeight = Math.max(11, Number(boxBodyFontSizeInput.value) + 2);
-        const fieldSize = Number(boxBodyFontSizeInput.value);
-        const titleSize = Number(boxNameFontSizeInput.value);
+        const bodySize = Number(boxBodyFontSizeInput.value);
+        const nameSize = Number(boxNameFontSizeInput.value);
+        const lineHeight = Math.max(11, bodySize + 2);
         const maxLines = Math.floor((boxH - 20) / lineHeight);
         const visible = textLines.slice(0, Math.max(1, maxLines));
 
@@ -801,7 +735,7 @@
             dy: i === 0 ? 0 : lineHeight
           });
           ts.textContent = line.text;
-          ts.style.fontSize = (line.type === "title" ? titleSize : fieldSize) + "px";
+          ts.style.fontSize = (line.type === "title" ? nameSize : bodySize) + "px";
           if (line.type === "title") ts.style.fontWeight = "700";
           t.appendChild(ts);
         });
@@ -810,247 +744,86 @@
         drawWins(winsLayer, def, x, y, boxW, boxH);
       }
 
-      function computeFittedBoxSize(canvas) {
-        const safe = getSafeArea(canvas);
+      function drawLine(group, childPos, parentPos, boxW, boxH) {
+        const stroke = lineColorInput.value;
+        const sw = lineThicknessInput.value;
+        const style = lineStyleInput.value;
 
-        const requestedW = Number(boxWidthInput.value);
-        const requestedH = Number(boxHeightInput.value);
+        const p1 = { x: childPos.x + boxW, y: childPos.y + boxH / 2 };
+        const p2 = { x: parentPos.x, y: parentPos.y + boxH / 2 };
 
-        const colGapAvailable = (safe.right - safe.left) / 3.25;
-        const portraitTighten = layoutOrientation.value === "portrait" ? 0.88 : 1;
-        const maxW = Math.floor(colGapAvailable * portraitTighten);
+        if (style === "diagonal") {
+          group.appendChild(makeEl("line", {
+            x1: p1.x, y1: p1.y,
+            x2: p2.x, y2: p2.y,
+            stroke,
+            "stroke-width": sw
+          }));
+        } else {
+          const midX = (p1.x + p2.x) / 2;
+          group.appendChild(makeEl("path", {
+            d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
+            fill: "none",
+            stroke,
+            "stroke-width": sw
+          }));
+        }
+      }
 
-        const totalVerticalSlots = 8;
-        const verticalReserve = 18;
-        const maxH = Math.floor((safe.bottom - safe.top - (totalVerticalSlots - 1) * verticalReserve) / totalVerticalSlots);
-
+      function getRequestedBoxSize() {
         return {
-          boxW: Math.min(requestedW, Math.max(170, maxW)),
-          boxH: Math.min(requestedH, Math.max(95, maxH))
+          width: Number(boxWidthInput.value),
+          height: Number(boxHeightInput.value)
         };
       }
 
-      function render(keepZoom) {
-        const saved = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
-        blockFit = true;
+      function getContentBounds(boxW, boxH, photoEnabled) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
-        clearSvg();
+        const consider = (x1, y1, x2, y2) => {
+          minX = Math.min(minX, x1);
+          minY = Math.min(minY, y1);
+          maxX = Math.max(maxX, x2);
+          maxY = Math.max(maxY, y2);
+        };
 
-        const canvas = getCanvas();
-        const fitted = computeFittedBoxSize(canvas);
-        const boxW = fitted.boxW;
-        const boxH = fitted.boxH;
-        const positions = getLayoutPositions(boxW, boxH, canvas);
-
-        svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-        boxWidthValue.textContent = boxW;
-        boxHeightValue.textContent = boxH;
-        boxNameFontSizeValue.textContent = boxNameFontSizeInput.value;
-        boxBodyFontSizeValue.textContent = boxBodyFontSizeInput.value;
-        lineThicknessValue.textContent = lineThicknessInput.value;
-        watermarkOpacityValue.textContent = Number(watermarkOpacity.value).toFixed(2);
-        watermarkSizeValue.textContent = watermarkSize.value;
-
-        setPrintPage();
-
-        const bgLayer = makeEl("g");
-        const watermarkLayer = makeEl("g");
-        const headerLayer = makeEl("g");
-        const lineLayer = makeEl("g");
-        const photoLayer = makeEl("g");
-        const boxLayer = makeEl("g");
-        const winsLayer = makeEl("g");
-        const footerLayer = makeEl("g");
-
-        svg.append(bgLayer, watermarkLayer, headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
-
-        const bgUrl = getUrlParam("background-image");
-        if (bgUrl) {
-          const bg = makeEl("image", {
-            href: bgUrl,
-            preserveAspectRatio: "xMidYMid meet"
-          });
-
-          if (layoutOrientation.value === "portrait") {
-            bg.setAttribute("x", 0);
-            bg.setAttribute("y", 0);
-            bg.setAttribute("width", canvas.height);
-            bg.setAttribute("height", canvas.width);
-            bg.setAttribute("transform", `translate(${canvas.width},0) rotate(90)`);
-          } else {
-            bg.setAttribute("x", 0);
-            bg.setAttribute("y", 0);
-            bg.setAttribute("width", canvas.width);
-            bg.setAttribute("height", canvas.height);
+        Object.values(BASE.boxes).forEach(b => {
+          consider(b.x, b.y, b.x + boxW, b.y + boxH);
+          if (b.gen < 4) {
+            consider(b.x, b.y + boxH, b.x + boxW, b.y + boxH + 48);
           }
-
-          bg.style.pointerEvents = "none";
-          bgLayer.appendChild(bg);
-        }
-
-        const logoUrl = getUrlParam("logo");
-        if (logoUrl && toggleWatermark.checked) {
-          const pct = Number(watermarkSize.value) / 100;
-          const wmBase = Math.min(canvas.width, canvas.height) * pct;
-          const wmX = (canvas.width - wmBase) / 2;
-          const wmY = (canvas.height - wmBase) / 2 + 40;
-
-          const wm = makeEl("image", {
-            href: logoUrl,
-            x: wmX,
-            y: wmY,
-            width: wmBase,
-            height: wmBase,
-            preserveAspectRatio: "xMidYMid meet",
-            opacity: watermarkOpacity.value
-          });
-
-          wm.style.pointerEvents = "none";
-          watermarkLayer.appendChild(wm);
-        }
-
-        const logoSize = layoutOrientation.value === "portrait" ? 110 : 130;
-        const logoX = 40;
-        const logoY = 28;
-
-        if (logoUrl) {
-          headerLayer.appendChild(makeEl("image", {
-            href: logoUrl,
-            x: logoX,
-            y: logoY,
-            width: logoSize,
-            height: logoSize,
-            preserveAspectRatio: "xMidYMid meet"
-          }));
-        }
-
-        const headerTextX = logoX + logoSize + 22;
-        const headerTop = 58;
-        addText(headerLayer, headerTextX, headerTop, getParam("rabbitry"), { size: 24, weight: 700 });
-        addText(headerLayer, headerTextX, headerTop + 26, getParam("street"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTop + 50, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTop + 74, getParam("phone"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTop + 98, getParam("email"), { size: 16, weight: 600 });
-        addText(headerLayer, headerTextX, headerTop + 126, `Breed: ${getParam("breed")}`, { size: 16, weight: 700 });
-        addText(headerLayer, headerTextX, headerTop + 150, `DOB: ${getParam("dob")}`, { size: 16, weight: 700 });
-
-        if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
-          const photoW = layoutOrientation.value === "portrait" ? 210 : 230;
-          const photoH = layoutOrientation.value === "portrait" ? 190 : 205;
-          const photoX = canvas.width - photoW - 40;
-          const photoY = 35;
-
-          photoLayer.appendChild(makeEl("rect", {
-            x: photoX,
-            y: photoY,
-            width: photoW,
-            height: photoH,
-            rx: 10,
-            ry: 10,
-            fill: "#ffffff",
-            stroke: "#000000",
-            "stroke-width": 1.5
-          }));
-
-          photoLayer.appendChild(makeEl("image", {
-            href: getUrlParam("rabbitphoto"),
-            x: photoX + 6,
-            y: photoY + 6,
-            width: photoW - 12,
-            height: photoH - 12,
-            preserveAspectRatio: "xMidYMid meet"
-          }));
-        }
-
-        parentMap.forEach(([childId, parentId]) => {
-          drawLine(lineLayer, positions[childId], positions[parentId], boxW, boxH);
         });
 
-        boxDefs.forEach(def => {
-          const p = positions[def.id];
-          drawBox(boxLayer, winsLayer, def, p.x, p.y, boxW, boxH);
-        });
+        consider(BASE.header.x, BASE.header.y, BASE.header.x + 620, BASE.header.y + 190);
+        consider(BASE.ownerLine.x1, BASE.ownerLine.y - 10, BASE.ownerLine.x2, BASE.ownerLine.y + 45);
+        consider(BASE.signature.x, BASE.signature.y, BASE.signature.x + BASE.signature.w, BASE.signature.y + BASE.signature.h);
+        consider(BASE.credit.x - 380, BASE.credit.y - 20, BASE.credit.x, BASE.credit.y + 10);
 
-        const sigUrl = getUrlParam("signature");
-        const footerY = canvas.height - 88;
-        addText(footerLayer, 40, footerY - 38, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
-
-        footerLayer.appendChild(makeEl("line", {
-          x1: 40, y1: footerY + 10,
-          x2: 350, y2: footerY + 10,
-          stroke: "#000000",
-          "stroke-width": 1
-        }));
-
-        if (sigUrl) {
-          footerLayer.appendChild(makeEl("image", {
-            href: sigUrl,
-            x: 40,
-            y: footerY - 55,
-            width: 220,
-            height: 70,
-            preserveAspectRatio: "xMidYMid meet"
-          }));
+        if (photoEnabled) {
+          const photoW = 220;
+          const photoH = 185;
+          const main = BASE.boxes.main;
+          const photoX = main.x + (boxW - photoW) / 2;
+          const photoY = main.y - photoH - 18;
+          consider(photoX, photoY, photoX + photoW, photoY + photoH);
         }
 
-        addText(footerLayer, 40, footerY + 34, getParam("owner"), { size: 16, weight: 700 });
-
-        addText(
-          footerLayer,
-          canvas.width - 40,
-          canvas.height - 24,
-          "Pedigree built on the ShowTails LLC platform - www.showtails.com",
-          { size: 12, anchor: "end" }
-        );
-
-        if (panZoom) {
-          if (saved) {
-            setTimeout(() => {
-              panZoom.zoom(saved.zoom);
-              panZoom.pan(saved.pan);
-              blockFit = false;
-            }, 0);
-          } else {
-            fitToContainer();
-          }
-        } else {
-          blockFit = false;
-        }
+        return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
       }
 
-      function applyPresetIfNeeded() {
-        const selected = colorPreset.value;
-        if (selected === "custom") return;
-        const preset = presets[selected];
-        if (!preset) return;
-        maleBoxColor.value = preset.male;
-        femaleBoxColor.value = preset.female;
-        mainBoxColor.value = preset.main;
-      }
+      function getRootTransform(canvas, boxW, boxH) {
+        const photoEnabled = toggleRabbitPhoto.checked && !!getUrlParam("rabbitphoto");
+        const b = getContentBounds(boxW, boxH, photoEnabled);
 
-      function resetDefaults() {
-        colorPreset.value = defaults.preset;
-        mainSexColorToggle.checked = defaults.mainSexColor;
-        mainBoxColor.value = defaults.main;
-        maleBoxColor.value = defaults.male;
-        femaleBoxColor.value = defaults.female;
-        fontColor.value = defaults.fontColor;
-        layoutOrientation.value = defaults.layout;
-        boxWidthInput.value = defaults.boxWidth;
-        boxHeightInput.value = defaults.boxHeight;
-        boxNameFontSizeInput.value = defaults.nameFont;
-        boxBodyFontSizeInput.value = defaults.bodyFont;
-        lineStyleInput.value = defaults.lineStyle;
-        lineColorInput.value = defaults.lineColor;
-        lineThicknessInput.value = defaults.lineThickness;
-        toggleWatermark.checked = defaults.watermarkEnabled;
-        watermarkOpacity.value = defaults.watermarkOpacity;
-        watermarkSize.value = defaults.watermarkSize;
-        toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
-        applyFont(defaults.fontFamily);
-        render();
+        const margin = layoutOrientation.value === "portrait" ? 35 : 28;
+        const availW = canvas.width - margin * 2;
+        const availH = canvas.height - margin * 2;
+
+        const scale = Math.min(availW / b.width, availH / b.height);
+        const tx = margin + (availW - b.width * scale) / 2 - b.minX * scale;
+        const ty = margin + (availH - b.height * scale) / 2 - b.minY * scale;
+
+        return { scale, tx, ty };
       }
 
       function validBox(vb) {
@@ -1143,7 +916,7 @@
             const rect = svg.getBoundingClientRect();
             const mid = {
               x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
-              y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
+              y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top
             };
 
             panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
@@ -1173,6 +946,234 @@
         enablePointerPan();
         enablePinchZoom();
         fitToContainer();
+      }
+
+      function render(keepZoom) {
+        const saved = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
+        blockFit = true;
+
+        clearSvg();
+
+        const canvas = getCanvas();
+        const box = getRequestedBoxSize();
+        const boxW = box.width;
+        const boxH = box.height;
+        const rootTransform = getRootTransform(canvas, boxW, boxH);
+
+        svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        boxWidthValue.textContent = boxW;
+        boxHeightValue.textContent = boxH;
+        boxNameFontSizeValue.textContent = boxNameFontSizeInput.value;
+        boxBodyFontSizeValue.textContent = boxBodyFontSizeInput.value;
+        lineThicknessValue.textContent = lineThicknessInput.value;
+        watermarkOpacityValue.textContent = Number(watermarkOpacity.value).toFixed(2);
+        watermarkSizeValue.textContent = watermarkSize.value;
+
+        setPrintPage();
+
+        const bgLayer = makeEl("g");
+        const watermarkLayer = makeEl("g");
+        const root = makeEl("g", {
+          transform: `translate(${rootTransform.tx},${rootTransform.ty}) scale(${rootTransform.scale})`
+        });
+
+        const headerLayer = makeEl("g");
+        const lineLayer = makeEl("g");
+        const photoLayer = makeEl("g");
+        const boxLayer = makeEl("g");
+        const winsLayer = makeEl("g");
+        const footerLayer = makeEl("g");
+
+        svg.append(bgLayer, watermarkLayer, root);
+        root.append(headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
+
+        const bgUrl = getUrlParam("background-image");
+        if (bgUrl) {
+          const bg = makeEl("image", {
+            href: bgUrl,
+            preserveAspectRatio: "none"
+          });
+
+          if (layoutOrientation.value === "portrait") {
+            bg.setAttribute("x", 0);
+            bg.setAttribute("y", 0);
+            bg.setAttribute("width", canvas.height);
+            bg.setAttribute("height", canvas.width);
+            bg.setAttribute("transform", `translate(${canvas.width},0) rotate(90)`);
+          } else {
+            bg.setAttribute("x", 0);
+            bg.setAttribute("y", 0);
+            bg.setAttribute("width", canvas.width);
+            bg.setAttribute("height", canvas.height);
+          }
+
+          bg.style.pointerEvents = "none";
+          bgLayer.appendChild(bg);
+        }
+
+        const logoUrl = getUrlParam("logo");
+
+        if (logoUrl && toggleWatermark.checked) {
+          const pct = Number(watermarkSize.value) / 100;
+          const wmBase = Math.min(canvas.width, canvas.height) * pct;
+          const wmX = (canvas.width - wmBase) / 2;
+          const wmY = (canvas.height - wmBase) / 2;
+          const wm = makeEl("image", {
+            href: logoUrl,
+            x: wmX,
+            y: wmY,
+            width: wmBase,
+            height: wmBase,
+            preserveAspectRatio: "xMidYMid meet",
+            opacity: watermarkOpacity.value
+          });
+          wm.style.pointerEvents = "none";
+          watermarkLayer.appendChild(wm);
+        }
+
+        if (logoUrl) {
+          headerLayer.appendChild(makeEl("image", {
+            href: logoUrl,
+            x: BASE.header.x,
+            y: BASE.header.y - 40,
+            width: 140,
+            height: 140,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
+        }
+
+        const headerTextX = BASE.header.x + 160;
+        const headerTextY = BASE.header.y - 10;
+        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 20, getParam("street"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 40, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 60, getParam("phone"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 80, getParam("email"), { size: 16, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 110, "Breed:", { size: 16, weight: 700 });
+        addText(headerLayer, headerTextX + 60, headerTextY + 110, getParam("breed"), { size: 16, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 130, "DOB:", { size: 16, weight: 700 });
+        addText(headerLayer, headerTextX + 60, headerTextY + 130, getParam("dob"), { size: 16, weight: 700 });
+
+        if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
+          const photoW = 220;
+          const photoH = 185;
+          const main = BASE.boxes.main;
+          const photoX = main.x + (boxW - photoW) / 2;
+          const photoY = main.y - photoH - 18;
+
+          photoLayer.appendChild(makeEl("rect", {
+            x: photoX,
+            y: photoY,
+            width: photoW,
+            height: photoH,
+            rx: 10,
+            ry: 10,
+            fill: "#ffffff",
+            stroke: "#000000",
+            "stroke-width": 1.5
+          }));
+
+          photoLayer.appendChild(makeEl("image", {
+            href: getUrlParam("rabbitphoto"),
+            x: photoX + 6,
+            y: photoY + 6,
+            width: photoW - 12,
+            height: photoH - 12,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
+        }
+
+        parentMap.forEach(([childId, parentId]) => {
+          drawLine(lineLayer, BASE.boxes[childId], BASE.boxes[parentId], boxW, boxH);
+        });
+
+        boxDefs.forEach(def => {
+          const base = BASE.boxes[def.id];
+          drawBox(boxLayer, winsLayer, def, base.x, base.y, boxW, boxH);
+        });
+
+        addText(footerLayer, BASE.ownerText.x, BASE.ownerText.y - 80, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
+
+        footerLayer.appendChild(makeEl("line", {
+          x1: BASE.ownerLine.x1,
+          y1: BASE.ownerLine.y,
+          x2: BASE.ownerLine.x2,
+          y2: BASE.ownerLine.y,
+          stroke: "#000000",
+          "stroke-width": 1
+        }));
+
+        const sigUrl = getUrlParam("signature");
+        if (sigUrl) {
+          footerLayer.appendChild(makeEl("image", {
+            href: sigUrl,
+            x: BASE.signature.x,
+            y: BASE.signature.y,
+            width: BASE.signature.w,
+            height: BASE.signature.h,
+            preserveAspectRatio: "xMidYMid meet"
+          }));
+        }
+
+        addText(footerLayer, BASE.ownerText.x, BASE.ownerText.y + 20, getParam("owner"), { size: 16, weight: 700 });
+
+        addText(
+          footerLayer,
+          BASE.credit.x,
+          BASE.credit.y,
+          "Pedigree built on the ShowTails LLC platform - www.showtails.com",
+          { size: 12, anchor: "end" }
+        );
+
+        if (panZoom) {
+          if (saved) {
+            setTimeout(() => {
+              panZoom.zoom(saved.zoom);
+              panZoom.pan(saved.pan);
+              blockFit = false;
+            }, 0);
+          } else {
+            blockFit = false;
+            fitToContainer();
+          }
+        } else {
+          blockFit = false;
+        }
+      }
+
+      function applyPresetIfNeeded() {
+        const selected = colorPreset.value;
+        if (selected === "custom") return;
+        const preset = presets[selected];
+        if (!preset) return;
+        maleBoxColor.value = preset.male;
+        femaleBoxColor.value = preset.female;
+        mainBoxColor.value = preset.main;
+      }
+
+      function resetDefaults() {
+        colorPreset.value = defaults.preset;
+        mainSexColorToggle.checked = defaults.mainSexColor;
+        mainBoxColor.value = defaults.main;
+        maleBoxColor.value = defaults.male;
+        femaleBoxColor.value = defaults.female;
+        fontColor.value = defaults.fontColor;
+        layoutOrientation.value = defaults.layout;
+        boxWidthInput.value = defaults.boxWidth;
+        boxHeightInput.value = defaults.boxHeight;
+        boxNameFontSizeInput.value = defaults.nameFont;
+        boxBodyFontSizeInput.value = defaults.bodyFont;
+        lineStyleInput.value = defaults.lineStyle;
+        lineColorInput.value = defaults.lineColor;
+        lineThicknessInput.value = defaults.lineThickness;
+        toggleWatermark.checked = defaults.watermarkEnabled;
+        watermarkOpacity.value = defaults.watermarkOpacity;
+        watermarkSize.value = defaults.watermarkSize;
+        toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
+        applyFont(defaults.fontFamily);
+        render();
       }
 
       menuToggle.addEventListener("click", () => {
@@ -1249,6 +1250,26 @@
       window.addEventListener("beforeprint", () => {
         if (panZoom) fitToContainer();
       });
+
+      function initPanZoom() {
+        if (typeof window.svgPanZoom !== "function") return;
+        panZoom = svgPanZoom(svg, {
+          panEnabled: true,
+          zoomEnabled: true,
+          mouseWheelZoomEnabled: false,
+          controlIconsEnabled: false,
+          fit: false,
+          center: true,
+          minZoom: 0.2,
+          maxZoom: 10,
+          dblClickZoomEnabled: true
+        });
+
+        wireWheelZoom();
+        enablePointerPan();
+        enablePinchZoom();
+        fitToContainer();
+      }
 
       applyFont(defaults.fontFamily);
       resetDefaults();
