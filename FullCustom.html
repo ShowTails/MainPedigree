@@ -272,6 +272,13 @@
     <div class="menu-note">Choose a preset or fine-tune colors below.</div>
 
     <div class="menu-section">
+      <div class="menu-actions">
+        <button id="menu-print-btn" type="button">Print / Save PDF</button>
+        <button id="reset-styles-btn" type="button">Reset Defaults</button>
+      </div>
+    </div>
+
+    <div class="menu-section">
       <label for="color-preset">Preset Male / Female Pairings</label>
       <select id="color-preset">
         <option value="custom">Custom</option>
@@ -385,17 +392,12 @@
       </div>
       <div class="menu-note" style="margin-bottom:0;">Image query parameter: <strong>rabbitphoto</strong></div>
     </div>
-
-    <div class="menu-section">
-      <div class="menu-actions">
-        <button id="menu-print-btn" type="button">Print / Save PDF</button>
-        <button id="reset-styles-btn" type="button">Reset Defaults</button>
-      </div>
-    </div>
   </div>
 
   <div id="pedigree-container">
-    <svg id="pedigree-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="pedigree-svg" xmlns="http://www.w3.org/2000/svg">
+      <g id="viewport"></g>
+    </svg>
   </div>
 
   <style id="print-page-style">
@@ -410,6 +412,7 @@
       const xlinkNS = "http://www.w3.org/1999/xlink";
 
       const svg = document.getElementById("pedigree-svg");
+      const viewport = document.getElementById("viewport");
       const container = document.getElementById("pedigree-container");
       const menuToggle = document.getElementById("menu-toggle");
       const pedigreeMenu = document.getElementById("pedigree-menu");
@@ -451,6 +454,8 @@
       let panZoom = null;
       let initialized = false;
       let params = null;
+      let printState = null;
+      let interactionWired = false;
 
       const defaults = {
         preset: "custom",
@@ -486,13 +491,13 @@
       };
 
       const boxDefs = [
-        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom"],   wins: "win1"   },
+        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom"], wins: "win1"   },
         { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustom"], wins: "swin1"  },
         { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustom"], wins: "dwin1"  },
 
         { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustom"], wins: "sswin1" },
         { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom"], wins: "sdwin1" },
-        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","ddsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
         { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom"], wins: "ddwin1" },
 
         { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
@@ -557,8 +562,8 @@
         }
       }
 
-      function clearSvg() {
-        while (svg.firstChild) svg.removeChild(svg.firstChild);
+      function clearViewport() {
+        while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
       }
 
       function makeEl(tag, attrs = {}) {
@@ -602,12 +607,12 @@
         fontOptions.forEach(opt => opt.classList.toggle("active", opt.dataset.font === fontValue));
       }
 
-      function applyFont(fontValue) {
+      function applyFont(fontValue, shouldRender = true) {
         selectedFontPreview.textContent = getFontLabel(fontValue);
         selectedFontPreview.style.fontFamily = fontValue;
         document.documentElement.style.setProperty("--menu-font", fontValue);
         setActiveFontOption(fontValue);
-        render(true);
+        if (shouldRender) render(true);
       }
 
       function getMainRabbitSex() {
@@ -631,51 +636,81 @@
 
       function getCanvas() {
         return layoutOrientation.value === "portrait"
-          ? { width: 1100, height: 1500 }
-          : { width: 1750, height: 1400 };
+          ? { width: 850, height: 1100 }
+          : { width: 1100, height: 850 };
       }
 
-      function getPositions() {
+      function getLayoutMeta() {
+        const canvas = getCanvas();
+
         if (layoutOrientation.value === "portrait") {
           return {
-            main:   { x: 82,  y: 675 },
-            sire:   { x: 300, y: 440 },
-            dam:    { x: 300, y: 920 },
-
-            ssire:  { x: 510, y: 310 },
-            sdam:   { x: 510, y: 560 },
-            dsire:  { x: 510, y: 835 },
-            ddam:   { x: 510, y: 1100 },
-
-            sssire: { x: 725, y: 220 },
-            ssdam:  { x: 725, y: 355 },
-            sdsire: { x: 725, y: 490 },
-            sddam:  { x: 725, y: 625 },
-            dssire: { x: 725, y: 820 },
-            dsdam:  { x: 725, y: 955 },
-            ddsire: { x: 725, y: 1090 },
-            dddam:  { x: 725, y: 1225 }
+            canvas,
+            inner: { left: 84, top: 82, right: 785, bottom: 1015 },
+            tree:  { left: 86, top: 285, right: 745, bottom: 920 },
+            header: { x: 102, y: 46, logoSize: 72 },
+            footer: { x: 54, y: 987, right: 790, taglineY: 1062 },
+            photoGap: 12
           };
         }
 
         return {
-          main:   { x: 145,  y: 555 },
-          sire:   { x: 470,  y: 285 },
-          dam:    { x: 470,  y: 825 },
+          canvas,
+          inner: { left: 64, top: 56, right: 1042, bottom: 790 },
+          tree:  { left: 66, top: 160, right: 968, bottom: 655 },
+          header: { x: 82, y: 28, logoSize: 64 },
+          footer: { x: 42, y: 738, right: 1048, taglineY: 814 },
+          photoGap: 12
+        };
+      }
 
-          ssire:  { x: 800,  y: 155 },
-          sdam:   { x: 800,  y: 425 },
-          dsire:  { x: 800,  y: 695 },
-          ddam:   { x: 800,  y: 965 },
+      function getPositions(boxW, boxH) {
+        const meta = getLayoutMeta();
+        const tree = meta.tree;
 
-          sssire: { x: 1130, y: 90  },
-          ssdam:  { x: 1130, y: 225 },
-          sdsire: { x: 1130, y: 360 },
-          sddam:  { x: 1130, y: 495 },
-          dssire: { x: 1130, y: 640 },
-          dsdam:  { x: 1130, y: 775 },
-          ddsire: { x: 1130, y: 910 },
-          dddam:  { x: 1130, y: 1045 }
+        const availW = tree.right - tree.left;
+        const availH = tree.bottom - tree.top;
+
+        const x1 = tree.left;
+        const x2 = tree.left + Math.round(availW * 0.27);
+        const x3 = tree.left + Math.round(availW * 0.61);
+        const x4 = tree.left + Math.round(availW * 0.84);
+
+        const row2Top = tree.top + Math.round(availH * 0.15);
+        const row3Top = tree.top + Math.round(availH * 0.03);
+        const row4Top = tree.top - 10;
+
+        const gap2 = Math.max(65, Math.round((availH - (2 * boxH)) / 1));
+        const gap3 = Math.max(30, Math.round((availH - (4 * boxH)) / 3));
+        const gap4 = Math.max(10, Math.round((availH - (8 * boxH)) / 7));
+
+        const mainY = tree.top + Math.round((availH - boxH) / 2);
+        const sireY = row2Top;
+        const damY = row2Top + boxH + gap2;
+
+        const ssireY = row3Top;
+        const sdamY = row3Top + boxH + gap3;
+        const dsireY = row3Top + (boxH + gap3) * 2;
+        const ddamY = row3Top + (boxH + gap3) * 3;
+
+        return {
+          main:   { x: x1, y: mainY },
+          sire:   { x: x2, y: sireY },
+          dam:    { x: x2, y: damY },
+
+          ssire:  { x: x3, y: ssireY },
+          sdam:   { x: x3, y: sdamY },
+          dsire:  { x: x3, y: dsireY },
+          ddam:   { x: x3, y: ddamY },
+
+          sssire: { x: x4, y: row4Top + (boxH + gap4) * 0 },
+          ssdam:  { x: x4, y: row4Top + (boxH + gap4) * 1 },
+          sdsire: { x: x4, y: row4Top + (boxH + gap4) * 2 },
+          sddam:  { x: x4, y: row4Top + (boxH + gap4) * 3 },
+          dssire: { x: x4, y: row4Top + (boxH + gap4) * 4 },
+          dsdam:  { x: x4, y: row4Top + (boxH + gap4) * 5 },
+          ddsire: { x: x4, y: row4Top + (boxH + gap4) * 6 },
+          dddam:  { x: x4, y: row4Top + (boxH + gap4) * 7 }
         };
       }
 
@@ -691,11 +726,47 @@
           const raw = getParam(key);
           if (!raw) return;
           raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
-            if (line.trim()) lines.push({ text: line, type: "extra" });
+            if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
           });
         });
 
         return lines;
+      }
+
+      function getLineRenderMetrics(line) {
+        const bodySize = Number(boxBodyFontSizeInput.value);
+        const nameSize = Number(boxNameFontSizeInput.value);
+
+        if (line.type === "title") {
+          return {
+            fontSize: nameSize,
+            lineHeight: Math.max(nameSize + 1, bodySize + 3),
+            weight: "700"
+          };
+        }
+
+        return {
+          fontSize: bodySize,
+          lineHeight: Math.max(bodySize + 1, 11),
+          weight: "400"
+        };
+      }
+
+      function fitTextLinesToBox(lines, boxH) {
+        const topPad = 14;
+        const bottomPad = 10;
+        const usableH = boxH - topPad - bottomPad;
+        let used = 0;
+        const visible = [];
+
+        for (const line of lines) {
+          const metrics = getLineRenderMetrics(line);
+          if (used + metrics.lineHeight > usableH) break;
+          visible.push({ ...line, metrics });
+          used += metrics.lineHeight;
+        }
+
+        return { visible, topPad };
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
@@ -707,7 +778,7 @@
         if (!lines.length) return;
 
         const size = Math.max(10, Number(boxBodyFontSizeInput.value));
-        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 18 });
+        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 17 });
         textEl.style.fontFamily = getCurrentFont();
         textEl.style.fill = fontColor.value;
         textEl.style.fontSize = size + "px";
@@ -731,34 +802,29 @@
           x, y,
           width: boxW,
           height: boxH,
-          rx: 10,
-          ry: 10,
+          rx: 8,
+          ry: 8,
           fill,
           stroke: "#000000",
-          "stroke-width": 1.5
+          "stroke-width": 1.1
         }));
 
         const textLines = buildBoxText(def);
-        const padX = 10;
-        const startY = y + 18;
-        const bodySize = Number(boxBodyFontSizeInput.value);
-        const nameSize = Number(boxNameFontSizeInput.value);
-        const lineHeight = Math.max(11, bodySize + 2);
-        const maxLines = Math.floor((boxH - 20) / lineHeight);
-        const visible = textLines.slice(0, Math.max(1, maxLines));
+        const fitted = fitTextLinesToBox(textLines, boxH);
+        const padX = 8;
 
-        const t = makeEl("text", { x: x + padX, y: startY });
+        const t = makeEl("text", { x: x + padX, y: y + fitted.topPad });
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
 
-        visible.forEach((line, i) => {
+        fitted.visible.forEach((line, i) => {
           const ts = makeEl("tspan", {
             x: x + padX,
-            dy: i === 0 ? 0 : lineHeight
+            dy: i === 0 ? 0 : line.metrics.lineHeight
           });
           ts.textContent = line.text;
-          ts.style.fontSize = (line.type === "title" ? nameSize : bodySize) + "px";
-          if (line.type === "title") ts.style.fontWeight = "700";
+          ts.style.fontSize = line.metrics.fontSize + "px";
+          ts.style.fontWeight = line.metrics.weight;
           t.appendChild(ts);
         });
 
@@ -782,7 +848,7 @@
             "stroke-width": sw
           }));
         } else {
-          const midX = (p1.x + p2.x) / 2;
+          const midX = p1.x + (p2.x - p1.x) * 0.48;
           group.appendChild(makeEl("path", {
             d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
             fill: "none",
@@ -792,19 +858,24 @@
         }
       }
 
-      function render(keepZoom) {
+      function render(keepZoom = false) {
         refreshParams();
-        const saved = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
 
-        clearSvg();
+        const saved = panZoom && keepZoom ? {
+          pan: panZoom.getPan(),
+          zoom: panZoom.getZoom()
+        } : null;
 
-        const canvas = getCanvas();
-        const positions = getPositions();
+        clearViewport();
+
+        const meta = getLayoutMeta();
+        const canvas = meta.canvas;
         const boxW = Number(boxWidthInput.value);
         const boxH = Number(boxHeightInput.value);
+        const positions = getPositions(boxW, boxH);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("preserveAspectRatio", "none");
 
         boxWidthValue.textContent = boxW;
         boxHeightValue.textContent = boxH;
@@ -825,30 +896,18 @@
         const winsLayer = makeEl("g");
         const footerLayer = makeEl("g");
 
-        svg.append(bgLayer, watermarkLayer, headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
+        viewport.append(bgLayer, watermarkLayer, headerLayer, lineLayer, photoLayer, boxLayer, winsLayer, footerLayer);
 
         const bgUrl = getUrlParam("background-image");
         if (bgUrl) {
-          const bg = makeEl("image", {
+          bgLayer.appendChild(makeEl("image", {
             href: bgUrl,
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: canvas.height,
             preserveAspectRatio: "none"
-          });
-
-          if (layoutOrientation.value === "portrait") {
-            bg.setAttribute("x", 0);
-            bg.setAttribute("y", 0);
-            bg.setAttribute("width", canvas.height);
-            bg.setAttribute("height", canvas.width);
-            bg.setAttribute("transform", `translate(${canvas.width},0) rotate(90)`);
-          } else {
-            bg.setAttribute("x", 0);
-            bg.setAttribute("y", 0);
-            bg.setAttribute("width", canvas.width);
-            bg.setAttribute("height", canvas.height);
-          }
-
-          bg.style.pointerEvents = "none";
-          bgLayer.appendChild(bg);
+          }));
         }
 
         const logoUrl = getUrlParam("logo");
@@ -858,6 +917,7 @@
           const wmBase = Math.min(canvas.width, canvas.height) * pct;
           const wmX = (canvas.width - wmBase) / 2;
           const wmY = (canvas.height - wmBase) / 2;
+
           const wm = makeEl("image", {
             href: logoUrl,
             x: wmX,
@@ -871,62 +931,75 @@
           watermarkLayer.appendChild(wm);
         }
 
-        const headerX = layoutOrientation.value === "portrait" ? 84 : 94;
-        const headerY = layoutOrientation.value === "portrait" ? 68 : 64;
-        const logoSize = layoutOrientation.value === "portrait" ? 118 : 126;
-
         if (logoUrl) {
           headerLayer.appendChild(makeEl("image", {
             href: logoUrl,
-            x: headerX,
-            y: headerY,
-            width: logoSize,
-            height: logoSize,
+            x: meta.header.x,
+            y: meta.header.y,
+            width: meta.header.logoSize,
+            height: meta.header.logoSize,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        const hs = layoutOrientation.value === "portrait" ? 0.92 : 1.00;
-        const headerTextX = headerX + logoSize + 18;
-        const headerTextY = headerY + 18;
+        const hs = layoutOrientation.value === "portrait" ? 0.86 : 0.88;
+        const headerTextX = meta.header.x + meta.header.logoSize + 12;
+        const headerTextY = meta.header.y + 12;
 
-        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 20 * hs, getParam("street"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 40 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 60 * hs, getParam("phone"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 80 * hs, getParam("email"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 108 * hs, "Breed:", { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 108 * hs, getParam("breed"), { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 128 * hs, "DOB:", { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 128 * hs, getParam("dob"), { size: 16 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 18 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 18 * hs, getParam("street"), { size: 14 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 34 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 14 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 50 * hs, getParam("phone"), { size: 14 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 66 * hs, getParam("email"), { size: 14 * hs, weight: 600 });
+        addText(headerLayer, headerTextX, headerTextY + 90 * hs, "Breed:", { size: 14 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 48 * hs, headerTextY + 90 * hs, getParam("breed"), { size: 14 * hs, weight: 700 });
+        addText(headerLayer, headerTextX, headerTextY + 106 * hs, "DOB:", { size: 14 * hs, weight: 700 });
+        addText(headerLayer, headerTextX + 38 * hs, headerTextY + 106 * hs, getParam("dob"), { size: 14 * hs, weight: 700 });
 
         if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
-          const photoW = layoutOrientation.value === "portrait" ? 190 : 205;
-          const photoH = layoutOrientation.value === "portrait" ? 165 : 175;
+          const photoW = Math.min(boxW, layoutOrientation.value === "portrait" ? 165 : 178);
+          const photoH = layoutOrientation.value === "portrait" ? 130 : 138;
           const main = positions.main;
-          const photoX = main.x + (boxW - photoW) / 2;
-          const photoY = main.y - photoH - 18;
+          const photoX = main.x + Math.max(0, (boxW - photoW) / 2);
+          const photoY = main.y - photoH - meta.photoGap;
+
+          const clipId = "rabbit-photo-clip";
+
+          const defs = makeEl("defs");
+          const clip = makeEl("clipPath", { id: clipId });
+          clip.appendChild(makeEl("rect", {
+            x: photoX,
+            y: photoY,
+            width: photoW,
+            height: photoH,
+            rx: 8,
+            ry: 8
+          }));
+          defs.appendChild(clip);
+          photoLayer.appendChild(defs);
 
           photoLayer.appendChild(makeEl("rect", {
             x: photoX,
             y: photoY,
             width: photoW,
             height: photoH,
-            rx: 10,
-            ry: 10,
+            rx: 8,
+            ry: 8,
             fill: "#ffffff",
             stroke: "#000000",
-            "stroke-width": 1.5
+            "stroke-width": 1.1
           }));
 
-          photoLayer.appendChild(makeEl("image", {
+          const img = makeEl("image", {
             href: getUrlParam("rabbitphoto"),
             x: photoX,
             y: photoY,
             width: photoW,
             height: photoH,
-            preserveAspectRatio: "xMidYMid slice"
-          }));
+            preserveAspectRatio: "xMidYMid slice",
+            "clip-path": `url(#${clipId})`
+          });
+          photoLayer.appendChild(img);
         }
 
         parentMap.forEach(([childId, parentId]) => {
@@ -937,16 +1010,16 @@
           drawBox(boxLayer, winsLayer, def, positions[def.id].x, positions[def.id].y, boxW, boxH);
         });
 
-        const footerX = layoutOrientation.value === "portrait" ? 42 : 42;
-        const footerY = layoutOrientation.value === "portrait" ? 1325 : 1242;
+        const footerX = meta.footer.x;
+        const footerY = meta.footer.y;
         const sigUrl = getUrlParam("signature");
 
-        addText(footerLayer, footerX, footerY - 56, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
+        addText(footerLayer, footerX, footerY - 32, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 11.5, weight: 600 });
 
         footerLayer.appendChild(makeEl("line", {
           x1: footerX,
           y1: footerY + 8,
-          x2: footerX + 300,
+          x2: footerX + 200,
           y2: footerY + 8,
           stroke: "#000000",
           "stroke-width": 1
@@ -956,32 +1029,34 @@
           footerLayer.appendChild(makeEl("image", {
             href: sigUrl,
             x: footerX,
-            y: footerY - 44,
-            width: 90,
-            height: 60,
+            y: footerY - 24,
+            width: 62,
+            height: 42,
             preserveAspectRatio: "xMidYMid meet"
           }));
         }
 
-        addText(footerLayer, footerX, footerY + 28, getParam("owner"), { size: 16, weight: 700 });
+        addText(footerLayer, footerX, footerY + 22, getParam("owner"), { size: 11.5, weight: 700 });
 
         addText(
           footerLayer,
-          layoutOrientation.value === "portrait" ? 950 : 1495,
-          layoutOrientation.value === "portrait" ? 1405 : 1335,
+          meta.footer.right,
+          meta.footer.taglineY,
           "Pedigree built on the ShowTails LLC platform - www.showtails.com",
-          { size: 12, anchor: "end" }
+          { size: 9, anchor: "end" }
         );
 
         if (panZoom) {
-          if (saved) {
-            requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            panZoom.resize();
+            panZoom.updateBBox();
+            if (saved) {
               panZoom.zoom(saved.zoom);
               panZoom.pan(saved.pan);
-            });
-          } else {
-            requestAnimationFrame(() => fitToContainer());
-          }
+            } else {
+              fitToContainer();
+            }
+          });
         }
       }
 
@@ -1028,27 +1103,30 @@
       }
 
       function wireWheelZoom() {
+        if (interactionWired) return;
+
         container.addEventListener("wheel", (e) => {
           if (!panZoom) return;
           const rect = svg.getBoundingClientRect();
           const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const delta = e.deltaY;
-          const factor = delta > 0 ? 0.9 : 1.1;
+          const factor = e.deltaY > 0 ? 0.9 : 1.1;
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
-            panZoom.zoomAtPoint(factor, point);
+            panZoom.zoomAtPoint(panZoom.getZoom() * factor, point);
           }
         }, { passive: false });
       }
 
       function enablePointerPan() {
+        if (interactionWired) return;
+
         let isPanning = false;
         let start = { x: 0, y: 0 };
 
         svg.addEventListener("pointerdown", (e) => {
           isPanning = true;
           start = { x: e.clientX, y: e.clientY };
-          svg.setPointerCapture(e.pointerId);
+          if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId);
         });
 
         svg.addEventListener("pointermove", (e) => {
@@ -1064,21 +1142,23 @@
       }
 
       function enablePinchZoom() {
+        if (interactionWired) return;
+
         let pinchStart = null;
         let startZoom = 1;
 
         svg.addEventListener("touchstart", (e) => {
-          if (e.touches.length === 2 && window.panZoomInstance) {
+          if (e.touches.length === 2 && panZoom) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
             pinchStart = Math.hypot(dx, dy);
-            startZoom = window.panZoomInstance.getZoom();
+            startZoom = panZoom.getZoom();
           }
         }, { passive: false });
 
         svg.addEventListener("touchmove", (e) => {
-          if (e.touches.length === 2 && window.panZoomInstance && pinchStart) {
+          if (e.touches.length === 2 && panZoom && pinchStart) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
             const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -1091,13 +1171,15 @@
               y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top
             };
 
-            window.panZoomInstance.zoomAtPoint(startZoom * zoomRatio, mid);
+            panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
         });
+
+        interactionWired = true;
       }
 
       function tryInit() {
@@ -1110,23 +1192,22 @@
         if (!validBox(vb) || !cw || !ch) return;
 
         panZoom = svgPanZoom(svg, {
+          viewportSelector: "#viewport",
           panEnabled: true,
           zoomEnabled: true,
-          mouseWheelZoomEnabled: true,
+          mouseWheelZoomEnabled: false,
           controlIconsEnabled: false,
           fit: false,
-          center: true,
+          center: false,
           minZoom: 0.25,
           maxZoom: 10,
-          dblClickZoomEnabled: true,
-          onUpdatedCTM: function() {}
+          dblClickZoomEnabled: true
         });
 
-        window.panZoomInstance = panZoom;
         fitToContainer();
+        wireWheelZoom();
         enablePointerPan();
         enablePinchZoom();
-        wireWheelZoom();
         initialized = true;
       }
 
@@ -1149,8 +1230,36 @@
         watermarkOpacity.value = defaults.watermarkOpacity;
         watermarkSize.value = defaults.watermarkSize;
         toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
-        applyFont(defaults.fontFamily);
-        render();
+        applyFont(defaults.fontFamily, false);
+        render(false);
+      }
+
+      function capturePrintState() {
+        if (!panZoom) return;
+        printState = {
+          pan: panZoom.getPan(),
+          zoom: panZoom.getZoom()
+        };
+      }
+
+      function prepareForPrint() {
+        capturePrintState();
+        fitToContainer();
+        if (panZoom) {
+          panZoom.resize();
+          panZoom.updateBBox();
+        }
+      }
+
+      function restoreAfterPrint() {
+        if (!panZoom || !printState) return;
+        requestAnimationFrame(() => {
+          panZoom.resize();
+          panZoom.updateBBox();
+          panZoom.zoom(printState.zoom);
+          panZoom.pan(printState.pan);
+          printState = null;
+        });
       }
 
       menuToggle.addEventListener("click", () => {
@@ -1170,7 +1279,7 @@
 
       fontOptions.forEach(option => {
         option.addEventListener("click", () => {
-          applyFont(option.dataset.font);
+          applyFont(option.dataset.font, true);
           fontPicker.classList.remove("open");
         });
       });
@@ -1216,8 +1325,8 @@
       resetStylesBtn.addEventListener("click", resetDefaults);
 
       printBtn.addEventListener("click", () => {
-        if (panZoom) fitToContainer();
-        setTimeout(() => window.print(), 150);
+        prepareForPrint();
+        setTimeout(() => window.print(), 120);
       });
 
       const ro = new ResizeObserver(() => {
@@ -1233,13 +1342,12 @@
         }
       });
 
-      window.addEventListener("beforeprint", () => {
-        if (panZoom) fitToContainer();
-      });
+      window.addEventListener("beforeprint", prepareForPrint);
+      window.addEventListener("afterprint", restoreAfterPrint);
 
       window.addEventListener("load", () => {
         refreshParams();
-        applyFont(defaults.fontFamily);
+        applyFont(defaults.fontFamily, false);
         resetDefaults();
         tryInit();
       });
