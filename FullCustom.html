@@ -473,6 +473,8 @@
       let pointerWired = false;
       let pinchWired = false;
       let renderNonce = 0;
+      let isPrintMode = false;
+      let pendingPanZoomState = null;
 
       const defaults = {
         preset: "custom",
@@ -652,6 +654,7 @@
       }
 
       function initPanZoom(state = null) {
+        if (isPrintMode) return;
         if (typeof window.svgPanZoom !== "function") return;
 
         const vb = svg.viewBox.baseVal;
@@ -739,73 +742,75 @@
         if (layoutOrientation.value === "portrait") {
           return {
             canvas,
-            header: { x: 118, y: 72, logoSize: 88, textScale: 1.0 },
-            tree: { left: 92, top: 270, right: 1130, bottom: 1500 },
-            footer: { x: 92, y: 1490, right: 1180, taglineY: 1608 },
-            photoGap: 16,
-            photoSize: { w: 178, h: 142 }
+            header: { x: 122, y: 64, logoSize: 86, textScale: 1.0 },
+            tree: { left: 112, top: 272, right: 1142, bottom: 1395 },
+            footer: { x: 96, y: 1505, right: 1180, taglineY: 1605 },
+            photoGap: 14,
+            photoSize: { w: 172, h: 138 }
           };
         }
 
         return {
           canvas,
-          header: { x: 58, y: 42, logoSize: 74, textScale: 1.0 },
-          tree: { left: 82, top: 170, right: 1490, bottom: 1115 },
-          footer: { x: 60, y: 1100, right: 1585, taglineY: 1220 },
-          photoGap: 14,
-          photoSize: { w: 188, h: 150 }
+          header: { x: 60, y: 30, logoSize: 74, textScale: 1.0 },
+          tree: { left: 92, top: 170, right: 1512, bottom: 1038 },
+          footer: { x: 70, y: 1122, right: 1588, taglineY: 1210 },
+          photoGap: 12,
+          photoSize: { w: 182, h: 146 }
         };
       }
 
       function getPositions(boxW, boxH) {
         const meta = getLayoutMeta();
+        const tree = meta.tree;
 
-        if (layoutOrientation.value === "portrait") {
-          const scaleX = meta.canvas.width / 1100;
-          const scaleY = meta.canvas.height / 1500;
+        const usableWidth = tree.right - tree.left;
+        const gapX = Math.max(24, (usableWidth - (boxW * 4)) / 3);
 
-          return {
-            main:   { x: 92 * scaleX,  y: 675 * scaleY },
-            sire:   { x: 315 * scaleX, y: 440 * scaleY },
-            dam:    { x: 315 * scaleX, y: 920 * scaleY },
+        const x1 = tree.left;
+        const x2 = x1 + boxW + gapX;
+        const x3 = x2 + boxW + gapX;
+        const x4 = x3 + boxW + gapX;
 
-            ssire:  { x: 555 * scaleX, y: 310 * scaleY },
-            sdam:   { x: 555 * scaleX, y: 560 * scaleY },
-            dsire:  { x: 555 * scaleX, y: 835 * scaleY },
-            ddam:   { x: 555 * scaleX, y: 1100 * scaleY },
+        const usableHeight = tree.bottom - tree.top;
+        const gap4 = Math.max(6, (usableHeight - (boxH * 8)) / 7);
 
-            sssire: { x: 835 * scaleX, y: 220 * scaleY },
-            ssdam:  { x: 835 * scaleX, y: 355 * scaleY },
-            sdsire: { x: 835 * scaleX, y: 490 * scaleY },
-            sddam:  { x: 835 * scaleX, y: 625 * scaleY },
-            dssire: { x: 835 * scaleX, y: 820 * scaleY },
-            dsdam:  { x: 835 * scaleX, y: 955 * scaleY },
-            ddsire: { x: 835 * scaleX, y: 1090 * scaleY },
-            dddam:  { x: 835 * scaleX, y: 1225 * scaleY }
-          };
+        const gen4 = [];
+        for (let i = 0; i < 8; i++) {
+          gen4.push(tree.top + i * (boxH + gap4));
         }
 
-        const scaleX = meta.canvas.width / 1750;
-        const scaleY = meta.canvas.height / 1400;
+        const centerY = (boxTop) => boxTop + (boxH / 2);
+        const topFromCenter = (center) => center - (boxH / 2);
+
+        const ssireY = topFromCenter((centerY(gen4[0]) + centerY(gen4[1])) / 2);
+        const sdamY  = topFromCenter((centerY(gen4[2]) + centerY(gen4[3])) / 2);
+        const dsireY = topFromCenter((centerY(gen4[4]) + centerY(gen4[5])) / 2);
+        const ddamY  = topFromCenter((centerY(gen4[6]) + centerY(gen4[7])) / 2);
+
+        const sireY = topFromCenter((centerY(ssireY) + centerY(sdamY)) / 2);
+        const damY  = topFromCenter((centerY(dsireY) + centerY(ddamY)) / 2);
+
+        const mainY = topFromCenter((centerY(sireY) + centerY(damY)) / 2);
 
         return {
-          main:   { x: 110 * scaleX,  y: 560 * scaleY },
-          sire:   { x: 390 * scaleX,  y: 300 * scaleY },
-          dam:    { x: 390 * scaleX,  y: 830 * scaleY },
+          main:   { x: x1, y: mainY },
+          sire:   { x: x2, y: sireY },
+          dam:    { x: x2, y: damY },
 
-          ssire:  { x: 740 * scaleX,  y: 165 * scaleY },
-          sdam:   { x: 740 * scaleX,  y: 425 * scaleY },
-          dsire:  { x: 740 * scaleX,  y: 695 * scaleY },
-          ddam:   { x: 740 * scaleX,  y: 965 * scaleY },
+          ssire:  { x: x3, y: ssireY },
+          sdam:   { x: x3, y: sdamY },
+          dsire:  { x: x3, y: dsireY },
+          ddam:   { x: x3, y: ddamY },
 
-          sssire: { x: 1095 * scaleX, y: 100 * scaleY },
-          ssdam:  { x: 1095 * scaleX, y: 235 * scaleY },
-          sdsire: { x: 1095 * scaleX, y: 370 * scaleY },
-          sddam:  { x: 1095 * scaleX, y: 505 * scaleY },
-          dssire: { x: 1095 * scaleX, y: 650 * scaleY },
-          dsdam:  { x: 1095 * scaleX, y: 785 * scaleY },
-          ddsire: { x: 1095 * scaleX, y: 920 * scaleY },
-          dddam:  { x: 1095 * scaleX, y: 1055 * scaleY }
+          sssire: { x: x4, y: gen4[0] },
+          ssdam:  { x: x4, y: gen4[1] },
+          sdsire: { x: x4, y: gen4[2] },
+          sddam:  { x: x4, y: gen4[3] },
+          dssire: { x: x4, y: gen4[4] },
+          dsdam:  { x: x4, y: gen4[5] },
+          ddsire: { x: x4, y: gen4[6] },
+          dddam:  { x: x4, y: gen4[7] }
         };
       }
 
@@ -943,7 +948,7 @@
             "stroke-width": sw
           }));
         } else {
-          const midX = p1.x + (p2.x - p1.x) * 0.48;
+          const midX = (p1.x + p2.x) / 2;
           group.appendChild(makeEl("path", {
             d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
             fill: "none",
@@ -1033,9 +1038,7 @@
         try {
           const response = await fetch(SAVE_SETTINGS_WEBHOOK, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: email,
               savedPedigreeSettings: JSON.stringify(settings)
@@ -1255,7 +1258,11 @@
 
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
-          initPanZoom(keepZoom ? currentState : null);
+          if (!isPrintMode) {
+            const stateToUse = keepZoom ? currentState : pendingPanZoomState;
+            pendingPanZoomState = null;
+            initPanZoom(stateToUse);
+          }
         });
       }
 
@@ -1273,7 +1280,7 @@
         if (wheelWired) return;
 
         container.addEventListener("wheel", (e) => {
-          if (!panZoom) return;
+          if (!panZoom || isPrintMode) return;
           const rect = svg.getBoundingClientRect();
           const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
           const factor = e.deltaY > 0 ? 0.9 : 1.1;
@@ -1293,13 +1300,14 @@
         let start = { x: 0, y: 0 };
 
         svg.addEventListener("pointerdown", (e) => {
+          if (isPrintMode) return;
           isPanning = true;
           start = { x: e.clientX, y: e.clientY };
           if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId);
         });
 
         svg.addEventListener("pointermove", (e) => {
-          if (!isPanning || !panZoom) return;
+          if (!isPanning || !panZoom || isPrintMode) return;
           const dx = e.clientX - start.x;
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
@@ -1319,6 +1327,7 @@
         let startZoom = 1;
 
         svg.addEventListener("touchstart", (e) => {
+          if (isPrintMode) return;
           if (e.touches.length === 2 && panZoom) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1329,6 +1338,7 @@
         }, { passive: false });
 
         svg.addEventListener("touchmove", (e) => {
+          if (isPrintMode) return;
           if (e.touches.length === 2 && panZoom && pinchStart) {
             e.preventDefault();
             const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1379,26 +1389,26 @@
       }
 
       function capturePrintState() {
-        if (!panZoom) return;
-        printState = {
+        if (!panZoom) return null;
+        return {
           pan: panZoom.getPan(),
           zoom: panZoom.getZoom()
         };
       }
 
       function prepareForPrint() {
-        capturePrintState();
-        if (panZoom) fitToContainer();
+        printState = capturePrintState();
+        pendingPanZoomState = null;
+        isPrintMode = true;
+        destroyPanZoom();
+        render(false);
       }
 
       function restoreAfterPrint() {
-        if (!panZoom || !printState) return;
-        requestAnimationFrame(() => {
-          if (!panZoom || !printState) return;
-          panZoom.zoom(printState.zoom);
-          panZoom.pan(printState.pan);
-          printState = null;
-        });
+        isPrintMode = false;
+        pendingPanZoomState = printState;
+        printState = null;
+        render(false);
       }
 
       menuToggle.addEventListener("click", () => {
@@ -1471,6 +1481,7 @@
       });
 
       const ro = new ResizeObserver(() => {
+        if (isPrintMode) return;
         if (panZoom) {
           fitToContainer();
         } else {
@@ -1480,7 +1491,7 @@
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && panZoom) {
+        if (document.visibilityState === "visible" && panZoom && !isPrintMode) {
           fitToContainer();
         }
       });
