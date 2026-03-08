@@ -450,6 +450,7 @@
 
       let panZoom = null;
       let initialized = false;
+      let params = null;
 
       const defaults = {
         preset: "custom",
@@ -516,13 +517,13 @@
 
       function getSearchParams() {
         let search = window.location.search || "";
-        while (search.startsWith("?")) {
-          search = search.slice(1);
-        }
+        while (search.startsWith("?")) search = search.slice(1);
         return new URLSearchParams(search);
       }
 
-      let params = getSearchParams();
+      function refreshParams() {
+        params = getSearchParams();
+      }
 
       function getRawParam(name) {
         return params.get(name) || "";
@@ -634,47 +635,47 @@
           : { width: 1750, height: 1400 };
       }
 
-      function getBasePositions() {
+      function getPositions() {
         if (layoutOrientation.value === "portrait") {
           return {
-            main:   { x: 92,  y: 670 },
-            sire:   { x: 305, y: 430 },
-            dam:    { x: 305, y: 930 },
+            main:   { x: 82,  y: 675 },
+            sire:   { x: 300, y: 440 },
+            dam:    { x: 300, y: 920 },
 
-            ssire:  { x: 515, y: 290 },
-            sdam:   { x: 515, y: 540 },
-            dsire:  { x: 515, y: 820 },
-            ddam:   { x: 515, y: 1090 },
+            ssire:  { x: 510, y: 310 },
+            sdam:   { x: 510, y: 560 },
+            dsire:  { x: 510, y: 835 },
+            ddam:   { x: 510, y: 1100 },
 
-            sssire: { x: 730, y: 210 },
-            ssdam:  { x: 730, y: 345 },
-            sdsire: { x: 730, y: 480 },
-            sddam:  { x: 730, y: 615 },
-            dssire: { x: 730, y: 810 },
-            dsdam:  { x: 730, y: 945 },
-            ddsire: { x: 730, y: 1080 },
-            dddam:  { x: 730, y: 1215 }
+            sssire: { x: 725, y: 220 },
+            ssdam:  { x: 725, y: 355 },
+            sdsire: { x: 725, y: 490 },
+            sddam:  { x: 725, y: 625 },
+            dssire: { x: 725, y: 820 },
+            dsdam:  { x: 725, y: 955 },
+            ddsire: { x: 725, y: 1090 },
+            dddam:  { x: 725, y: 1225 }
           };
         }
 
         return {
-          main:   { x: 150,  y: 555 },
-          sire:   { x: 485,  y: 290 },
-          dam:    { x: 485,  y: 830 },
+          main:   { x: 145,  y: 555 },
+          sire:   { x: 470,  y: 285 },
+          dam:    { x: 470,  y: 825 },
 
-          ssire:  { x: 820,  y: 160 },
-          sdam:   { x: 820,  y: 430 },
-          dsire:  { x: 820,  y: 700 },
-          ddam:   { x: 820,  y: 970 },
+          ssire:  { x: 800,  y: 155 },
+          sdam:   { x: 800,  y: 425 },
+          dsire:  { x: 800,  y: 695 },
+          ddam:   { x: 800,  y: 965 },
 
-          sssire: { x: 1155, y: 92  },
-          ssdam:  { x: 1155, y: 227 },
-          sdsire: { x: 1155, y: 362 },
-          sddam:  { x: 1155, y: 497 },
-          dssire: { x: 1155, y: 642 },
-          dsdam:  { x: 1155, y: 777 },
-          ddsire: { x: 1155, y: 912 },
-          dddam:  { x: 1155, y: 1047 }
+          sssire: { x: 1130, y: 90  },
+          ssdam:  { x: 1130, y: 225 },
+          sdsire: { x: 1130, y: 360 },
+          sddam:  { x: 1130, y: 495 },
+          dssire: { x: 1130, y: 640 },
+          dsdam:  { x: 1130, y: 775 },
+          ddsire: { x: 1130, y: 910 },
+          dddam:  { x: 1130, y: 1045 }
         };
       }
 
@@ -792,14 +793,13 @@
       }
 
       function render(keepZoom) {
-        params = getSearchParams();
+        refreshParams();
         const saved = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
-        blockFit = true;
 
         clearSvg();
 
         const canvas = getCanvas();
-        const positions = getBasePositions();
+        const positions = getPositions();
         const boxW = Number(boxWidthInput.value);
         const boxH = Number(boxHeightInput.value);
 
@@ -871,8 +871,8 @@
           watermarkLayer.appendChild(wm);
         }
 
-        const headerX = layoutOrientation.value === "portrait" ? 85 : 96;
-        const headerY = layoutOrientation.value === "portrait" ? 66 : 62;
+        const headerX = layoutOrientation.value === "portrait" ? 84 : 94;
+        const headerY = layoutOrientation.value === "portrait" ? 68 : 64;
         const logoSize = layoutOrientation.value === "portrait" ? 118 : 126;
 
         if (logoUrl) {
@@ -886,9 +886,9 @@
           }));
         }
 
+        const hs = layoutOrientation.value === "portrait" ? 0.92 : 1.00;
         const headerTextX = headerX + logoSize + 18;
         const headerTextY = headerY + 18;
-        const hs = layoutOrientation.value === "portrait" ? 0.92 : 1.00;
 
         addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20 * hs, weight: 700 });
         addText(headerLayer, headerTextX, headerTextY + 20 * hs, getParam("street"), { size: 16 * hs, weight: 600 });
@@ -937,8 +937,8 @@
           drawBox(boxLayer, winsLayer, def, positions[def.id].x, positions[def.id].y, boxW, boxH);
         });
 
-        const footerX = layoutOrientation.value === "portrait" ? 44 : 44;
-        const footerY = layoutOrientation.value === "portrait" ? 1328 : 1245;
+        const footerX = layoutOrientation.value === "portrait" ? 42 : 42;
+        const footerY = layoutOrientation.value === "portrait" ? 1325 : 1242;
         const sigUrl = getUrlParam("signature");
 
         addText(footerLayer, footerX, footerY - 56, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 16, weight: 600 });
@@ -967,7 +967,7 @@
 
         addText(
           footerLayer,
-          layoutOrientation.value === "portrait" ? 950 : 1500,
+          layoutOrientation.value === "portrait" ? 950 : 1495,
           layoutOrientation.value === "portrait" ? 1405 : 1335,
           "Pedigree built on the ShowTails LLC platform - www.showtails.com",
           { size: 12, anchor: "end" }
@@ -975,17 +975,13 @@
 
         if (panZoom) {
           if (saved) {
-            setTimeout(() => {
+            requestAnimationFrame(() => {
               panZoom.zoom(saved.zoom);
               panZoom.pan(saved.pan);
-              blockFit = false;
-            }, 0);
+            });
           } else {
-            blockFit = false;
-            fitToContainer();
+            requestAnimationFrame(() => fitToContainer());
           }
-        } else {
-          blockFit = false;
         }
       }
 
@@ -1024,41 +1020,11 @@
       }
 
       function fitToContainer() {
-        if (!panZoom || blockFit) return;
+        if (!panZoom) return;
         const fit = computeFit();
         if (!fit) return;
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
-      }
-
-      function tryInit() {
-        if (initialized) return;
-        if (typeof window.svgPanZoom !== "function") return;
-
-        const vb = svg.viewBox.baseVal;
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!validBox(vb) || !cw || !ch) return;
-
-        panZoom = svgPanZoom(svg, {
-          panEnabled: true,
-          zoomEnabled: true,
-          mouseWheelZoomEnabled: true,
-          controlIconsEnabled: false,
-          fit: false,
-          center: true,
-          minZoom: 0.25,
-          maxZoom: 10,
-          dblClickZoomEnabled: true,
-          onUpdatedCTM: function() {}
-        });
-
-        window.panZoomInstance = panZoom;
-        fitToContainer();
-        enablePointerPan();
-        enablePinchZoom();
-        wireWheelZoom();
-        initialized = true;
       }
 
       function wireWheelZoom() {
@@ -1132,6 +1098,36 @@
         svg.addEventListener("touchend", () => {
           pinchStart = null;
         });
+      }
+
+      function tryInit() {
+        if (initialized) return;
+        if (typeof window.svgPanZoom !== "function") return;
+
+        const vb = svg.viewBox.baseVal;
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!validBox(vb) || !cw || !ch) return;
+
+        panZoom = svgPanZoom(svg, {
+          panEnabled: true,
+          zoomEnabled: true,
+          mouseWheelZoomEnabled: true,
+          controlIconsEnabled: false,
+          fit: false,
+          center: true,
+          minZoom: 0.25,
+          maxZoom: 10,
+          dblClickZoomEnabled: true,
+          onUpdatedCTM: function() {}
+        });
+
+        window.panZoomInstance = panZoom;
+        fitToContainer();
+        enablePointerPan();
+        enablePinchZoom();
+        wireWheelZoom();
+        initialized = true;
       }
 
       function resetDefaults() {
@@ -1242,6 +1238,7 @@
       });
 
       window.addEventListener("load", () => {
+        refreshParams();
         applyFont(defaults.fontFamily);
         resetDefaults();
         tryInit();
