@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>4-Generation Rabbit Pedigree</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --menu-font: Arial, sans-serif;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: white;
+      font-family: var(--menu-font);
+    }
+
+    #pedigree-container {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: white;
+    }
+
+    svg {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      transform: none !important;
+      margin: 0 auto !important;
+      background: white !important;
+      page-break-inside: avoid !important;
+      touch-action: none !important;
+      -ms-touch-action: none !important;
+    }
+
+    #background-image,
+    #watermark-image,
+    #rabbit-photo {
+      pointer-events: none;
+    }
+
+    .box {
+      rx: 10;
+      ry: 10;
+      stroke: black;
+      stroke-width: 1.5;
+      fill: white;
+    }
+
+    .main-rabbit-box { fill: #ffffff; }
+    .male { fill: #cce5ff; }
+    .female { fill: #f8d7da; }
+
+    text {
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      fill: #000000;
+    }
+
+    .name { font-weight: bold; font-size: 16px; }
+    .title { font-weight: bold; font-size: 20px; }
+
+    .credit {
+      font-size: 12px;
+      fill: #000;
+    }
+
+    /* Floating menu */
+    #menu-toggle {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 10020;
+      border: none;
+      border-radius: 10px;
+      background: #234a57;
+      color: #ffffff;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+    }
+
+    #pedigree-menu {
+      position: fixed;
+      top: 58px;
+      right: 12px;
+      z-index: 10019;
+      width: 290px;
+      max-height: calc(100vh - 76px);
+      overflow-y: auto;
+      background: #ffffff;
+      border: 1px solid #d8e1e8;
+      border-radius: 14px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.16);
+      padding: 14px;
+      display: none;
+      box-sizing: border-box;
+      color: #234a57;
+      font-family: Arial, sans-serif;
+    }
+
+    #pedigree-menu.open {
+      display: block;
+    }
+
+    .menu-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .menu-note {
+      font-size: 12px;
+      color: #5f7280;
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .menu-section {
+      border-top: 1px solid #e9eef2;
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .menu-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+
+    .menu-section label,
+    .menu-section .section-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #234a57;
+    }
+
+    .menu-section select,
+    .menu-section input[type="color"],
+    .menu-section input[type="range"],
+    .menu-section button {
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .menu-section select,
+    .menu-section input[type="color"] {
+      height: 38px;
+      border: 1px solid #cfd9e1;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .toggle-row span {
+      font-size: 13px;
+      font-weight: 600;
+      color: #234a57;
+    }
+
+    .toggle-row input[type="checkbox"] {
+      width: auto;
+      transform: scale(1.15);
+    }
+
+    .range-readout {
+      font-size: 12px;
+      color: #617483;
+      margin: 4px 0 8px;
+    }
+
+    .menu-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .menu-actions button {
+      padding: 10px 12px;
+      border: none;
+      border-radius: 9px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #menu-print-btn {
+      background: #234a57;
+      color: #ffffff;
+    }
+
+    #reset-styles-btn {
+      background: #eaf2f6;
+      color: #234a57;
+    }
+
+    /* Custom font picker */
+    .font-picker {
+      position: relative;
+      width: 100%;
+    }
+
+    .font-picker-button {
+      width: 100%;
+      min-height: 40px;
+      padding: 10px 12px;
+      border: 1px solid #cfd9e1;
+      border-radius: 8px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 14px;
+      color: #234a57;
+      box-sizing: border-box;
+    }
+
+    .font-picker-arrow {
+      font-size: 12px;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .font-picker-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border: 1px solid #cfd9e1;
+      border-radius: 10px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+      max-height: 240px;
+      overflow-y: auto;
+      display: none;
+      z-index: 10030;
+    }
+
+    .font-picker.open .font-picker-dropdown {
+      display: block;
+    }
+
+    .font-option {
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 15px;
+      border-bottom: 1px solid #eef2f6;
+    }
+
+    .font-option:last-child {
+      border-bottom: none;
+    }
+
+    .font-option:hover {
+      background: #f8fbfd;
+    }
+
+    .font-option.active {
+      background: #eaf2f6;
+      font-weight: 700;
+    }
+
+    @page {
+      size: 11in 8.5in landscape;
+      margin: 0;
+    }
+
+    @media print {
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden !important;
+        background: white;
+      }
+
+      #pedigree-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background: white;
+        overflow: hidden;
+      }
+
+      svg {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+      }
+
+      #pedigree-container svg {
+        transform: scale(1) translate(0, 0) !important;
+        position: absolute !important;
+        top: 0;
+        left: 0;
+      }
+
+      #pedigree-container > * {
+        transform: none !important;
+      }
+
+      #menu-toggle,
+      #pedigree-menu {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    }
+  </style>
+
+  <script>
+    function getParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get(name) || '';
+      return value
+        .replaceAll('+', ' ')
+        .replace(/%26/g, '&')
+        .replace(/%27/g, "'")
+        .replace(/%20/g, ' ')
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+  </script>
+</head>
+<body>
+
+  <button id="menu-toggle" type="button">Customize / Print</button>
+
+  <div id="pedigree-menu">
+    <div class="menu-title">Pedigree Options</div>
+    <div class="menu-note">Choose a preset or fine-tune colors below.</div>
+
+    <div class="menu-section">
+      <label for="color-preset">Preset Color Pairings</label>
+      <select id="color-preset">
+        <option value="custom">Custom</option>
+        <option value="classicBlue">Classic Blue / Pink</option>
+        <option value="softPastel">Soft Pastel</option>
+        <option value="earthy">Earthy Natural</option>
+        <option value="monochrome">Monochrome Blue</option>
+        <option value="showtails">ShowTails Blue Theme</option>
+      </select>
+    </div>
+
+    <div class="menu-section">
+      <label for="main-box-color">Main Rabbit Box Color</label>
+      <input type="color" id="main-box-color" value="#ffffff">
+
+      <label for="male-box-color">Male Box Color</label>
+      <input type="color" id="male-box-color" value="#cce5ff">
+
+      <label for="female-box-color">Female Box Color</label>
+      <input type="color" id="female-box-color" value="#f8d7da">
+    </div>
+
+    <div class="menu-section">
+      <label>Font Style</label>
+      <div class="font-picker" id="fontPicker">
+        <button type="button" class="font-picker-button" id="fontPickerButton">
+          <span id="selectedFontPreview" style="font-family: Arial, sans-serif;">Arial</span>
+          <span class="font-picker-arrow">▾</span>
+        </button>
+        <div class="font-picker-dropdown" id="fontPickerDropdown">
+          <div class="font-option active" data-font="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial</div>
+          <div class="font-option" data-font="'Poppins', sans-serif" style="font-family: 'Poppins', sans-serif;">Poppins</div>
+          <div class="font-option" data-font="'Inter', sans-serif" style="font-family: 'Inter', sans-serif;">Inter</div>
+          <div class="font-option" data-font="'Georgia', serif" style="font-family: 'Georgia', serif;">Georgia</div>
+          <div class="font-option" data-font="'Times New Roman', serif" style="font-family: 'Times New Roman', serif;">Times New Roman</div>
+          <div class="font-option" data-font="'Verdana', sans-serif" style="font-family: 'Verdana', sans-serif;">Verdana</div>
+          <div class="font-option" data-font="'Courier New', monospace" style="font-family: 'Courier New', monospace;">Courier New</div>
+        </div>
+      </div>
+
+      <label for="font-color" style="margin-top:10px;">Font Color</label>
+      <input type="color" id="font-color" value="#000000">
+    </div>
+
+    <div class="menu-section">
+      <label for="layout-orientation">Pedigree Layout</label>
+      <select id="layout-orientation">
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Portrait</option>
+      </select>
+
+      <label for="box-width-scale">Box Width</label>
+      <input type="range" id="box-width-scale" min="85" max="115" step="1" value="100">
+      <div class="range-readout"><span id="box-width-scale-value">100</span>%</div>
+
+      <label for="box-height-scale">Box Height</label>
+      <input type="range" id="box-height-scale" min="85" max="115" step="1" value="100">
+      <div class="range-readout"><span id="box-height-scale-value">100</span>%</div>
+    </div>
+
+    <div class="menu-section">
+      <div class="toggle-row">
+        <span>Show Watermark</span>
+        <input type="checkbox" id="toggle-watermark">
+      </div>
+
+      <label for="watermark-opacity">Watermark Opacity</label>
+      <input type="range" id="watermark-opacity" min="0.03" max="0.30" step="0.01" value="0.10">
+      <div class="range-readout"><span id="watermark-opacity-value">0.10</span></div>
+
+      <label for="watermark-size">Watermark Size</label>
+      <input type="range" id="watermark-size" min="25" max="95" step="1" value="55">
+      <div class="range-readout"><span id="watermark-size-value">55</span>%</div>
+    </div>
+
+    <div class="menu-section">
+      <div class="toggle-row">
+        <span>Show Rabbit Photo</span>
+        <input type="checkbox" id="toggle-rabbit-photo">
+      </div>
+      <div class="menu-note" style="margin-bottom:0;">Image query parameter: <strong>rabbitphoto</strong></div>
+    </div>
+
+    <div class="menu-section">
+      <div class="menu-actions">
+        <button id="menu-print-btn" type="button">Print / Save PDF</button>
+        <button id="reset-styles-btn" type="button">Reset Defaults</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="pedigree-container">
+    <svg id="pedigree-svg" viewBox="-80 -170 1750 1400" preserveAspectRatio="none">
+
+      <image
+        id="background-image"
+        x="-125"
+        y="-290"
+        width="1800"
+        height="1500"
+        preserveAspectRatio="xMidYMid meet"
+      />
+
+      <image
+        id="watermark-image"
+        x="350"
+        y="150"
+        width="700"
+        height="700"
+        preserveAspectRatio="xMidYMid meet"
+        opacity="0.10"
+        style="display:none;"
+      />
+
+      <g id="pedigree-root">
+
+        <g id="header" transform="translate(100, -40)">
+          <image
+            id="logo"
+            x="0"
+            y="-40"
+            width="140"
+            height="140"
+            preserveAspectRatio="xMidYMid meet"
+          />
+
+          <g transform="translate(160, -10)">
+            <text x="0" y="0" text-anchor="start" class="title" data-field="rabbitry"></text>
+            <text x="0" y="20" text-anchor="start" class="name" data-field="street"></text>
+            <text x="0" y="40" text-anchor="start" class="name" data-chain="city,state,zip"></text>
+            <text x="0" y="60" text-anchor="start" class="name" data-field="phone"></text>
+            <text x="0" y="80" text-anchor="start" class="name" data-field="email"></text>
+            <text x="0" y="110" text-anchor="start" class="name">Breed:</text>
+            <text x="60" y="110" text-anchor="start" class="name" data-field="breed"></text>
+            <text x="0" y="130" text-anchor="start" class="name">DOB:</text>
+            <text x="60" y="130" text-anchor="start" class="name" data-field="dob"></text>
+          </g>
+        </g>
+
+        <g id="rabbit-photo-group" style="display:none;">
+          <rect id="rabbit-photo-frame" x="100" y="235" width="220" height="120" rx="10" ry="10" fill="#ffffff" stroke="#000000" stroke-width="1.5"></rect>
+          <image
+            id="rabbit-photo"
+            x="105"
+            y="240"
+            width="210"
+            height="110"
+            preserveAspectRatio="xMidYMid slice"
+          />
+        </g>
+
+        <g transform="translate(20,740)">
+          <text class="name" x="40" y="200">I hereby certify that this pedigree is correct to the best of my knowledge.</text>
+          <line x1="40" y1="260" x2="350" y2="260" stroke="#000" stroke-width="1" />
+          <text x="40" y="280" text-anchor="start" class="name" data-field="owner"></text>
+        </g>
+
+        <image
+          id="signature"
+          x="40"
+          y="950"
+          width="220"
+          height="80"
+          preserveAspectRatio="xMidYMid meet"
+        />
+
+        <rect id="main-rabbit-box" x="100" y="380" width="220" height="125" class="box main-rabbit-box"/>
+        <text x="110" y="400" text-anchor="left" class="name" data-chain="crabbitry,name"></text>
+        <text x="110" y="420" text-anchor="left" class="label">Color:</text>
+        <text x="150" y="420" text-anchor="left" data-field="color"></text>
+        <text x="110" y="440" text-anchor="left" class="label">Ear#:</text>
+        <text x="150" y="440" text-anchor="left" data-field="ear number"></text>
+        <text x="270" y="440" text-anchor="left" class="label">Weight:</text>
+        <text x="320" y="440" text-anchor="left" data-field="weight"></text>
+        <text x="110" y="460" text-anchor="left" class="label">Sex:</text>
+        <text x="150" y="460" text-anchor="left" data-field="sex"></text>
+        <text x="270" y="460" text-anchor="left" class="label">Legs:</text>
+        <text x="310" y="460" text-anchor="left" data-field="legs"></text>
+        <text x="110" y="480" text-anchor="left" class="label">Reg#:</text>
+        <text x="150" y="480" text-anchor="left" data-field="reg"></text>
+        <text x="270" y="480" text-anchor="left" class="label">GC#:</text>
+        <text x="310" y="480" text-anchor="left" data-field="gc"></text>
+        <text x="110" y="500" text-anchor="left" data-field="custom"></text>
+        <text x="110" y="530" text-anchor="left" data-field="win1"></text>
+
+        <line x1="420" y1="440" x2="450" y2="165" stroke="black"/>
+        <line x1="420" y1="440" x2="450" y2="715" stroke="black"/>
+
+        <rect x="450" y="100" width="220" height="125" class="box male" data-slot="sire"/>
+        <text x="460" y="120" text-anchor="left" class="name" data-chain="srabbitry,sire"></text>
+        <text x="460" y="140" text-anchor="left" class="label">Color:</text>
+        <text x="500" y="140" text-anchor="left" data-field="scolor"></text>
+        <text x="460" y="160" text-anchor="left" class="label">Ear#:</text>
+        <text x="500" y="160" text-anchor="left" data-field="sear"></text>
+        <text x="620" y="160" text-anchor="left" class="label">Weight:</text>
+        <text x="680" y="160" text-anchor="left" data-field="sweight"></text>
+        <text x="460" y="180" text-anchor="left" class="label">Sex:</text>
+        <text x="500" y="180" text-anchor="left" data-field="ssex"></text>
+        <text x="620" y="180" text-anchor="left" class="label">Legs:</text>
+        <text x="680" y="180" text-anchor="left" data-field="slegs"></text>
+        <text x="460" y="200" text-anchor="left" class="label">Reg#:</text>
+        <text x="500" y="200" text-anchor="left" data-field="sreg"></text>
+        <text x="620" y="200" text-anchor="left" class="label">GC#:</text>
+        <text x="680" y="200" text-anchor="left" data-field="sgc"></text>
+        <text x="460" y="220" text-anchor="left" data-field="scustom"></text>
+        <text x="460" y="250" text-anchor="left" data-field="swin1"></text>
+
+        <line x1="770" y1="165" x2="800" y2="35" stroke="black"/>
+        <line x1="770" y1="165" x2="800" y2="300" stroke="black"/>
+
+        <rect x="450" y="650" width="220" height="125" class="box female"/>
+        <text x="460" y="670" text-anchor="left" class="name" data-chain="drabbitry,dam"></text>
+        <text x="460" y="690" text-anchor="left" class="label">Color:</text>
+        <text x="500" y="690" text-anchor="left" data-field="dcolor"></text>
+        <text x="460" y="710" text-anchor="left" class="label">Ear#:</text>
+        <text x="500" y="710" text-anchor="left" data-field="dear"></text>
+        <text x="620" y="710" text-anchor="left" class="label">Weight:</text>
+        <text x="680" y="710" text-anchor="left" data-field="dweight"></text>
+        <text x="460" y="730" text-anchor="left" class="label">Sex:</text>
+        <text x="500" y="730" text-anchor="left" data-field="dsex"></text>
+        <text x="620" y="730" text-anchor="left" class="label">Legs:</text>
+        <text x="680" y="730" text-anchor="left" data-field="dlegs"></text>
+        <text x="460" y="750" text-anchor="left" class="label">Reg#:</text>
+        <text x="500" y="750" text-anchor="left" data-field="dreg"></text>
+        <text x="620" y="750" text-anchor="left" class="label">GC#:</text>
+        <text x="680" y="750" text-anchor="left" data-field="dgc"></text>
+        <text x="460" y="770" text-anchor="left" data-field="dcustom"></text>
+        <text x="460" y="810" text-anchor="left" data-field="dwin1"></text>
+
+        <line x1="770" y1="715" x2="800" y2="580" stroke="black"/>
+        <line x1="770" y1="715" x2="800" y2="850" stroke="black"/>
+
+        <rect x="800" y="-35" width="220" height="125" class="box male"/>
+        <text x="810" y="-15" text-anchor="left" class="name" data-chain="ssrabbitry,ssire"></text>
+        <text x="810" y="5" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="5" text-anchor="left" data-field="sscolor"></text>
+        <text x="810" y="25" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="25" text-anchor="left" data-field="ssear"></text>
+        <text x="980" y="25" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="25" text-anchor="left" data-field="ssweight"></text>
+        <text x="810" y="45" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="45" text-anchor="left" data-field="sssex"></text>
+        <text x="980" y="45" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="45" text-anchor="left" data-field="sslegs"></text>
+        <text x="810" y="65" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="65" text-anchor="left" data-field="ssreg"></text>
+        <text x="980" y="65" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="65" text-anchor="left" data-field="ssgc"></text>
+        <text x="810" y="85" text-anchor="left" data-field="sscustom"></text>
+        <text x="810" y="115" text-anchor="left" data-field="sswin1"></text>
+
+        <line x1="1120" y1="35" x2="1150" y2="-35" stroke="black"/>
+        <line x1="1120" y1="35" x2="1150" y2="100" stroke="black"/>
+
+        <rect x="800" y="235" width="220" height="125" class="box female"/>
+        <text x="810" y="255" text-anchor="left" class="name" data-chain="sdrabbitry,sdam"></text>
+        <text x="810" y="275" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="275" text-anchor="left" data-field="sdcolor"></text>
+        <text x="810" y="295" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="295" text-anchor="left" data-field="sdear"></text>
+        <text x="980" y="295" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="295" text-anchor="left" data-field="sdweight"></text>
+        <text x="810" y="315" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="315" text-anchor="left" data-field="sdsex"></text>
+        <text x="980" y="315" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="315" text-anchor="left" data-field="sdlegs"></text>
+        <text x="810" y="335" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="335" text-anchor="left" data-field="sdreg"></text>
+        <text x="980" y="335" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="335" text-anchor="left" data-field="sdgc"></text>
+        <text x="810" y="355" text-anchor="left" data-field="sdcustom"></text>
+        <text x="810" y="385" text-anchor="left" data-field="sdwin1"></text>
+
+        <line x1="1120" y1="300" x2="1150" y2="235" stroke="black"/>
+        <line x1="1120" y1="300" x2="1150" y2="370" stroke="black"/>
+
+        <rect x="800" y="515" width="220" height="125" class="box male"/>
+        <text x="810" y="535" text-anchor="left" class="name" data-chain="dsrabbitry,dsire"></text>
+        <text x="810" y="555" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="555" text-anchor="left" data-field="dscolor"></text>
+        <text x="810" y="575" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="575" text-anchor="left" data-field="dsear"></text>
+        <text x="980" y="575" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="575" text-anchor="left" data-field="dsweight"></text>
+        <text x="810" y="595" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="595" text-anchor="left" data-field="dssex"></text>
+        <text x="980" y="595" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="595" text-anchor="left" data-field="dslegs"></text>
+        <text x="810" y="615" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="615" text-anchor="left" data-field="dsreg"></text>
+        <text x="980" y="615" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="615" text-anchor="left" data-field="dsgc"></text>
+        <text x="810" y="635" text-anchor="left" data-field="dscustom"></text>
+        <text x="810" y="665" text-anchor="left" data-field="dswin1"></text>
+
+        <line x1="1120" y1="580" x2="1150" y2="515" stroke="black"/>
+        <line x1="1120" y1="580" x2="1150" y2="650" stroke="black"/>
+
+        <rect x="800" y="785" width="220" height="125" class="box female"/>
+        <text x="810" y="805" text-anchor="left" class="name" data-chain="ddrabbitry,ddam"></text>
+        <text x="810" y="825" text-anchor="left" class="label">Color:</text>
+        <text x="850" y="825" text-anchor="left" data-field="ddcolor"></text>
+        <text x="810" y="845" text-anchor="left" class="label">Ear#:</text>
+        <text x="850" y="845" text-anchor="left" data-field="ddear"></text>
+        <text x="980" y="845" text-anchor="left" class="label">Weight:</text>
+        <text x="1030" y="845" text-anchor="left" data-field="ddweight"></text>
+        <text x="810" y="865" text-anchor="left" class="label">Sex:</text>
+        <text x="850" y="865" text-anchor="left" data-field="ddsex"></text>
+        <text x="980" y="865" text-anchor="left" class="label">Legs:</text>
+        <text x="1030" y="865" text-anchor="left" data-field="ddlegs"></text>
+        <text x="810" y="885" text-anchor="left" class="label">Reg#:</text>
+        <text x="850" y="885" text-anchor="left" data-field="ddreg"></text>
+        <text x="980" y="885" text-anchor="left" class="label">GC#:</text>
+        <text x="1030" y="885" text-anchor="left" data-field="ddgc"></text>
+        <text x="810" y="905" text-anchor="left" data-field="ddcustom"></text>
+        <text x="810" y="935" text-anchor="left" data-field="ddwin1"></text>
+
+        <line x1="1120" y1="850" x2="1150" y2="785" stroke="black"/>
+        <line x1="1120" y1="850" x2="1150" y2="920" stroke="black"/>
+
+        <rect x="1150" y="-100" width="220" height="125" class="box male"/>
+        <text x="1160" y="-80" text-anchor="left" class="name" data-chain="sssrabbitry,sssire"></text>
+        <text x="1160" y="-60" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="-60" text-anchor="left" data-field="ssscolor"></text>
+        <text x="1160" y="-40" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="-40" text-anchor="left" data-field="sssear"></text>
+        <text x="1330" y="-40" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="-40" text-anchor="left" data-field="sssweight"></text>
+        <text x="1160" y="-20" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="-20" text-anchor="left" data-field="ssssex"></text>
+        <text x="1330" y="-20" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="-20" text-anchor="left" data-field="ssslegs"></text>
+        <text x="1160" y="0" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="0" text-anchor="left" data-field="sssreg"></text>
+        <text x="1330" y="0" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="0" text-anchor="left" data-field="sssgc"></text>
+        <text x="1160" y="20" text-anchor="left" data-field="ssscustom"></text>
+
+        <rect x="1150" y="35" width="220" height="125" class="box female"/>
+        <text x="1160" y="55" text-anchor="left" class="name" data-chain="ssdrabbitry,ssdam"></text>
+        <text x="1160" y="75" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="75" text-anchor="left" data-field="ssdcolor"></text>
+        <text x="1160" y="95" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="95" text-anchor="left" data-field="ssdear"></text>
+        <text x="1330" y="95" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="95" text-anchor="left" data-field="ssdweight"></text>
+        <text x="1160" y="115" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="115" text-anchor="left" data-field="ssdsex"></text>
+        <text x="1330" y="115" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="115" text-anchor="left" data-field="ssdlegs"></text>
+        <text x="1160" y="135" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="135" text-anchor="left" data-field="ssdreg"></text>
+        <text x="1330" y="135" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="135" text-anchor="left" data-field="ssdgc"></text>
+        <text x="1160" y="155" text-anchor="left" data-field="ssdcustom"></text>
+
+        <rect x="1150" y="170" width="220" height="125" class="box male"/>
+        <text x="1160" y="190" text-anchor="left" class="name" data-chain="sdsrabbitry,sdsire"></text>
+        <text x="1160" y="210" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="210" text-anchor="left" data-field="sdscolor"></text>
+        <text x="1160" y="230" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="230" text-anchor="left" data-field="sdsear"></text>
+        <text x="1330" y="230" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="230" text-anchor="left" data-field="sdsweight"></text>
+        <text x="1160" y="250" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="250" text-anchor="left" data-field="sdssex"></text>
+        <text x="1330" y="250" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="250" text-anchor="left" data-field="sdslegs"></text>
+        <text x="1160" y="270" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="270" text-anchor="left" data-field="sdsreg"></text>
+        <text x="1330" y="270" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="270" text-anchor="left" data-field="sdsgc"></text>
+        <text x="1160" y="290" text-anchor="left" data-field="sdscustom"></text>
+
+        <rect x="1150" y="305" width="220" height="125" class="box female"/>
+        <text x="1160" y="325" text-anchor="left" class="name" data-chain="sddrabbitry,sddam"></text>
+        <text x="1160" y="345" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="345" text-anchor="left" data-field="sddcolor"></text>
+        <text x="1160" y="365" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="365" text-anchor="left" data-field="sddear"></text>
+        <text x="1330" y="365" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="365" text-anchor="left" data-field="sddweight"></text>
+        <text x="1160" y="385" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="385" text-anchor="left" data-field="sddsex"></text>
+        <text x="1330" y="385" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="385" text-anchor="left" data-field="sddlegs"></text>
+        <text x="1160" y="405" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="405" text-anchor="left" data-field="sddreg"></text>
+        <text x="1330" y="405" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="405" text-anchor="left" data-field="sddgc"></text>
+        <text x="1160" y="425" text-anchor="left" data-field="sddcustom"></text>
+
+        <rect x="1150" y="450" width="220" height="125" class="box male"/>
+        <text x="1160" y="470" text-anchor="left" class="name" data-chain="dssrabbitry,dssire"></text>
+        <text x="1160" y="490" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="490" text-anchor="left" data-field="dsscolor"></text>
+        <text x="1160" y="510" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="510" text-anchor="left" data-field="dssear"></text>
+        <text x="1330" y="510" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="510" text-anchor="left" data-field="dssweight"></text>
+        <text x="1160" y="530" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="530" text-anchor="left" data-field="dsssex"></text>
+        <text x="1330" y="530" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="530" text-anchor="left" data-field="dsslegs"></text>
+        <text x="1160" y="550" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="550" text-anchor="left" data-field="dssreg"></text>
+        <text x="1330" y="550" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="550" text-anchor="left" data-field="dssgc"></text>
+        <text x="1160" y="570" text-anchor="left" data-field="dsscustom"></text>
+
+        <rect x="1150" y="585" width="220" height="125" class="box female"/>
+        <text x="1160" y="605" text-anchor="left" class="name" data-chain="dsdrabbitry,dsdam"></text>
+        <text x="1160" y="625" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="625" text-anchor="left" data-field="dsdcolor"></text>
+        <text x="1160" y="645" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="645" text-anchor="left" data-field="dsdear"></text>
+        <text x="1330" y="645" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="645" text-anchor="left" data-field="dsdweight"></text>
+        <text x="1160" y="665" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="665" text-anchor="left" data-field="dsdsex"></text>
+        <text x="1330" y="665" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="665" text-anchor="left" data-field="dsdlegs"></text>
+        <text x="1160" y="685" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="685" text-anchor="left" data-field="dsdreg"></text>
+        <text x="1330" y="685" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="685" text-anchor="left" data-field="dsdgc"></text>
+        <text x="1160" y="705" text-anchor="left" data-field="dsdcustom"></text>
+
+        <rect x="1150" y="720" width="220" height="125" class="box male"/>
+        <text x="1160" y="740" text-anchor="left" class="name" data-chain="ddsrabbitry,ddsire"></text>
+        <text x="1160" y="760" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="760" text-anchor="left" data-field="ddscolor"></text>
+        <text x="1160" y="780" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="780" text-anchor="left" data-field="ddsear"></text>
+        <text x="1330" y="780" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="780" text-anchor="left" data-field="ddsweight"></text>
+        <text x="1160" y="800" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="800" text-anchor="left" data-field="ddssex"></text>
+        <text x="1330" y="800" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="800" text-anchor="left" data-field="ddslegs"></text>
+        <text x="1160" y="820" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="820" text-anchor="left" data-field="ddsreg"></text>
+        <text x="1330" y="820" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="820" text-anchor="left" data-field="ddsgc"></text>
+        <text x="1160" y="840" text-anchor="left" data-field="ddscustom"></text>
+
+        <rect x="1150" y="855" width="220" height="125" class="box female"/>
+        <text x="1160" y="875" text-anchor="left" class="name" data-chain="dddrabbitry,dddam"></text>
+        <text x="1160" y="895" text-anchor="left" class="label">Color:</text>
+        <text x="1200" y="895" text-anchor="left" data-field="dddcolor"></text>
+        <text x="1160" y="915" text-anchor="left" class="label">Ear#:</text>
+        <text x="1200" y="915" text-anchor="left" data-field="dddear"></text>
+        <text x="1330" y="915" text-anchor="left" class="label">Weight:</text>
+        <text x="1380" y="915" text-anchor="left" data-field="dddweight"></text>
+        <text x="1160" y="935" text-anchor="left" class="label">Sex:</text>
+        <text x="1200" y="935" text-anchor="left" data-field="dddsex"></text>
+        <text x="1330" y="935" text-anchor="left" class="label">Legs:</text>
+        <text x="1380" y="935" text-anchor="left" data-field="dddlegs"></text>
+        <text x="1160" y="955" text-anchor="left" class="label">Reg#:</text>
+        <text x="1200" y="955" text-anchor="left" data-field="dddreg"></text>
+        <text x="1330" y="955" text-anchor="left" class="label">GC#:</text>
+        <text x="1380" y="955" text-anchor="left" data-field="dddgc"></text>
+        <text x="1160" y="975" text-anchor="left" data-field="dddcustom"></text>
+
+        <text
+          id="pedigree-credit"
+          class="credit"
+          x="1150"
+          y="1000"
+          text-anchor="end"
+          aria-label="Pedigree credit">
+          Pedigree built on the ShowTails LLC platform - www.showtails.com
+        </text>
+      </g>
+    </svg>
+  </div>
+
+  <style id="print-page-style">
+    @page { size: 11in 8.5in landscape; margin: 0; }
+  </style>
+
+  <script src="pedigree.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const svg = document.getElementById('pedigree-svg');
+      const container = document.getElementById('pedigree-container');
+      const pedigreeRoot = document.getElementById('pedigree-root');
+      const watermarkImage = document.getElementById('watermark-image');
+      const rabbitPhotoGroup = document.getElementById('rabbit-photo-group');
+      const rabbitPhoto = document.getElementById('rabbit-photo');
+
+      const menuToggle = document.getElementById('menu-toggle');
+      const pedigreeMenu = document.getElementById('pedigree-menu');
+
+      const colorPreset = document.getElementById('color-preset');
+      const mainBoxColor = document.getElementById('main-box-color');
+      const maleBoxColor = document.getElementById('male-box-color');
+      const femaleBoxColor = document.getElementById('female-box-color');
+      const fontColor = document.getElementById('font-color');
+      const layoutOrientation = document.getElementById('layout-orientation');
+      const boxWidthScale = document.getElementById('box-width-scale');
+      const boxHeightScale = document.getElementById('box-height-scale');
+      const boxWidthScaleValue = document.getElementById('box-width-scale-value');
+      const boxHeightScaleValue = document.getElementById('box-height-scale-value');
+      const toggleWatermark = document.getElementById('toggle-watermark');
+      const watermarkOpacity = document.getElementById('watermark-opacity');
+      const watermarkSize = document.getElementById('watermark-size');
+      const watermarkOpacityValue = document.getElementById('watermark-opacity-value');
+      const watermarkSizeValue = document.getElementById('watermark-size-value');
+      const toggleRabbitPhoto = document.getElementById('toggle-rabbit-photo');
+      const resetStylesBtn = document.getElementById('reset-styles-btn');
+
+      const fontPicker = document.getElementById('fontPicker');
+      const fontPickerButton = document.getElementById('fontPickerButton');
+      const selectedFontPreview = document.getElementById('selectedFontPreview');
+      const fontOptions = document.querySelectorAll('.font-option');
+      const printBtn = document.getElementById('menu-print-btn');
+      const printPageStyle = document.getElementById('print-page-style');
+
+      let panZoom = null;
+      let initialized = false;
+
+      const defaults = {
+        preset: 'custom',
+        main: '#ffffff',
+        male: '#cce5ff',
+        female: '#f8d7da',
+        fontColor: '#000000',
+        fontFamily: 'Arial, sans-serif',
+        layout: 'landscape',
+        widthScale: 100,
+        heightScale: 100,
+        watermarkEnabled: false,
+        watermarkOpacity: 0.10,
+        watermarkSize: 55,
+        rabbitPhotoEnabled: false
+      };
+
+      const presets = {
+        classicBlue: { main: '#eef5ff', male: '#cce5ff', female: '#f8d7da' },
+        softPastel: { main: '#fff7df', male: '#dbeafe', female: '#fce7f3' },
+        earthy: { main: '#efe3d3', male: '#d8e2dc', female: '#ead7d1' },
+        monochrome: { main: '#dbeafe', male: '#c7d2fe', female: '#e0e7ff' },
+        showtails: { main: '#e9f4f8', male: '#cfe6ef', female: '#eadde9' }
+      };
+
+      function validBox(vb) {
+        return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
+      }
+
+      function setSvgImage(id, paramName) {
+        const url = params.get(paramName);
+        if (!url) return;
+        const decoded = decodeURIComponent(url);
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.setAttribute('href', decoded);
+        el.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', decoded);
+      }
+
+      function getBoxScaleX() {
+        return Number(boxWidthScale.value || 100) / 100;
+      }
+
+      function getBoxScaleY() {
+        return Number(boxHeightScale.value || 100) / 100;
+      }
+
+      function applyRootTransform() {
+        const sx = getBoxScaleX();
+        const sy = getBoxScaleY();
+
+        if (layoutOrientation.value === 'portrait') {
+          const portraitScale = 0.86;
+          const portraitX = 110;
+          const portraitY = 8;
+          pedigreeRoot.setAttribute(
+            'transform',
+            `translate(${portraitX}, ${portraitY}) scale(${sx * portraitScale}, ${sy * 1.02})`
+          );
+        } else {
+          pedigreeRoot.setAttribute('transform', `scale(${sx}, ${sy})`);
+        }
+      }
+
+      function applyBoxColors(main, male, female) {
+        document.querySelectorAll('#main-rabbit-box').forEach(el => el.setAttribute('fill', main));
+        document.querySelectorAll('.box.male').forEach(el => el.setAttribute('fill', male));
+        document.querySelectorAll('.box.female').forEach(el => el.setAttribute('fill', female));
+        mainBoxColor.value = main;
+        maleBoxColor.value = male;
+        femaleBoxColor.value = female;
+      }
+
+      function applyFontColor(color) {
+        svg.querySelectorAll('text').forEach(el => el.setAttribute('fill', color));
+        fontColor.value = color;
+      }
+
+      function applyFont(fontValue) {
+        svg.querySelectorAll('text').forEach(el => {
+          el.style.fontFamily = fontValue;
+        });
+        selectedFontPreview.textContent = getFontLabel(fontValue);
+        selectedFontPreview.style.fontFamily = fontValue;
+        document.documentElement.style.setProperty('--menu-font', fontValue);
+        setActiveFontOption(fontValue);
+      }
+
+      function getFontLabel(fontValue) {
+        const option = Array.from(fontOptions).find(opt => opt.dataset.font === fontValue);
+        return option ? option.textContent.trim() : 'Arial';
+      }
+
+      function setActiveFontOption(fontValue) {
+        fontOptions.forEach(opt => {
+          opt.classList.toggle('active', opt.dataset.font === fontValue);
+        });
+      }
+
+      function setCustomMode() {
+        colorPreset.value = 'custom';
+      }
+
+      function updateScaleReadouts() {
+        boxWidthScaleValue.textContent = boxWidthScale.value;
+        boxHeightScaleValue.textContent = boxHeightScale.value;
+      }
+
+      function updatePrintStyle() {
+        if (layoutOrientation.value === 'portrait') {
+          printPageStyle.textContent = '@page { size: 8.5in 11in portrait; margin: 0; }';
+        } else {
+          printPageStyle.textContent = '@page { size: 11in 8.5in landscape; margin: 0; }';
+        }
+      }
+
+      function updateWatermarkVisibility() {
+        const hasLogo = !!watermarkImage.getAttribute('href') || !!watermarkImage.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+        watermarkImage.style.display = (toggleWatermark.checked && hasLogo) ? 'block' : 'none';
+      }
+
+      function updateWatermarkOpacity() {
+        watermarkImage.setAttribute('opacity', watermarkOpacity.value);
+        watermarkOpacityValue.textContent = Number(watermarkOpacity.value).toFixed(2);
+      }
+
+      function updateWatermarkSize() {
+        const pct = Number(watermarkSize.value);
+        const size = 1200 * (pct / 100);
+        const x = (1750 - size) / 2 - 80;
+        const y = (1060 - size) / 2 - 60;
+        watermarkImage.setAttribute('width', size);
+        watermarkImage.setAttribute('height', size);
+        watermarkImage.setAttribute('x', x);
+        watermarkImage.setAttribute('y', y);
+        watermarkSizeValue.textContent = pct;
+      }
+
+      function updateRabbitPhotoVisibility() {
+        const hasPhoto = !!rabbitPhoto.getAttribute('href') || !!rabbitPhoto.getAttributeNS('http://www.w3.org/1999/xlink', 'href');
+        rabbitPhotoGroup.style.display = (toggleRabbitPhoto.checked && hasPhoto) ? 'block' : 'none';
+      }
+
+      function computeFit() {
+        const vb = svg.viewBox.baseVal;
+        if (!validBox(vb)) return null;
+
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!cw || !ch) return null;
+
+        const scale = Math.min(cw / vb.width, ch / vb.height);
+        if (!isFinite(scale) || scale <= 0) return null;
+
+        return {
+          scale,
+          pan: {
+            x: (cw - vb.width * scale) / 2,
+            y: (ch - vb.height * scale) / 2
+          }
+        };
+      }
+
+      window.computeFit = computeFit;
+
+      function fitToContainer() {
+        if (!panZoom) return;
+        const fit = computeFit();
+        if (!fit) return;
+        panZoom.zoom(fit.scale);
+        panZoom.pan(fit.pan);
+      }
+
+      function wireWheelZoom() {
+        container.addEventListener('wheel', (e) => {
+          if (!panZoom) return;
+          const rect = svg.getBoundingClientRect();
+          const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+          const delta = e.deltaY;
+          const factor = delta > 0 ? 0.9 : 1.1;
+          e.preventDefault();
+          if (isFinite(point.x) && isFinite(point.y)) {
+            panZoom.zoomAtPoint(factor, point);
+          }
+        }, { passive: false });
+      }
+
+      function enablePointerPan() {
+        let isPanning = false;
+        let start = { x: 0, y: 0 };
+
+        svg.addEventListener("pointerdown", (e) => {
+          isPanning = true;
+          start = { x: e.clientX, y: e.clientY };
+          svg.setPointerCapture(e.pointerId);
+        });
+
+        svg.addEventListener("pointermove", (e) => {
+          if (!isPanning || !panZoom) return;
+          const dx = e.clientX - start.x;
+          const dy = e.clientY - start.y;
+          panZoom.panBy({ x: dx, y: dy });
+          start = { x: e.clientX, y: e.clientY };
+        });
+
+        svg.addEventListener("pointerup", () => (isPanning = false));
+        svg.addEventListener("pointercancel", () => (isPanning = false));
+      }
+
+      function enablePinchZoom() {
+        let pinchStart = null;
+        let startZoom = 1;
+
+        svg.addEventListener("touchstart", (e) => {
+          if (e.touches.length === 2 && window.panZoomInstance) {
+            e.preventDefault();
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            pinchStart = Math.hypot(dx, dy);
+            startZoom = window.panZoomInstance.getZoom();
+          }
+        }, { passive: false });
+
+        svg.addEventListener("touchmove", (e) => {
+          if (e.touches.length === 2 && window.panZoomInstance && pinchStart) {
+            e.preventDefault();
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const pinchNow = Math.hypot(dx, dy);
+            const zoomRatio = pinchNow / pinchStart;
+
+            const rect = svg.getBoundingClientRect();
+            const mid = {
+              x: (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left,
+              y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top,
+            };
+
+            window.panZoomInstance.zoomAtPoint(startZoom * zoomRatio, mid);
+          }
+        }, { passive: false });
+
+        svg.addEventListener("touchend", () => {
+          pinchStart = null;
+        });
+      }
+
+      function tryInit() {
+        if (initialized) return;
+
+        if (typeof window.svgPanZoom !== 'function') {
+          console.error('svg-pan-zoom not loaded. If this only happens inside Glide, host the script yourself or allow this CDN.');
+          return;
+        }
+
+        const vb = svg.viewBox.baseVal;
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!validBox(vb) || !cw || !ch) return;
+
+        panZoom = svgPanZoom(svg, {
+          panEnabled: true,
+          zoomEnabled: true,
+          mouseWheelZoomEnabled: true,
+          controlIconsEnabled: false,
+          fit: false,
+          center: true,
+          minZoom: 0.25,
+          maxZoom: 10,
+          dblClickZoomEnabled: true,
+          onUpdatedCTM: function() {}
+        });
+
+        window.panZoomInstance = panZoom;
+        fitToContainer();
+        enablePointerPan();
+        enablePinchZoom();
+        wireWheelZoom();
+        initialized = true;
+      }
+
+      function resetForPrint() {
+        const inst = window.panZoomInstance;
+        if (!inst) return;
+
+        window._savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
+        inst.resetZoom();
+        inst.center();
+
+        if (layoutOrientation.value === 'portrait') {
+          inst.zoom(1.15);
+          inst.pan({ x: 120, y: 70 });
+        } else {
+          inst.zoom(1.45);
+          inst.pan({ x: 55, y: 125 });
+        }
+      }
+
+      function restoreAfterPrint() {
+        const inst = window.panZoomInstance;
+        const s = window._savedState;
+        if (inst && s) {
+          inst.zoom(s.zoom);
+          inst.pan(s.pan);
+        }
+      }
+
+      /* Menu interactions */
+      menuToggle.addEventListener('click', () => {
+        pedigreeMenu.classList.toggle('open');
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!pedigreeMenu.contains(event.target) && event.target !== menuToggle) {
+          pedigreeMenu.classList.remove('open');
+        }
+      });
+
+      /* Font picker */
+      fontPickerButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fontPicker.classList.toggle('open');
+      });
+
+      fontOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          applyFont(option.dataset.font);
+          fontPicker.classList.remove('open');
+        });
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!fontPicker.contains(event.target)) {
+          fontPicker.classList.remove('open');
+        }
+      });
+
+      /* Color presets */
+      colorPreset.addEventListener('change', () => {
+        const selected = colorPreset.value;
+        if (selected === 'custom') return;
+        const preset = presets[selected];
+        if (!preset) return;
+        applyBoxColors(preset.main, preset.male, preset.female);
+      });
+
+      mainBoxColor.addEventListener('input', () => {
+        document.querySelectorAll('#main-rabbit-box').forEach(el => el.setAttribute('fill', mainBoxColor.value));
+        setCustomMode();
+      });
+
+      maleBoxColor.addEventListener('input', () => {
+        document.querySelectorAll('.box.male').forEach(el => el.setAttribute('fill', maleBoxColor.value));
+        setCustomMode();
+      });
+
+      femaleBoxColor.addEventListener('input', () => {
+        document.querySelectorAll('.box.female').forEach(el => el.setAttribute('fill', femaleBoxColor.value));
+        setCustomMode();
+      });
+
+      fontColor.addEventListener('input', () => {
+        applyFontColor(fontColor.value);
+      });
+
+      layoutOrientation.addEventListener('change', () => {
+        applyRootTransform();
+        updatePrintStyle();
+      });
+
+      boxWidthScale.addEventListener('input', () => {
+        updateScaleReadouts();
+        applyRootTransform();
+      });
+
+      boxHeightScale.addEventListener('input', () => {
+        updateScaleReadouts();
+        applyRootTransform();
+      });
+
+      toggleWatermark.addEventListener('change', updateWatermarkVisibility);
+      watermarkOpacity.addEventListener('input', updateWatermarkOpacity);
+      watermarkSize.addEventListener('input', updateWatermarkSize);
+
+      toggleRabbitPhoto.addEventListener('change', updateRabbitPhotoVisibility);
+
+      resetStylesBtn.addEventListener('click', () => {
+        colorPreset.value = defaults.preset;
+        applyBoxColors(defaults.main, defaults.male, defaults.female);
+
+        applyFont(defaults.fontFamily);
+        applyFontColor(defaults.fontColor);
+
+        layoutOrientation.value = defaults.layout;
+        boxWidthScale.value = defaults.widthScale;
+        boxHeightScale.value = defaults.heightScale;
+        updateScaleReadouts();
+        applyRootTransform();
+        updatePrintStyle();
+
+        toggleWatermark.checked = defaults.watermarkEnabled;
+        watermarkOpacity.value = defaults.watermarkOpacity;
+        watermarkSize.value = defaults.watermarkSize;
+        updateWatermarkOpacity();
+        updateWatermarkSize();
+        updateWatermarkVisibility();
+
+        toggleRabbitPhoto.checked = defaults.rabbitPhotoEnabled;
+        updateRabbitPhotoVisibility();
+      });
+
+      /* Load SVG images */
+      setSvgImage('logo', 'logo');
+      setSvgImage('signature', 'signature');
+      setSvgImage('background-image', 'background-image');
+      setSvgImage('watermark-image', 'logo');
+      setSvgImage('rabbit-photo', 'rabbitphoto');
+
+      /* Initial UI state */
+      applyBoxColors(defaults.main, defaults.male, defaults.female);
+      applyFont(defaults.fontFamily);
+      applyFontColor(defaults.fontColor);
+      updateScaleReadouts();
+      applyRootTransform();
+      updatePrintStyle();
+      updateWatermarkOpacity();
+      updateWatermarkSize();
+      updateWatermarkVisibility();
+      updateRabbitPhotoVisibility();
+
+      /* Resize / visibility */
+      const ro = new ResizeObserver(() => {
+        if (!initialized) tryInit();
+        else fitToContainer();
+      });
+      ro.observe(container);
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          if (!initialized) tryInit();
+          else fitToContainer();
+        }
+      });
+
+      window.addEventListener("load", tryInit);
+
+      /* Print lifecycle */
+      window.addEventListener("beforeprint", resetForPrint);
+      window.addEventListener("afterprint", restoreAfterPrint);
+
+      printBtn.addEventListener("click", () => {
+        resetForPrint();
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.print();
+            setTimeout(restoreAfterPrint, 800);
+          }, 200);
+        });
+      });
+
+      /* Mobile print popup */
+      printBtn.addEventListener("click", (event) => {
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (!isMobile) return;
+
+        event.preventDefault();
+
+        const inst = window.panZoomInstance;
+        if (!container || !inst) return;
+
+        const savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
+
+        inst.resetZoom();
+        if (layoutOrientation.value === 'portrait') {
+          inst.zoom(2.05);
+          inst.pan({ x: 110, y: 70 });
+        } else {
+          inst.zoom(2.65);
+          inst.pan({ x: 65, y: 100 });
+        }
+
+        requestAnimationFrame(() => {
+          const svgMarkup = container.innerHTML;
+
+          inst.zoom(savedState.zoom);
+          inst.pan(savedState.pan);
+
+          const styleBlocks = Array.from(document.querySelectorAll('style'))
+            .map(styleEl => styleEl.outerHTML)
+            .join('\n');
+
+          const popup = window.open("", "_blank", "width=1200,height=800");
+          if (!popup) {
+            alert("Please allow pop-ups for ShowTails to print pedigrees.");
+            return;
+          }
+
+          const pageStyle = layoutOrientation.value === 'portrait'
+            ? '@page { size: portrait; margin: 0; } html, body { width: 7.4in; height: 10.25in; } #pedigree-container { width: 7.4in; height: 10.25in; } svg { width: 7.4in !important; height: 10.25in !important; }'
+            : '@page { size: landscape; margin: 0; } html, body { width: 10.25in; height: 7.4in; } #pedigree-container { width: 10.25in; height: 7.4in; } svg { width: 10.25in !important; height: 7.4in !important; }';
+
+          popup.document.write(`
+            <html>
+              <head>
+                <title>Print Pedigree</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.2">
+                ${styleBlocks}
+                <style>
+                  ${pageStyle}
+                  html, body {
+                    overflow: hidden;
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  }
+                  #pedigree-container {
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                  }
+                  svg {
+                    background: white !important;
+                    margin: 0;
+                    display: block;
+                    transform: none !important;
+                  }
+                </style>
+              </head>
+              <body>
+                <div id="pedigree-container">${svgMarkup}</div>
+              </body>
+            </html>
+          `);
+          popup.document.close();
+
+          setTimeout(() => {
+            popup.focus();
+            popup.print();
+            setTimeout(() => popup.close(), 1500);
+          }, 600);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
