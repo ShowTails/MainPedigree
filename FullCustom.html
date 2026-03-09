@@ -274,11 +274,26 @@
     }
 
     @media print {
-      html, body, #pedigree-container {
+      @page {
+        margin: 0;
+      }
+
+      html, body {
         width: 100%;
         height: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
         overflow: hidden !important;
-        background: #fff;
+        background: #fff !important;
+      }
+
+      #pedigree-container {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+        background: #fff !important;
       }
 
       #menu-toggle,
@@ -288,18 +303,12 @@
       }
 
       #pedigree-svg {
-        width: 100% !important;
-        height: 100% !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: block !important;
         transform: none !important;
         margin: 0 !important;
         padding: 0 !important;
-      }
-
-      #pedigree-container svg {
-        transform: scale(1) translate(0, 0) !important;
-        position: absolute !important;
-        top: 0;
-        left: 0;
       }
 
       #pedigree-container > * {
@@ -752,6 +761,20 @@
         panZoom.pan(fit.pan);
       }
 
+      function fitSvgForPrint() {
+        const vb = svg.viewBox.baseVal;
+        if (!validBox(vb)) return;
+
+        const pageW = layoutOrientation.value === "portrait" ? 816 : 1056;
+        const pageH = layoutOrientation.value === "portrait" ? 1056 : 816;
+
+        const scale = Math.min(pageW / vb.width, pageH / vb.height);
+        const tx = (pageW - vb.width * scale) / 2;
+        const ty = (pageH - vb.height * scale) / 2;
+
+        viewport.setAttribute("transform", `translate(${tx},${ty}) scale(${scale})`);
+      }
+
       function initPanZoom(state = null) {
         if (typeof window.svgPanZoom !== "function") return;
 
@@ -843,29 +866,29 @@
             border: { x: 18, y: 18, w: 1239, h: 1614 },
 
             header: {
-              x: 108,
-              y: 96,
-              logoSize: 122,
+              x: 104,
+              y: 94,
+              logoSize: 124,
               textScale: 1.0,
               textGap: 22
             },
 
             tree: {
-              left: 118,
-              top: 340,
-              right: 1116,
-              bottom: 1342
+              left: 108,
+              top: 342,
+              right: 1060,
+              bottom: 1328
             },
 
             footer: {
-              x: 110,
-              y: 1490,
-              right: 1165,
-              taglineY: 1586
+              x: 102,
+              y: 1488,
+              right: 1173,
+              taglineY: 1584
             },
 
             photoGap: 16,
-            photoSize: { w: 182, h: 146 }
+            photoSize: { w: 176, h: 142 }
           };
         }
 
@@ -874,25 +897,25 @@
           border: { x: 18, y: 18, w: 1614, h: 1239 },
 
           header: {
-            x: 72,
-            y: 58,
+            x: 74,
+            y: 60,
             logoSize: 108,
             textScale: 1.0,
             textGap: 20
           },
 
           tree: {
-            left: 104,
-            top: 222,
-            right: 1506,
-            bottom: 1020
+            left: 96,
+            top: 214,
+            right: 1498,
+            bottom: 1012
           },
 
           footer: {
-            x: 84,
-            y: 1112,
-            right: 1566,
-            taglineY: 1192
+            x: 82,
+            y: 1106,
+            right: 1568,
+            taglineY: 1188
           },
 
           photoGap: 14,
@@ -903,9 +926,16 @@
       function getPositions(boxW, boxH) {
         const meta = getLayoutMeta();
         const tree = meta.tree;
+        const isPortrait = layoutOrientation.value === "portrait";
 
         const usableWidth = tree.right - tree.left;
-        const gapX = Math.max(24, (usableWidth - (boxW * 4)) / 3);
+
+        let gapX;
+        if (isPortrait) {
+          gapX = Math.max(16, (usableWidth - (boxW * 4)) / 3);
+        } else {
+          gapX = Math.max(24, (usableWidth - (boxW * 4)) / 3);
+        }
 
         const x1 = tree.left;
         const x2 = x1 + boxW + gapX;
@@ -913,7 +943,7 @@
         const x4 = x3 + boxW + gapX;
 
         const usableHeight = tree.bottom - tree.top;
-        const gap4 = Math.max(6, (usableHeight - (boxH * 8)) / 7);
+        const gap4 = Math.max(isPortrait ? 4 : 6, (usableHeight - (boxH * 8)) / 7);
 
         const gen4 = [];
         for (let i = 0; i < 8; i++) {
@@ -1337,7 +1367,6 @@
         const w = b.w;
         const h = b.h;
         const cx = x + w / 2;
-        const cy = y + h / 2;
 
         group.appendChild(makeEl("rect", {
           x: 0, y: 0, width: meta.canvas.width, height: meta.canvas.height, fill: "#ffffff"
@@ -1374,8 +1403,8 @@
 
             addDiamond(group, cx, y + 22, 22, 22, secondary, primary, 1.5);
             addDiamond(group, cx, y + h - 22, 22, 22, secondary, primary, 1.5);
-            addDiamond(group, x + 22, cy, 22, 22, secondary, primary, 1.5);
-            addDiamond(group, x + w - 22, cy, 22, 22, secondary, primary, 1.5);
+            addDiamond(group, x + 22, y + h / 2, 22, 22, secondary, primary, 1.5);
+            addDiamond(group, x + w - 22, y + h / 2, 22, 22, secondary, primary, 1.5);
             break;
           }
 
@@ -1398,18 +1427,8 @@
             addRect(group, x + 16, y + 44, w - 32, h - 60, primary, 5);
             addRect(group, x + 34, y + 62, w - 68, h - 96, secondary, 2.2);
 
-            addPath(
-              group,
-              `M ${x+120} ${y+44} Q ${cx} ${y-42} ${x+w-120} ${y+44}`,
-              secondary,
-              6
-            );
-            addPath(
-              group,
-              `M ${x+162} ${y+58} Q ${cx} ${y-6} ${x+w-162} ${y+58}`,
-              primary,
-              2
-            );
+            addPath(group, `M ${x+120} ${y+44} Q ${cx} ${y-42} ${x+w-120} ${y+44}`, secondary, 6);
+            addPath(group, `M ${x+162} ${y+58} Q ${cx} ${y-6} ${x+w-162} ${y+58}`, primary, 2);
 
             drawMedallion(group, cx, y + 26, 16, primary, secondary);
             drawLaurelSprig(group, cx - 46, y + 40, primary, secondary, -1);
@@ -1682,8 +1701,17 @@
 
         const meta = getLayoutMeta();
         const canvas = meta.canvas;
-        const boxW = Number(boxWidthInput.value);
-        const boxH = Number(boxHeightInput.value);
+
+        let boxW = Number(boxWidthInput.value);
+        let boxH = Number(boxHeightInput.value);
+
+        if (layoutOrientation.value === "portrait") {
+          boxW = Math.min(boxW, 205);
+          if (Number(boxWidthInput.value) !== boxW) {
+            boxWidthInput.value = boxW;
+          }
+        }
+
         const positions = getPositions(boxW, boxH);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
@@ -2005,10 +2033,12 @@
         printState = capturePrintState();
         destroyPanZoom();
         viewport.removeAttribute("transform");
+        fitSvgForPrint();
       }
 
       function restoreAfterPrint() {
         requestAnimationFrame(() => {
+          viewport.removeAttribute("transform");
           render(false);
           printState = null;
         });
@@ -2051,9 +2081,7 @@
               reader.onerror = reject;
               reader.readAsDataURL(blob);
             }))
-            .catch(() => {
-              // Leave original href in place if CORS blocks it
-            });
+            .catch(() => {});
         });
 
         return Promise.all(promises);
