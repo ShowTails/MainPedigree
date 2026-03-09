@@ -461,6 +461,41 @@
       const xlinkNS = "http://www.w3.org/1999/xlink";
       const SAVE_SETTINGS_WEBHOOK = "https://go.glideapps.com/api/container/plugin/webhook-trigger/8lcj30iX3DO7vjRtX1XK/624b9f6d-a5cf-4408-bb59-a4004e64dae8";
 
+      const PRINT_TUNING = {
+        landscape: {
+          pageScaleX: 0.98,
+          pageScaleY: 0.98,
+          pageOffsetX: 0,
+          pageOffsetY: 0,
+          borderMargin: 20,
+          headerX: 72,
+          headerY: 58,
+          treeLeft: 70,
+          treeTop: 190,
+          treeRightInset: 90,
+          treeBottom: 1035,
+          footerX: 84,
+          footerY: 1098,
+          footerTaglineY: 1178
+        },
+        portrait: {
+          pageScaleX: 0.98,
+          pageScaleY: 0.98,
+          pageOffsetX: 0,
+          pageOffsetY: 0,
+          borderMargin: 20,
+          headerX: 96,
+          headerY: 86,
+          treeLeft: 78,
+          treeTop: 300,
+          treeRightInset: 78,
+          treeBottom: 1360,
+          footerX: 96,
+          footerY: 1490,
+          footerTaglineY: 1576
+        }
+      };
+
       const svg = document.getElementById("pedigree-svg");
       const viewport = document.getElementById("viewport");
       const container = document.getElementById("pedigree-container");
@@ -795,17 +830,34 @@
           : { width: 1650, height: 1275 };
       }
 
+      function getPrintTuning() {
+        return layoutOrientation.value === "portrait"
+          ? PRINT_TUNING.portrait
+          : PRINT_TUNING.landscape;
+      }
+
       function getLayoutMeta() {
         const canvas = getCanvas();
-        const M = 36;
+        const t = getPrintTuning();
+        const M = t.borderMargin;
 
         if (layoutOrientation.value === "portrait") {
           return {
             canvas,
             border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
-            header: { x: 96, y: 86, logoSize: 116, textScale: 1.0, textGap: 22 },
-            tree: { left: 92, top: 332, right: canvas.width - 92, bottom: 1310 },
-            footer: { x: 96, y: 1490, right: canvas.width - 96, taglineY: 1576 },
+            header: { x: t.headerX, y: t.headerY, logoSize: 116, textScale: 1.0, textGap: 22 },
+            tree: {
+              left: t.treeLeft,
+              top: t.treeTop,
+              right: canvas.width - t.treeRightInset,
+              bottom: t.treeBottom
+            },
+            footer: {
+              x: t.footerX,
+              y: t.footerY,
+              right: canvas.width - t.footerX,
+              taglineY: t.footerTaglineY
+            },
             photoGap: 16,
             photoSize: { w: 176, h: 142 }
           };
@@ -814,9 +866,19 @@
         return {
           canvas,
           border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
-          header: { x: 72, y: 58, logoSize: 106, textScale: 1.0, textGap: 20 },
-          tree: { left: 84, top: 212, right: canvas.width - 128, bottom: 996 },
-          footer: { x: 84, y: 1098, right: canvas.width - 84, taglineY: 1178 },
+          header: { x: t.headerX, y: t.headerY, logoSize: 106, textScale: 1.0, textGap: 20 },
+          tree: {
+            left: t.treeLeft,
+            top: t.treeTop,
+            right: canvas.width - t.treeRightInset,
+            bottom: t.treeBottom
+          },
+          footer: {
+            x: t.footerX,
+            y: t.footerY,
+            right: canvas.width - t.footerX,
+            taglineY: t.footerTaglineY
+          },
           photoGap: 14,
           photoSize: { w: 184, h: 148 }
         };
@@ -1736,6 +1798,7 @@
 
         try {
           const isPortrait = document.getElementById("layout-orientation").value === "portrait";
+          const tuning = isPortrait ? PRINT_TUNING.portrait : PRINT_TUNING.landscape;
           const canvas = isPortrait
             ? { width: 1275, height: 1650 }
             : { width: 1650, height: 1275 };
@@ -1803,16 +1866,20 @@
                     height: 100vh;
                     overflow: hidden;
                     background: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transform: translate(${tuning.pageOffsetX}px, ${tuning.pageOffsetY}px);
                   }
 
                   .print-page svg {
                     display: block;
-                    width: 100vw !important;
-                    height: 100vh !important;
-                    max-width: 100vw !important;
-                    max-height: 100vh !important;
-                    min-width: 100vw !important;
-                    min-height: 100vh !important;
+                    width: ${tuning.pageScaleX * 100}vw !important;
+                    height: ${tuning.pageScaleY * 100}vh !important;
+                    max-width: ${tuning.pageScaleX * 100}vw !important;
+                    max-height: ${tuning.pageScaleY * 100}vh !important;
+                    min-width: ${tuning.pageScaleX * 100}vw !important;
+                    min-height: ${tuning.pageScaleY * 100}vh !important;
                     background: #fff;
                   }
                 </style>
