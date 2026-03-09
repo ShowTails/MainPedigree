@@ -179,8 +179,18 @@
     }
 
     #menu-print-btn {
-      background: #234a57;
-      color: #fff;
+    background: #234a57;
+    color: #fff;
+  }
+
+    #menu-pdf-btn {
+    background: #3f6170;
+    color: #fff;
+    }
+
+    #menu-email-pdf-btn {
+    background: #dfe9ee;
+    color: #234a57;
     }
 
     #reset-styles-btn {
@@ -298,7 +308,8 @@
     <div class="menu-section">
       <div class="menu-actions">
         <button id="menu-save-btn" type="button">Save Settings</button>
-        <button id="menu-print-btn" type="button">Print / Save PDF</button>
+        <button id="menu-print-btn" type="button">Print/Email</button>
+        <button id="menu-pdf-btn" type="button">Save Image</button>
         <button id="reset-styles-btn" type="button">Reset Defaults</button>
       </div>
       <div class="menu-note" id="save-status" style="margin-top:8px; margin-bottom:0;"></div>
@@ -514,6 +525,8 @@
       const toggleRabbitPhoto = document.getElementById("toggle-rabbit-photo");
       const resetStylesBtn = document.getElementById("reset-styles-btn");
       const printBtn = document.getElementById("menu-print-btn");
+      const pdfBtn = document.getElementById("menu-pdf-btn");
+      const emailPdfBtn = document.getElementById("menu-email-pdf-btn");
       const saveBtn = document.getElementById("menu-save-btn");
       const saveStatus = document.getElementById("save-status");
 
@@ -581,23 +594,23 @@
       };
 
       const boxDefs = [
-        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["custom"], wins: "win1"   },
-        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustom"], wins: "swin1"  },
-        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustom"], wins: "dwin1"  },
+        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["customdata"], wins: "win1"   },
+        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustomdata"], wins: "swin1"  },
+        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustomdata"], wins: "dwin1"  },
 
-        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","sssreg"],["GC#","ssgc"]], extra: ["sscustom"], wins: "sswin1" },
-        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustom"], wins: "sdwin1" },
-        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustom"], wins: "dswin1" },
-        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustom"], wins: "ddwin1" },
+        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","sssreg"],["GC#","ssgc"]], extra: ["sscustomdata"], wins: "sswin1" },
+        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustomdata"], wins: "sdwin1" },
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustomdata"], wins: "dswin1" },
+        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustomdata"], wins: "ddwin1" },
 
         { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustom"], wins: "" },
-        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustom"], wins: "" },
-        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustom"], wins: "" },
-        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustom"], wins: "" },
-        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustom"], wins: "" },
-        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustom"], wins: "" },
-        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustom"], wins: "" },
-        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustom"], wins: "" }
+        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustomdata"], wins: "" },
+        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustomdata"], wins: "" },
+        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustomdata"], wins: "" },
+        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustomdata"], wins: "" },
+        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustomdata"], wins: "" },
+        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustomdata"], wins: "" },
+        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustomdata"], wins: "" }
       ];
 
       const parentMap = [
@@ -806,31 +819,71 @@
           : { width: 1650, height: 1275 };
       }
 
-      function getLayoutMeta() {
-        const canvas = getCanvas();
+function getLayoutMeta() {
+  const canvas = getCanvas();
 
-        if (layoutOrientation.value === "portrait") {
-          return {
-            canvas,
-            border: { x: 14, y: 14, w: 1247, h: 1622 },
-            header: { x: 122, y: 64, logoSize: 86, textScale: 1.0 },
-            tree: { left: 112, top: 272, right: 1142, bottom: 1395 },
-            footer: { x: 96, y: 1505, right: 1180, taglineY: 1605 },
-            photoGap: 14,
-            photoSize: { w: 172, h: 138 }
-          };
-        }
+  if (layoutOrientation.value === "portrait") {
+    return {
+      canvas,
+      border: { x: 18, y: 18, w: 1239, h: 1614 },
 
-        return {
-          canvas,
-          border: { x: 14, y: 14, w: 1622, h: 1247 },
-          header: { x: 60, y: 30, logoSize: 74, textScale: 1.0 },
-          tree: { left: 92, top: 170, right: 1512, bottom: 1038 },
-          footer: { x: 70, y: 1122, right: 1588, taglineY: 1210 },
-          photoGap: 12,
-          photoSize: { w: 182, h: 146 }
-        };
-      }
+      header: {
+        x: 108,
+        y: 96,
+        logoSize: 122,
+        textScale: 1.0,
+        textGap: 22
+      },
+
+      tree: {
+        left: 118,
+        top: 340,
+        right: 1116,
+        bottom: 1342
+      },
+
+      footer: {
+        x: 110,
+        y: 1490,
+        right: 1165,
+        taglineY: 1586
+      },
+
+      photoGap: 16,
+      photoSize: { w: 182, h: 146 }
+    };
+  }
+
+  return {
+    canvas,
+    border: { x: 18, y: 18, w: 1614, h: 1239 },
+
+    header: {
+      x: 72,
+      y: 58,
+      logoSize: 108,
+      textScale: 1.0,
+      textGap: 20
+    },
+
+    tree: {
+      left: 104,
+      top: 222,
+      right: 1506,
+      bottom: 1020
+    },
+
+    footer: {
+      x: 84,
+      y: 1112,
+      right: 1566,
+      taglineY: 1192
+    },
+
+    photoGap: 14,
+    photoSize: { w: 184, h: 148 }
+  };
+}
 
       function getPrintProfile() {
         if (layoutOrientation.value === "portrait") {
@@ -1044,258 +1097,479 @@
         }
       }
 
-      function addCircle(group, cx, cy, r, fill, stroke, sw) {
-        group.appendChild(makeEl("circle", { cx, cy, r, fill, stroke, "stroke-width": sw }));
+     function addCircle(group, cx, cy, r, fill, stroke, sw) {
+  group.appendChild(makeEl("circle", { cx, cy, r, fill, stroke, "stroke-width": sw }));
+}
+
+function addDiamond(group, cx, cy, w, h, fill, stroke, sw) {
+  group.appendChild(makeEl("polygon", {
+    points: `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,
+    fill,
+    stroke,
+    "stroke-width": sw
+  }));
+}
+
+function addLine(group, x1, y1, x2, y2, stroke, sw) {
+  group.appendChild(makeEl("line", {
+    x1, y1, x2, y2,
+    stroke,
+    "stroke-width": sw
+  }));
+}
+
+function addRect(group, x, y, width, height, stroke, sw, fill = "none", rx = 0, ry = 0) {
+  group.appendChild(makeEl("rect", {
+    x, y, width, height,
+    fill,
+    stroke,
+    "stroke-width": sw,
+    rx,
+    ry
+  }));
+}
+
+function addPath(group, d, stroke, sw, fill = "none") {
+  group.appendChild(makeEl("path", {
+    d,
+    fill,
+    stroke,
+    "stroke-width": sw
+  }));
+}
+
+function drawCornerFlourish(group, x, y, size, primary, secondary, corner) {
+  let sx = 1, sy = 1, tx = x, ty = y;
+  if (corner === "tr") sx = -1;
+  if (corner === "bl") sy = -1;
+  if (corner === "br") { sx = -1; sy = -1; }
+
+  const g = makeEl("g", { transform: `translate(${tx},${ty}) scale(${sx},${sy})` });
+
+  addPath(g, `
+    M 0 0
+    C 24 0, 42 2, 58 10
+    C 84 22, 98 40, 102 66
+    C 88 62, 75 58, 64 48
+    C 54 40, 46 28, 42 16
+    C 35 36, 22 54, 0 72
+  `, primary, 3, "none");
+
+  addPath(g, `
+    M 14 14
+    C 30 12, 44 16, 58 24
+    C 72 32, 80 42, 82 58
+    C 72 52, 62 48, 54 40
+    C 44 31, 36 22, 32 14
+  `, secondary, 2, "none");
+
+  addCircle(g, 22, 22, 4.5, secondary, primary, 1.5);
+  addCircle(g, 58, 24, 3.6, secondary, primary, 1.2);
+  addCircle(g, 80, 58, 3.6, secondary, primary, 1.2);
+
+  group.appendChild(g);
+}
+
+function drawMedallion(group, cx, cy, r, primary, secondary) {
+  for (let i = 0; i < 16; i++) {
+    const a = (Math.PI * 2 * i) / 16;
+    const px = cx + Math.cos(a) * (r * 1.15);
+    const py = cy + Math.sin(a) * (r * 1.15);
+    addCircle(group, px, py, r * 0.18, secondary, primary, 1);
+  }
+  addCircle(group, cx, cy, r, "none", primary, 2.2);
+  addCircle(group, cx, cy, r * 0.73, secondary, primary, 1.8);
+  addDiamond(group, cx, cy, r * 0.78, r * 0.78, "none", primary, 1.2);
+  addCircle(group, cx, cy, r * 0.12, primary, primary, 1);
+}
+
+function drawRibbonCrest(group, cx, y, width, height, primary, secondary) {
+  const left = cx - width / 2;
+  const right = cx + width / 2;
+  const midY = y + height / 2;
+
+  group.appendChild(makeEl("path", {
+    d: `
+      M ${left+18} ${y}
+      L ${right-18} ${y}
+      Q ${right} ${y} ${right} ${y+18}
+      L ${right} ${y+height-18}
+      Q ${right} ${y+height} ${right-18} ${y+height}
+      L ${left+18} ${y+height}
+      Q ${left} ${y+height} ${left} ${y+height-18}
+      L ${left} ${y+18}
+      Q ${left} ${y} ${left+18} ${y}
+      Z
+    `,
+    fill: secondary,
+    stroke: primary,
+    "stroke-width": 3
+  }));
+
+  group.appendChild(makeEl("polygon", {
+    points: `${left} ${midY} ${left-34} ${y+8} ${left-34} ${y+height-8}`,
+    fill: secondary,
+    stroke: primary,
+    "stroke-width": 3
+  }));
+
+  group.appendChild(makeEl("polygon", {
+    points: `${right} ${midY} ${right+34} ${y+8} ${right+34} ${y+height-8}`,
+    fill: secondary,
+    stroke: primary,
+    "stroke-width": 3
+  }));
+
+  addLine(group, left + 18, midY, right - 18, midY, primary, 1.5);
+  drawMedallion(group, cx, midY, 12, primary, secondary);
+}
+
+function drawLaurelSprig(group, x, y, primary, secondary, flipX = 1) {
+  const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
+
+  addPath(g, `M 0 52 C 18 40, 28 26, 42 0`, primary, 2.2);
+
+  const leaves = [
+    [10, 42, 12, -20],
+    [18, 34, 12, -16],
+    [26, 25, 11, -12],
+    [34, 15, 10, -8]
+  ];
+
+  leaves.forEach(([lx, ly, s, rot]) => {
+    const leaf = makeEl("ellipse", {
+      cx: lx,
+      cy: ly,
+      rx: s,
+      ry: s * 0.45,
+      fill: secondary,
+      stroke: primary,
+      "stroke-width": 1.5,
+      transform: `rotate(${rot} ${lx} ${ly})`
+    });
+    g.appendChild(leaf);
+  });
+
+  group.appendChild(g);
+}
+
+function drawScallopBand(group, x, y, w, h, primary, secondary) {
+  const step = 28;
+  const r = 9;
+
+  for (let px = x + 34; px < x + w - 34; px += step) {
+    addCircle(group, px, y, r, "#fff", secondary, 1.8);
+    addCircle(group, px, y + h, r, "#fff", secondary, 1.8);
+  }
+
+  for (let py = y + 34; py < y + h - 34; py += step) {
+    addCircle(group, x, py, r, "#fff", secondary, 1.8);
+    addCircle(group, x + w, py, r, "#fff", secondary, 1.8);
+  }
+
+  addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 2.2);
+}
+
+function drawInnerGuideCorners(group, x, y, w, h, primary) {
+  const len = 34;
+  const off = 18;
+
+  [
+    [x + off, y + off, 1, 1],
+    [x + w - off, y + off, -1, 1],
+    [x + off, y + h - off, 1, -1],
+    [x + w - off, y + h - off, -1, -1]
+  ].forEach(([cx, cy, sx, sy]) => {
+    addLine(group, cx, cy, cx + len * sx, cy, primary, 1.5);
+    addLine(group, cx, cy, cx, cy + len * sy, primary, 1.5);
+  });
+}
+
+function drawBeadedLine(group, x1, y1, x2, y2, primary, secondary, horizontal = true) {
+  addLine(group, x1, y1, x2, y2, primary, 1.4);
+  const len = horizontal ? (x2 - x1) : (y2 - y1);
+  const step = 26;
+
+  for (let i = step; i < len; i += step) {
+    const cx = horizontal ? x1 + i : x1;
+    const cy = horizontal ? y1 : y1 + i;
+    addCircle(group, cx, cy, 2.8, secondary, primary, 0.9);
+  }
+}
+
+function drawCornerChevron(group, x, y, size, primary, secondary, flipX, flipY) {
+  const sx = flipX ? -1 : 1;
+  const sy = flipY ? -1 : 1;
+  const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
+
+  g.appendChild(makeEl("path", {
+    d: `M 0 0 L ${size} 0 L ${size} 10 L 10 10 L 10 ${size} L 0 ${size} Z`,
+    fill: secondary,
+    stroke: primary,
+    "stroke-width": 4
+  }));
+
+  g.appendChild(makeEl("path", {
+    d: `M 18 18 L ${size-18} 18 L ${size-18} 24 L 24 24 L 24 ${size-18} L 18 ${size-18} Z`,
+    fill: "none",
+    stroke: primary,
+    "stroke-width": 2
+  }));
+
+  group.appendChild(g);
+}
+
+function drawRosette(group, cx, cy, r, primary, secondary) {
+  for (let i = 0; i < 12; i++) {
+    const a = (Math.PI * 2 * i) / 12;
+    const x = cx + Math.cos(a) * (r * 1.1);
+    const y = cy + Math.sin(a) * (r * 1.1);
+    addCircle(group, x, y, r * 0.34, secondary, primary, 1);
+  }
+  addCircle(group, cx, cy, r * 0.65, secondary, primary, 2);
+}
+
+function drawLeaf(group, x, y, scale, primary, secondary, flipX = 1) {
+  const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
+  g.appendChild(makeEl("path", {
+    d: `M 0 0 C 18 -16, 36 -16, 48 0 C 36 16, 18 16, 0 0 Z`,
+    fill: secondary,
+    stroke: primary,
+    "stroke-width": 2,
+    transform: `scale(${scale})`
+  }));
+  g.appendChild(makeEl("path", {
+    d: `M 4 0 L 44 0`,
+    fill: "none",
+    stroke: primary,
+    "stroke-width": 1.6,
+    transform: `scale(${scale})`
+  }));
+  group.appendChild(g);
+}
+
+    function drawBorder(group, meta) {
+  const style = borderStyleInput.value;
+  const primary = borderPrimaryColor.value;
+  const secondary = borderSecondaryColor.value;
+  const b = meta.border;
+  const x = b.x;
+  const y = b.y;
+  const w = b.w;
+  const h = b.h;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+
+  group.appendChild(makeEl("rect", {
+    x: 0, y: 0, width: meta.canvas.width, height: meta.canvas.height, fill: "#ffffff"
+  }));
+
+  switch (style) {
+    case "classicDouble": {
+      addRect(group, x, y, w, h, primary, 7);
+      addRect(group, x + 16, y + 16, w - 32, h - 32, secondary, 2.5);
+      addRect(group, x + 32, y + 32, w - 64, h - 64, primary, 1.5);
+      addRect(group, x + 46, y + 46, w - 92, h - 92, secondary, 1.1);
+
+      drawMedallion(group, x + 58, y + 58, 14, primary, secondary);
+      drawMedallion(group, x + w - 58, y + 58, 14, primary, secondary);
+      drawMedallion(group, x + 58, y + h - 58, 14, primary, secondary);
+      drawMedallion(group, x + w - 58, y + h - 58, 14, primary, secondary);
+
+      drawBeadedLine(group, x + 92, y + 24, x + w - 92, y + 24, primary, secondary, true);
+      drawBeadedLine(group, x + 92, y + h - 24, x + w - 92, y + h - 24, primary, secondary, true);
+      drawBeadedLine(group, x + 24, y + 92, x + 24, y + h - 92, primary, secondary, false);
+      drawBeadedLine(group, x + w - 24, y + 92, x + w - 24, y + h - 92, primary, secondary, false);
+      break;
+    }
+
+    case "elegantCorners": {
+      addRect(group, x + 8, y + 8, w - 16, h - 16, primary, 4);
+      addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
+      addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.1);
+
+      drawCornerFlourish(group, x + 30, y + 30, 100, primary, secondary, "tl");
+      drawCornerFlourish(group, x + w - 30, y + 30, 100, primary, secondary, "tr");
+      drawCornerFlourish(group, x + 30, y + h - 30, 100, primary, secondary, "bl");
+      drawCornerFlourish(group, x + w - 30, y + h - 30, 100, primary, secondary, "br");
+
+      addDiamond(group, cx, y + 22, 22, 22, secondary, primary, 1.5);
+      addDiamond(group, cx, y + h - 22, 22, 22, secondary, primary, 1.5);
+      addDiamond(group, x + 22, cy, 22, 22, secondary, primary, 1.5);
+      addDiamond(group, x + w - 22, cy, 22, 22, secondary, primary, 1.5);
+      break;
+    }
+
+    case "ribbonFrame": {
+      addRect(group, x + 14, y + 18, w - 28, h - 36, primary, 5);
+      addRect(group, x + 32, y + 36, w - 64, h - 72, secondary, 2.4);
+      addRect(group, x + 46, y + 50, w - 92, h - 100, primary, 1.2);
+
+      drawRibbonCrest(group, cx, y + 18, 240, 44, primary, secondary);
+      drawRibbonCrest(group, cx, y + h - 62, 220, 40, primary, secondary);
+
+      drawMedallion(group, x + 56, y + 56, 15, primary, secondary);
+      drawMedallion(group, x + w - 56, y + 56, 15, primary, secondary);
+      drawMedallion(group, x + 56, y + h - 56, 15, primary, secondary);
+      drawMedallion(group, x + w - 56, y + h - 56, 15, primary, secondary);
+      break;
+    }
+
+    case "royalArch": {
+      addRect(group, x + 16, y + 44, w - 32, h - 60, primary, 5);
+      addRect(group, x + 34, y + 62, w - 68, h - 96, secondary, 2.2);
+
+      addPath(
+        group,
+        `M ${x+120} ${y+44} Q ${cx} ${y-42} ${x+w-120} ${y+44}`,
+        secondary,
+        6
+      );
+      addPath(
+        group,
+        `M ${x+162} ${y+58} Q ${cx} ${y-6} ${x+w-162} ${y+58}`,
+        primary,
+        2
+      );
+
+      drawMedallion(group, cx, y + 26, 16, primary, secondary);
+      drawLaurelSprig(group, cx - 46, y + 40, primary, secondary, -1);
+      drawLaurelSprig(group, cx + 46, y + 40, primary, secondary, 1);
+
+      addDiamond(group, x + 52, y + 80, 18, 18, secondary, primary, 1.2);
+      addDiamond(group, x + w - 52, y + 80, 18, 18, secondary, primary, 1.2);
+      break;
+    }
+
+    case "modernGeo": {
+      addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4);
+      addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
+      addRect(group, x + 42, y + 42, w - 84, h - 84, primary, 1.2);
+
+      [
+        [x + 34, y + 34],
+        [x + w - 34, y + 34],
+        [x + 34, y + h - 34],
+        [x + w - 34, y + h - 34]
+      ].forEach(([px, py]) => drawMedallion(group, px, py, 12, primary, secondary));
+
+      addDiamond(group, cx, y + 24, 26, 26, secondary, primary, 1.6);
+      addDiamond(group, cx, y + h - 24, 26, 26, secondary, primary, 1.6);
+
+      addLine(group, x + 68, y + 24, cx - 18, y + 24, primary, 1.5);
+      addLine(group, cx + 18, y + 24, x + w - 68, y + 24, primary, 1.5);
+      addLine(group, x + 68, y + h - 24, cx - 18, y + h - 24, primary, 1.5);
+      addLine(group, cx + 18, y + h - 24, x + w - 68, y + h - 24, primary, 1.5);
+
+      drawInnerGuideCorners(group, x + 22, y + 22, w - 44, h - 44, secondary);
+      break;
+    }
+
+    case "scallop": {
+      drawScallopBand(group, x + 16, y + 16, w - 32, h - 32, primary, secondary);
+      addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
+      addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1);
+
+      drawMedallion(group, cx, y + 34, 13, primary, secondary);
+      drawMedallion(group, cx, y + h - 34, 13, primary, secondary);
+      break;
+    }
+
+    case "ornateLines": {
+      addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
+      addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 1.8);
+
+      addPath(
+        group,
+        `M ${x+120} ${y+24}
+         C ${x+180} ${y-4}, ${x+255} ${y-4}, ${x+318} ${y+24}
+         M ${x+w-120} ${y+24}
+         C ${x+w-180} ${y-4}, ${x+w-255} ${y-4}, ${x+w-318} ${y+24}
+         M ${x+120} ${y+h-24}
+         C ${x+180} ${y+h+4}, ${x+255} ${y+h+4}, ${x+318} ${y+h-24}
+         M ${x+w-120} ${y+h-24}
+         C ${x+w-180} ${y+h+4}, ${x+w-255} ${y+h+4}, ${x+w-318} ${y+h-24}`,
+        secondary,
+        3
+      );
+
+      addPath(
+        group,
+        `M ${x+24} ${y+120}
+         C ${x-4} ${y+180}, ${x-4} ${y+255}, ${x+24} ${y+318}
+         M ${x+w-24} ${y+120}
+         C ${x+w+4} ${y+180}, ${x+w+4} ${y+255}, ${x+w-24} ${y+318}
+         M ${x+24} ${y+h-120}
+         C ${x-4} ${y+h-180}, ${x-4} ${y+h-255}, ${x+24} ${y+h-318}
+         M ${x+w-24} ${y+h-120}
+         C ${x+w+4} ${y+h-180}, ${x+w+4} ${y+h-255}, ${x+w-24} ${y+h-318}`,
+        secondary,
+        3
+      );
+
+      drawCornerFlourish(group, x + 26, y + 26, 100, primary, secondary, "tl");
+      drawCornerFlourish(group, x + w - 26, y + 26, 100, primary, secondary, "tr");
+      drawCornerFlourish(group, x + 26, y + h - 26, 100, primary, secondary, "bl");
+      drawCornerFlourish(group, x + w - 26, y + h - 26, 100, primary, secondary, "br");
+      break;
+    }
+
+    case "ticketEdge": {
+      addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4, "none", 20, 20);
+      addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2, "none", 14, 14);
+
+      for (let px = x + 84; px < x + w - 84; px += 62) {
+        addCircle(group, px, y + 16, 8, "#fff", secondary, 2);
+        addCircle(group, px, y + h - 16, 8, "#fff", secondary, 2);
+      }
+      for (let py = y + 84; py < y + h - 84; py += 62) {
+        addCircle(group, x + 16, py, 8, "#fff", secondary, 2);
+        addCircle(group, x + w - 16, py, 8, "#fff", secondary, 2);
       }
 
-      function drawCornerChevron(group, x, y, size, primary, secondary, flipX, flipY) {
-        const sx = flipX ? -1 : 1;
-        const sy = flipY ? -1 : 1;
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
+      drawRibbonCrest(group, cx, y + 22, 210, 40, primary, secondary);
+      drawMedallion(group, cx, y + h - 34, 13, primary, secondary);
+      break;
+    }
 
-        g.appendChild(makeEl("path", {
-          d: `M 0 0 L ${size} 0 L ${size} 10 L 10 10 L 10 ${size} L 0 ${size} Z`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 4
-        }));
+    case "floralLite": {
+      addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
+      addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
+      addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.2);
 
-        g.appendChild(makeEl("path", {
-          d: `M 18 18 L ${size-18} 18 L ${size-18} 24 L 24 24 L 24 ${size-18} L 18 ${size-18} Z`,
-          fill: "none",
-          stroke: primary,
-          "stroke-width": 2
-        }));
+      [
+        [x + 58, y + 58],
+        [x + w - 58, y + 58],
+        [x + 58, y + h - 58],
+        [x + w - 58, y + h - 58]
+      ].forEach(([px, py]) => {
+        drawLeaf(group, px, py, 1.0, primary, secondary, 1);
+        drawLeaf(group, px, py, 1.0, primary, secondary, -1);
+        addCircle(group, px, py, 4.5, secondary, primary, 1.2);
+      });
 
-        group.appendChild(g);
-      }
+      drawLaurelSprig(group, cx - 38, y + 28, primary, secondary, -1);
+      drawLaurelSprig(group, cx + 38, y + 28, primary, secondary, 1);
+      break;
+    }
 
-      function drawRosette(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 12; i++) {
-          const a = (Math.PI * 2 * i) / 12;
-          const x = cx + Math.cos(a) * (r * 1.1);
-          const y = cy + Math.sin(a) * (r * 1.1);
-          addCircle(group, x, y, r * 0.34, secondary, primary, 1);
-        }
-        addCircle(group, cx, cy, r * 0.65, secondary, primary, 2);
-      }
+    case "showFrame": {
+      addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 6);
+      addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.6);
+      addRect(group, x + 38, y + 38, w - 76, h - 76, primary, 1.2);
 
-      function drawLeaf(group, x, y, scale, primary, secondary, flipX = 1) {
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
-        g.appendChild(makeEl("path", {
-          d: `M 0 0 C 18 -16, 36 -16, 48 0 C 36 16, 18 16, 0 0 Z`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 2,
-          transform: `scale(${scale})`
-        }));
-        g.appendChild(makeEl("path", {
-          d: `M 4 0 L 44 0`,
-          fill: "none",
-          stroke: primary,
-          "stroke-width": 1.6,
-          transform: `scale(${scale})`
-        }));
-        group.appendChild(g);
-      }
+      drawRosette(group, x + 54, y + 54, 18, primary, secondary);
+      drawRosette(group, x + w - 54, y + 54, 18, primary, secondary);
+      drawRosette(group, x + 54, y + h - 54, 18, primary, secondary);
+      drawRosette(group, x + w - 54, y + h - 54, 18, primary, secondary);
 
-      function drawBorder(group, meta) {
-        const style = borderStyleInput.value;
-        const primary = borderPrimaryColor.value;
-        const secondary = borderSecondaryColor.value;
-        const b = meta.border;
-        const x = b.x;
-        const y = b.y;
-        const w = b.w;
-        const h = b.h;
-
-        group.appendChild(makeEl("rect", {
-          x: 0, y: 0, width: meta.canvas.width, height: meta.canvas.height, fill: "#ffffff"
-        }));
-
-        switch (style) {
-          case "classicDouble": {
-            group.appendChild(makeEl("rect", {
-              x, y, width: w, height: h, fill: "none", stroke: primary, "stroke-width": 8
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 18, y: y + 18, width: w - 36, height: h - 36, fill: "none", stroke: secondary, "stroke-width": 3
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 32, y: y + 32, width: w - 64, height: h - 64, fill: "none", stroke: primary, "stroke-width": 1.5
-            }));
-            break;
-          }
-
-          case "elegantCorners": {
-            group.appendChild(makeEl("rect", {
-              x: x + 10, y: y + 10, width: w - 20, height: h - 20, fill: "none", stroke: primary, "stroke-width": 4
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 28, y: y + 28, width: w - 56, height: h - 56, fill: "none", stroke: secondary, "stroke-width": 2
-            }));
-            drawCornerChevron(group, x + 10, y + 10, 95, primary, secondary, false, false);
-            drawCornerChevron(group, x + w - 10, y + 10, 95, primary, secondary, true, false);
-            drawCornerChevron(group, x + 10, y + h - 10, 95, primary, secondary, false, true);
-            drawCornerChevron(group, x + w - 10, y + h - 10, 95, primary, secondary, true, true);
-            break;
-          }
-
-          case "ribbonFrame": {
-            group.appendChild(makeEl("rect", {
-              x: x + 16, y: y + 16, width: w - 32, height: h - 32, fill: "none", stroke: primary, "stroke-width": 6
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 34, y: y + 34, width: w - 68, height: h - 68, fill: "none", stroke: secondary, "stroke-width": 2.5
-            }));
-            const rw = 210, rh = 44;
-            const cx = x + w / 2 - rw / 2;
-            group.appendChild(makeEl("rect", {
-              x: cx, y: y + 18, width: rw, height: rh, rx: 8, ry: 8, fill: secondary, stroke: primary, "stroke-width": 3
-            }));
-            group.appendChild(makeEl("polygon", {
-              points: `${cx} ${y+40} ${cx-34} ${y+20} ${cx-34} ${y+60}`,
-              fill: secondary, stroke: primary, "stroke-width": 3
-            }));
-            group.appendChild(makeEl("polygon", {
-              points: `${cx+rw} ${y+40} ${cx+rw+34} ${y+20} ${cx+rw+34} ${y+60}`,
-              fill: secondary, stroke: primary, "stroke-width": 3
-            }));
-            break;
-          }
-
-          case "royalArch": {
-            group.appendChild(makeEl("rect", {
-              x: x + 16, y: y + 36, width: w - 32, height: h - 52, fill: "none", stroke: primary, "stroke-width": 5
-            }));
-            group.appendChild(makeEl("path", {
-              d: `M ${x+140} ${y+36} Q ${x+w/2} ${y-34} ${x+w-140} ${y+36}`,
-              fill: "none", stroke: secondary, "stroke-width": 6
-            }));
-            group.appendChild(makeEl("path", {
-              d: `M ${x+170} ${y+52} Q ${x+w/2} ${y-8} ${x+w-170} ${y+52}`,
-              fill: "none", stroke: primary, "stroke-width": 2
-            }));
-            addCircle(group, x + w/2, y + 26, 10, secondary, primary, 2);
-            break;
-          }
-
-          case "modernGeo": {
-            group.appendChild(makeEl("rect", {
-              x: x + 10, y: y + 10, width: w - 20, height: h - 20, fill: "none", stroke: primary, "stroke-width": 4
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 34, y: y + 34, width: w - 68, height: h - 68, fill: "none", stroke: secondary, "stroke-width": 2
-            }));
-            const corners = [
-              [x + 26, y + 26],
-              [x + w - 26, y + 26],
-              [x + 26, y + h - 26],
-              [x + w - 26, y + h - 26]
-            ];
-            corners.forEach(([cx, cy]) => {
-              group.appendChild(makeEl("polygon", {
-                points: `${cx},${cy-16} ${cx+16},${cy} ${cx},${cy+16} ${cx-16},${cy}`,
-                fill: secondary, stroke: primary, "stroke-width": 2
-              }));
-            });
-            break;
-          }
-
-          case "scallop": {
-            group.appendChild(makeEl("rect", {
-              x: x + 22, y: y + 22, width: w - 44, height: h - 44, fill: "none", stroke: primary, "stroke-width": 3
-            }));
-            const scallopR = 10;
-            const step = 26;
-            for (let px = x + 38; px < x + w - 38; px += step) {
-              addCircle(group, px, y + 16, scallopR, "#fff", secondary, 2);
-              addCircle(group, px, y + h - 16, scallopR, "#fff", secondary, 2);
-            }
-            for (let py = y + 38; py < y + h - 38; py += step) {
-              addCircle(group, x + 16, py, scallopR, "#fff", secondary, 2);
-              addCircle(group, x + w - 16, py, scallopR, "#fff", secondary, 2);
-            }
-            break;
-          }
-
-          case "ornateLines": {
-            group.appendChild(makeEl("rect", {
-              x: x + 16, y: y + 16, width: w - 32, height: h - 32, fill: "none", stroke: primary, "stroke-width": 4
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 36, y: y + 36, width: w - 72, height: h - 72, fill: "none", stroke: secondary, "stroke-width": 1.7
-            }));
-
-            const topY = y + 26;
-            const botY = y + h - 26;
-            const leftX = x + 26;
-            const rightX = x + w - 26;
-            group.appendChild(makeEl("path", {
-              d: `M ${x+120} ${topY} C ${x+180} ${topY-24}, ${x+250} ${topY-24}, ${x+310} ${topY}
-                  M ${x+w-120} ${topY} C ${x+w-180} ${topY-24}, ${x+w-250} ${topY-24}, ${x+w-310} ${topY}
-                  M ${x+120} ${botY} C ${x+180} ${botY+24}, ${x+250} ${botY+24}, ${x+310} ${botY}
-                  M ${x+w-120} ${botY} C ${x+w-180} ${botY+24}, ${x+w-250} ${botY+24}, ${x+w-310} ${botY}`,
-              fill: "none", stroke: secondary, "stroke-width": 3
-            }));
-            group.appendChild(makeEl("path", {
-              d: `M ${leftX} ${y+120} C ${leftX-24} ${y+180}, ${leftX-24} ${y+250}, ${leftX} ${y+310}
-                  M ${rightX} ${y+120} C ${rightX+24} ${y+180}, ${rightX+24} ${y+250}, ${rightX} ${y+310}
-                  M ${leftX} ${y+h-120} C ${leftX-24} ${y+h-180}, ${leftX-24} ${y+h-250}, ${leftX} ${y+h-310}
-                  M ${rightX} ${y+h-120} C ${rightX+24} ${y+h-180}, ${rightX+24} ${y+h-250}, ${rightX} ${y+h-310}`,
-              fill: "none", stroke: secondary, "stroke-width": 3
-            }));
-            break;
-          }
-
-          case "ticketEdge": {
-            group.appendChild(makeEl("rect", {
-              x: x + 18, y: y + 18, width: w - 36, height: h - 36, rx: 20, ry: 20, fill: "none", stroke: primary, "stroke-width": 4
-            }));
-            for (let px = x + 70; px < x + w - 70; px += 60) {
-              addCircle(group, px, y + 18, 8, "#fff", secondary, 2);
-              addCircle(group, px, y + h - 18, 8, "#fff", secondary, 2);
-            }
-            for (let py = y + 70; py < y + h - 70; py += 60) {
-              addCircle(group, x + 18, py, 8, "#fff", secondary, 2);
-              addCircle(group, x + w - 18, py, 8, "#fff", secondary, 2);
-            }
-            break;
-          }
-
-          case "floralLite": {
-            group.appendChild(makeEl("rect", {
-              x: x + 18, y: y + 18, width: w - 36, height: h - 36, fill: "none", stroke: primary, "stroke-width": 4
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 36, y: y + 36, width: w - 72, height: h - 72, fill: "none", stroke: secondary, "stroke-width": 2
-            }));
-            drawLeaf(group, x + 54, y + 54, 0.9, primary, secondary, 1);
-            drawLeaf(group, x + 54, y + 54, 0.9, primary, secondary, -1);
-            drawLeaf(group, x + w - 54, y + 54, 0.9, primary, secondary, 1);
-            drawLeaf(group, x + w - 54, y + 54, 0.9, primary, secondary, -1);
-            drawLeaf(group, x + 54, y + h - 54, 0.9, primary, secondary, 1);
-            drawLeaf(group, x + 54, y + h - 54, 0.9, primary, secondary, -1);
-            drawLeaf(group, x + w - 54, y + h - 54, 0.9, primary, secondary, 1);
-            drawLeaf(group, x + w - 54, y + h - 54, 0.9, primary, secondary, -1);
-            break;
-          }
-
-          case "showFrame": {
-            group.appendChild(makeEl("rect", {
-              x: x + 10, y: y + 10, width: w - 20, height: h - 20, fill: "none", stroke: primary, "stroke-width": 6
-            }));
-            group.appendChild(makeEl("rect", {
-              x: x + 26, y: y + 26, width: w - 52, height: h - 52, fill: "none", stroke: secondary, "stroke-width": 2.4
-            }));
-            drawRosette(group, x + 52, y + 52, 18, primary, secondary);
-            drawRosette(group, x + w - 52, y + 52, 18, primary, secondary);
-            drawRosette(group, x + 52, y + h - 52, 18, primary, secondary);
-            drawRosette(group, x + w - 52, y + h - 52, 18, primary, secondary);
-            break;
-          }
-        }
-      }
+      drawRibbonCrest(group, cx, y + 20, 230, 42, primary, secondary);
+      drawBeadedLine(group, x + 92, y + 26, x + w - 92, y + 26, primary, secondary, true);
+      drawBeadedLine(group, x + 92, y + h - 26, x + w - 92, y + h - 26, primary, secondary, true);
+      break;
+    }
+  }
+}  
 
       function getCurrentSettings() {
         return {
@@ -1491,19 +1765,25 @@
           }));
         }
 
-        const hs = meta.header.textScale;
-        const headerTextX = meta.header.x + meta.header.logoSize + 18;
-        const headerTextY = meta.header.y + 18;
+      const hs = meta.header.textScale;
+const headerTextX = meta.header.x + meta.header.logoSize + meta.header.textGap;
+const headerTextY = meta.header.y + 20;
 
-        addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 20 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 20 * hs, getParam("street"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 40 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 60 * hs, getParam("phone"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 80 * hs, getParam("email"), { size: 16 * hs, weight: 600 });
-        addText(headerLayer, headerTextX, headerTextY + 108 * hs, "Breed:", { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 108 * hs, getParam("breed"), { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX, headerTextY + 128 * hs, "DOB:", { size: 16 * hs, weight: 700 });
-        addText(headerLayer, headerTextX + 60 * hs, headerTextY + 128 * hs, getParam("dob"), { size: 16 * hs, weight: 700 });
+addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 24 * hs, weight: 700 });
+addText(headerLayer, headerTextX, headerTextY + 24 * hs, getParam("street"), { size: 17 * hs, weight: 600 });
+addText(
+  headerLayer,
+  headerTextX,
+  headerTextY + 46 * hs,
+  [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "),
+  { size: 17 * hs, weight: 600 }
+);
+addText(headerLayer, headerTextX, headerTextY + 68 * hs, getParam("phone"), { size: 17 * hs, weight: 600 });
+addText(headerLayer, headerTextX, headerTextY + 90 * hs, getParam("email"), { size: 17 * hs, weight: 600 });
+addText(headerLayer, headerTextX, headerTextY + 118 * hs, "Breed:", { size: 17 * hs, weight: 700 });
+addText(headerLayer, headerTextX + 68 * hs, headerTextY + 118 * hs, getParam("breed"), { size: 17 * hs, weight: 700 });
+addText(headerLayer, headerTextX, headerTextY + 140 * hs, "DOB:", { size: 17 * hs, weight: 700 });
+addText(headerLayer, headerTextX + 68 * hs, headerTextY + 140 * hs, getParam("dob"), { size: 17 * hs, weight: 700 });
 
         if (toggleRabbitPhoto.checked && getUrlParam("rabbitphoto")) {
           const main = positions.main;
@@ -1585,13 +1865,13 @@
 
         addText(footerLayer, footerX, footerY + 28, getParam("owner"), { size: 14, weight: 700 });
 
-        addText(
-          footerLayer,
-          meta.footer.right,
-          meta.footer.taglineY,
-          "Pedigree built on the ShowTails LLC platform - www.showtails.com",
-          { size: 11, anchor: "end" }
-        );
+       addText(
+  footerLayer,
+  meta.canvas.width / 2,
+  meta.footer.taglineY,
+  "Pedigree built on the ShowTails LLC platform - www.showtails.com",
+  { size: 11, anchor: "middle" }
+);
 
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
@@ -1742,31 +2022,25 @@
         };
       }
 
-      function prepareForPrint() {
-        if (!panZoom) return;
+function prepareForPrint() {
+  printState = capturePrintState();
+  destroyPanZoom();
+  viewport.removeAttribute("transform");
+}
 
-        printState = capturePrintState();
+ function restoreAfterPrint() {
+  requestAnimationFrame(() => {
+    render(false);
+    printState = null;
+  });
+} 
 
-        try {
-          panZoom.resetZoom();
-          panZoom.center();
-        } catch (err) {}
-
-        const printProfile = getPrintProfile();
-        panZoom.zoom(printProfile.zoom);
-        panZoom.pan(printProfile.pan);
-      }
-
-      function restoreAfterPrint() {
-        if (!panZoom || !printState) return;
-
-        requestAnimationFrame(() => {
-          if (!panZoom || !printState) return;
-          panZoom.zoom(printState.zoom);
-          panZoom.pan(printState.pan);
-          printState = null;
-        });
-      }
+function restoreAfterPrint() {
+  requestAnimationFrame(() => {
+    render(false);
+    printState = null;
+  });
+}      
 
       menuToggle.addEventListener("click", () => {
         pedigreeMenu.classList.toggle("open");
