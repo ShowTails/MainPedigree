@@ -1043,6 +1043,17 @@
         }
       }
 
+
+      function addCircle(group, cx, cy, r, fill, stroke, sw) {
+  group.appendChild(makeEl("circle", {
+    cx,
+    cy,
+    r,
+    fill,
+    stroke,
+    "stroke-width": sw
+  }));
+}
       function addDiamond(group, cx, cy, w, h, fill, stroke, sw) {
         group.appendChild(makeEl("polygon", {
           points: `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,
