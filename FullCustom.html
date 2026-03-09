@@ -463,36 +463,28 @@
 
       const PRINT_TUNING = {
         landscape: {
-          pageScaleX: 2,
-          pageScaleY: 2,
-          pageOffsetX: 0,
-          pageOffsetY: 0,
-          borderMargin: 20,
-          headerX: 72,
-          headerY: 58,
-          treeLeft: 70,
-          treeTop: 190,
-          treeRightInset: 90,
-          treeBottom: 1035,
-          footerX: 84,
-          footerY: 1098,
-          footerTaglineY: 1178
+          borderMargin: 12,
+          headerX: 38,
+          headerY: 24,
+          treeLeft: 28,
+          treeTop: 110,
+          treeRightInset: 24,
+          treeBottom: 1152,
+          footerX: 34,
+          footerY: 1188,
+          footerTaglineY: 1244
         },
         portrait: {
-          pageScaleX: 0.98,
-          pageScaleY: 0.98,
-          pageOffsetX: 0,
-          pageOffsetY: 0,
-          borderMargin: 20,
-          headerX: 96,
-          headerY: 86,
-          treeLeft: 78,
-          treeTop: 300,
-          treeRightInset: 78,
-          treeBottom: 1360,
-          footerX: 96,
-          footerY: 1490,
-          footerTaglineY: 1576
+          borderMargin: 12,
+          headerX: 52,
+          headerY: 34,
+          treeLeft: 42,
+          treeTop: 250,
+          treeRightInset: 42,
+          treeBottom: 1514,
+          footerX: 48,
+          footerY: 1552,
+          footerTaglineY: 1616
         }
       };
 
@@ -1707,6 +1699,42 @@
         return svgClone;
       }
 
+      async function buildPrintImageDataUrl() {
+        const svgClone = await buildStaticExportSvg();
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgClone);
+        const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const canvasSize = getCanvas();
+        const exportScale = 2;
+
+        return await new Promise((resolve, reject) => {
+          const img = new Image();
+
+          img.onload = function () {
+            const canvas = document.createElement("canvas");
+            canvas.width = canvasSize.width * exportScale;
+            canvas.height = canvasSize.height * exportScale;
+
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            URL.revokeObjectURL(url);
+            resolve(canvas.toDataURL("image/png"));
+          };
+
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            reject(new Error("Unable to rasterize print image."));
+          };
+
+          img.src = url;
+        });
+      }
+
       function getFileBaseName() {
         return (getParam("name") || "pedigree")
           .replace(/[^\w\-]+/g, "_")
@@ -1798,33 +1826,7 @@
 
         try {
           const isPortrait = document.getElementById("layout-orientation").value === "portrait";
-          const tuning = isPortrait ? PRINT_TUNING.portrait : PRINT_TUNING.landscape;
-          const canvas = isPortrait
-            ? { width: 1275, height: 1650 }
-            : { width: 1650, height: 1275 };
-
-          const printSvg = svg.cloneNode(true);
-          const printViewport = printSvg.querySelector("#viewport");
-
-          if (printViewport) {
-            printViewport.removeAttribute("transform");
-            printViewport.style.transform = "none";
-          }
-
-          printSvg.style.transform = "none";
-          printSvg.style.display = "block";
-          printSvg.style.background = "#ffffff";
-
-          printSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          printSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-          printSvg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-          printSvg.setAttribute("width", String(canvas.width));
-          printSvg.setAttribute("height", String(canvas.height));
-          printSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-          await inlineExternalImagesForExport(printSvg);
-
-          const svgData = new XMLSerializer().serializeToString(printSvg);
+          const printImageUrl = await buildPrintImageDataUrl();
 
           const pWin = window.open("", "_blank");
           if (!pWin) {
@@ -1856,6 +1858,8 @@
                   }
 
                   body {
+                    position: fixed;
+                    inset: 0;
                     background: #fff;
                   }
 
@@ -1864,29 +1868,22 @@
                     inset: 0;
                     width: 100vw;
                     height: 100vh;
-                    overflow: hidden;
                     background: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transform: translate(${tuning.pageOffsetX}px, ${tuning.pageOffsetY}px);
+                    overflow: hidden;
                   }
 
-                  .print-page svg {
+                  .print-page img {
                     display: block;
-                    width: ${tuning.pageScaleX * 100}vw !important;
-                    height: ${tuning.pageScaleY * 100}vh !important;
-                    max-width: ${tuning.pageScaleX * 100}vw !important;
-                    max-height: ${tuning.pageScaleY * 100}vh !important;
-                    min-width: ${tuning.pageScaleX * 100}vw !important;
-                    min-height: ${tuning.pageScaleY * 100}vh !important;
+                    width: 100vw;
+                    height: 100vh;
+                    object-fit: fill;
                     background: #fff;
                   }
                 </style>
               </head>
               <body>
                 <div class="print-page">
-                  ${svgData}
+                  <img src="${printImageUrl}" alt="Rabbit Pedigree Print">
                 </div>
               </body>
             </html>
