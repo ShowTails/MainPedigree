@@ -30,6 +30,9 @@
       position: relative;
       overflow: hidden;
       background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #pedigree-svg {
@@ -173,40 +176,13 @@
       cursor: not-allowed;
     }
 
-    #menu-save-btn {
-      background: #2f6f86;
-      color: #fff;
-    }
-
-    #menu-print-btn {
-      background: #234a57;
-      color: #fff;
-    }
-
-    #menu-pdf-btn {
-      background: #3f6170;
-      color: #fff;
-    }
-
-    #menu-image-btn {
-      background: #4d7c8a;
-      color: #fff;
-    }
-
-    #menu-svg-btn {
-      background: #5d8d99;
-      color: #fff;
-    }
-
-    #menu-email-pdf-btn {
-      background: #dfe9ee;
-      color: #234a57;
-    }
-
-    #reset-styles-btn {
-      background: #eaf2f6;
-      color: #234a57;
-    }
+    #menu-save-btn { background: #2f6f86; color: #fff; }
+    #menu-print-btn { background: #234a57; color: #fff; }
+    #menu-pdf-btn { background: #3f6170; color: #fff; }
+    #menu-image-btn { background: #4d7c8a; color: #fff; }
+    #menu-svg-btn { background: #5d8d99; color: #fff; }
+    #menu-email-pdf-btn { background: #dfe9ee; color: #234a57; }
+    #reset-styles-btn { background: #eaf2f6; color: #234a57; }
 
     .font-picker {
       position: relative;
@@ -284,35 +260,46 @@
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
-        background: #fff !important;
+        background: white !important;
       }
 
       #pedigree-container {
-        position: fixed !important;
-        inset: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
         overflow: hidden !important;
-        background: #fff !important;
+      }
+
+      #pedigree-svg {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      #pedigree-container svg {
+        transform: scale(1) translate(0, 0) !important;
+        position: absolute !important;
+        top: 0;
+        left: 0;
+      }
+
+      #pedigree-container > * {
+        transform: none !important;
       }
 
       #menu-toggle,
       #pedigree-menu {
         display: none !important;
         visibility: hidden !important;
-      }
-
-      #pedigree-svg {
-        width: 100vw !important;
-        height: 100vh !important;
-        display: block !important;
-        transform: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-
-      #pedigree-container > * {
-        transform: none !important;
       }
     }
   </style>
@@ -443,11 +430,11 @@
       </select>
 
       <label for="box-width">Box Width</label>
-      <input type="range" id="box-width" min="180" max="320" step="5" value="220">
+      <input type="range" id="box-width" min="180" max="380" step="5" value="220">
       <div class="range-readout"><span id="box-width-value">220</span> px</div>
 
       <label for="box-height">Box Height</label>
-      <input type="range" id="box-height" min="110" max="180" step="5" value="125">
+      <input type="range" id="box-height" min="110" max="190" step="5" value="125">
       <div class="range-readout"><span id="box-height-value">125</span> px</div>
     </div>
 
@@ -561,11 +548,11 @@
 
       let panZoom = null;
       let params = null;
-      let printState = null;
       let wheelWired = false;
       let pointerWired = false;
       let pinchWired = false;
       let renderNonce = 0;
+      let initialized = false;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -635,7 +622,7 @@
         { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustomdata"], wins: "" },
         { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustomdata"], wins: "" },
         { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustomdata"], wins: "" }
- ];
+      ];
 
       const parentMap = [
         ["main","sire"],["main","dam"],
@@ -703,10 +690,7 @@
       }
 
       function addText(group, x, y, text, opts = {}) {
-        const t = makeEl("text", {
-          x, y,
-          "text-anchor": opts.anchor || "start"
-        });
+        const t = makeEl("text", { x, y, "text-anchor": opts.anchor || "start" });
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
         t.style.fontSize = (opts.size || 14) + "px";
@@ -727,6 +711,8 @@
           panZoom = null;
         }
         viewport.removeAttribute("transform");
+        window.panZoomInstance = null;
+        initialized = false;
       }
 
       function validBox(vb) {
@@ -761,42 +747,14 @@
         panZoom.pan(fit.pan);
       }
 
-   function fitSvgForPrint() {
-  const vb = svg.viewBox.baseVal;
-  if (!validBox(vb)) return;
-
-  let printScale = 1;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  if (layoutOrientation.value === "portrait") {
-    printScale = 2;   // smaller
-    offsetX = -8;         // right
-    offsetY = 12;        // down
-  } else {
-    printScale = 1.50;   // larger
-    offsetX = -6;         // right
-    offsetY = 4;         // down
-  }
-
-  const scaledW = vb.width * printScale;
-  const scaledH = vb.height * printScale;
-
-  const tx = (vb.width - scaledW) / 2 + offsetX;
-  const ty = (vb.height - scaledH) / 2 + offsetY;
-
-  viewport.setAttribute("transform", `translate(${tx},${ty}) scale(${printScale})`);
-}
-
-      function initPanZoom(state = null) {
+      function tryInitPanZoom(state = null) {
+        if (initialized) return;
         if (typeof window.svgPanZoom !== "function") return;
 
         const vb = svg.viewBox.baseVal;
         const cw = container.clientWidth;
         const ch = container.clientHeight;
         if (!validBox(vb) || !cw || !ch) return;
-
-        destroyPanZoom();
 
         panZoom = svgPanZoom(svg, {
           viewportSelector: "#viewport",
@@ -811,6 +769,8 @@
           dblClickZoomEnabled: true
         });
 
+        window.panZoomInstance = panZoom;
+
         if (state && isFinite(state.zoom)) {
           panZoom.zoom(state.zoom);
           panZoom.pan(state.pan || { x: 0, y: 0 });
@@ -821,6 +781,7 @@
         wireWheelZoom();
         enablePointerPan();
         enablePinchZoom();
+        initialized = true;
       }
 
       function getCurrentFont() {
@@ -877,29 +838,9 @@
           return {
             canvas,
             border: { x: 18, y: 18, w: 1239, h: 1614 },
-
-            header: {
-              x: 104,
-              y: 94,
-              logoSize: 124,
-              textScale: 1.0,
-              textGap: 22
-            },
-
-            tree: {
-              left: 108,
-              top: 200,
-              right: 1160,
-              bottom: 1428
-            },
-
-            footer: {
-              x: 102,
-              y: 1488,
-              right: 1173,
-              taglineY: 1584
-            },
-
+            header: { x: 104, y: 94, logoSize: 124, textScale: 1.0, textGap: 22 },
+            tree: { left: 100, top: 340, right: 1144, bottom: 1328 },
+            footer: { x: 102, y: 1488, right: 1173, taglineY: 1584 },
             photoGap: 16,
             photoSize: { w: 176, h: 142 }
           };
@@ -908,29 +849,9 @@
         return {
           canvas,
           border: { x: 18, y: 18, w: 1614, h: 1239 },
-
-          header: {
-            x: 90,
-            y: 60,
-            logoSize: 108,
-            textScale: 1.0,
-            textGap: 20
-          },
-
-          tree: {
-            left: 96,
-            top: 114,
-            right: 1498,
-            bottom: 1012
-          },
-
-          footer: {
-            x: 82,
-            y: 1106,
-            right: 1568,
-            taglineY: 1188
-          },
-
+          header: { x: 74, y: 60, logoSize: 108, textScale: 1.0, textGap: 20 },
+          tree: { left: 96, top: 214, right: 1498, bottom: 1012 },
+          footer: { x: 82, y: 1106, right: 1568, taglineY: 1188 },
           photoGap: 14,
           photoSize: { w: 184, h: 148 }
         };
@@ -942,13 +863,7 @@
         const isPortrait = layoutOrientation.value === "portrait";
 
         const usableWidth = tree.right - tree.left;
-
-        let gapX;
-        if (isPortrait) {
-          gapX = Math.max(16, (usableWidth - (boxW * 4)) / 3);
-        } else {
-          gapX = Math.max(24, (usableWidth - (boxW * 4)) / 3);
-        }
+        const gapX = Math.max(isPortrait ? 12 : 24, (usableWidth - (boxW * 4)) / 3);
 
         const x1 = tree.left;
         const x2 = x1 + boxW + gapX;
@@ -973,19 +888,16 @@
 
         const sireY = topFromCenter((centerY(ssireY) + centerY(sdamY)) / 2);
         const damY  = topFromCenter((centerY(dsireY) + centerY(ddamY)) / 2);
-
         const mainY = topFromCenter((centerY(sireY) + centerY(damY)) / 2);
 
         return {
           main:   { x: x1, y: mainY },
           sire:   { x: x2, y: sireY },
           dam:    { x: x2, y: damY },
-
           ssire:  { x: x3, y: ssireY },
           sdam:   { x: x3, y: sdamY },
           dsire:  { x: x3, y: dsireY },
           ddam:   { x: x3, y: ddamY },
-
           sssire: { x: x4, y: gen4[0] },
           ssdam:  { x: x4, y: gen4[1] },
           sdsire: { x: x4, y: gen4[2] },
@@ -1023,21 +935,21 @@
         if (line.type === "title") {
           return {
             fontSize: nameSize,
-            lineHeight: Math.max(nameSize + 1, bodySize + 3),
+            lineHeight: Math.max(nameSize, bodySize + 1),
             weight: "700"
           };
         }
 
         return {
           fontSize: bodySize,
-          lineHeight: Math.max(bodySize + 1, 11),
+          lineHeight: Math.max(bodySize, 10),
           weight: "400"
         };
       }
 
       function fitTextLinesToBox(lines, boxH) {
-        const topPad = 14;
-        const bottomPad = 10;
+        const topPad = 11;
+        const bottomPad = 4;
         const usableH = boxH - topPad - bottomPad;
         let used = 0;
         const visible = [];
@@ -1061,7 +973,7 @@
         if (!lines.length) return;
 
         const size = Math.max(10, Number(boxBodyFontSizeInput.value));
-        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 17 });
+        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 16 });
         textEl.style.fontFamily = getCurrentFont();
         textEl.style.fill = fontColor.value;
         textEl.style.fontSize = size + "px";
@@ -1082,14 +994,8 @@
         const fill = getBoxFill(def.sexType);
 
         group.appendChild(makeEl("rect", {
-          x, y,
-          width: boxW,
-          height: boxH,
-          rx: 8,
-          ry: 8,
-          fill,
-          stroke: "#000000",
-          "stroke-width": 1.1
+          x, y, width: boxW, height: boxH, rx: 8, ry: 8,
+          fill, stroke: "#000000", "stroke-width": 1.1
         }));
 
         const textLines = buildBoxText(def);
@@ -1125,70 +1031,46 @@
 
         if (style === "diagonal") {
           group.appendChild(makeEl("line", {
-            x1: p1.x, y1: p1.y,
-            x2: p2.x, y2: p2.y,
-            stroke,
-            "stroke-width": sw
+            x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+            stroke, "stroke-width": sw
           }));
         } else {
           const midX = (p1.x + p2.x) / 2;
           group.appendChild(makeEl("path", {
             d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
-            fill: "none",
-            stroke,
-            "stroke-width": sw
+            fill: "none", stroke, "stroke-width": sw
           }));
         }
-      }
-
-      function addCircle(group, cx, cy, r, fill, stroke, sw) {
-        group.appendChild(makeEl("circle", { cx, cy, r, fill, stroke, "stroke-width": sw }));
       }
 
       function addDiamond(group, cx, cy, w, h, fill, stroke, sw) {
         group.appendChild(makeEl("polygon", {
           points: `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,
-          fill,
-          stroke,
-          "stroke-width": sw
+          fill, stroke, "stroke-width": sw
         }));
       }
 
       function addLine(group, x1, y1, x2, y2, stroke, sw) {
-        group.appendChild(makeEl("line", {
-          x1, y1, x2, y2,
-          stroke,
-          "stroke-width": sw
-        }));
+        group.appendChild(makeEl("line", { x1, y1, x2, y2, stroke, "stroke-width": sw }));
       }
 
       function addRect(group, x, y, width, height, stroke, sw, fill = "none", rx = 0, ry = 0) {
         group.appendChild(makeEl("rect", {
-          x, y, width, height,
-          fill,
-          stroke,
-          "stroke-width": sw,
-          rx,
-          ry
+          x, y, width, height, fill, stroke, "stroke-width": sw, rx, ry
         }));
       }
 
       function addPath(group, d, stroke, sw, fill = "none") {
-        group.appendChild(makeEl("path", {
-          d,
-          fill,
-          stroke,
-          "stroke-width": sw
-        }));
+        group.appendChild(makeEl("path", { d, fill, stroke, "stroke-width": sw }));
       }
 
-      function drawCornerFlourish(group, x, y, size, primary, secondary, corner) {
-        let sx = 1, sy = 1, tx = x, ty = y;
+      function drawCornerFlourish(group, x, y, primary, secondary, corner) {
+        let sx = 1, sy = 1;
         if (corner === "tr") sx = -1;
         if (corner === "bl") sy = -1;
         if (corner === "br") { sx = -1; sy = -1; }
 
-        const g = makeEl("g", { transform: `translate(${tx},${ty}) scale(${sx},${sy})` });
+        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
 
         addPath(g, `
           M 0 0
@@ -1252,16 +1134,12 @@
 
         group.appendChild(makeEl("polygon", {
           points: `${left} ${midY} ${left-34} ${y+8} ${left-34} ${y+height-8}`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 3
+          fill: secondary, stroke: primary, "stroke-width": 3
         }));
 
         group.appendChild(makeEl("polygon", {
           points: `${right} ${midY} ${right+34} ${y+8} ${right+34} ${y+height-8}`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 3
+          fill: secondary, stroke: primary, "stroke-width": 3
         }));
 
         addLine(group, left + 18, midY, right - 18, midY, primary, 1.5);
@@ -1270,28 +1148,19 @@
 
       function drawLaurelSprig(group, x, y, primary, secondary, flipX = 1) {
         const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
-
         addPath(g, `M 0 52 C 18 40, 28 26, 42 0`, primary, 2.2);
 
-        const leaves = [
+        [
           [10, 42, 12, -20],
           [18, 34, 12, -16],
           [26, 25, 11, -12],
           [34, 15, 10, -8]
-        ];
-
-        leaves.forEach(([lx, ly, s, rot]) => {
-          const leaf = makeEl("ellipse", {
-            cx: lx,
-            cy: ly,
-            rx: s,
-            ry: s * 0.45,
-            fill: secondary,
-            stroke: primary,
-            "stroke-width": 1.5,
+        ].forEach(([lx, ly, s, rot]) => {
+          g.appendChild(makeEl("ellipse", {
+            cx: lx, cy: ly, rx: s, ry: s * 0.45,
+            fill: secondary, stroke: primary, "stroke-width": 1.5,
             transform: `rotate(${rot} ${lx} ${ly})`
-          });
-          g.appendChild(leaf);
+          }));
         });
 
         group.appendChild(g);
@@ -1333,7 +1202,6 @@
         addLine(group, x1, y1, x2, y2, primary, 1.4);
         const len = horizontal ? (x2 - x1) : (y2 - y1);
         const step = 26;
-
         for (let i = step; i < len; i += step) {
           const cx = horizontal ? x1 + i : x1;
           const cy = horizontal ? y1 : y1 + i;
@@ -1355,16 +1223,12 @@
         const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
         g.appendChild(makeEl("path", {
           d: `M 0 0 C 18 -16, 36 -16, 48 0 C 36 16, 18 16, 0 0 Z`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 2,
+          fill: secondary, stroke: primary, "stroke-width": 2,
           transform: `scale(${scale})`
         }));
         g.appendChild(makeEl("path", {
           d: `M 4 0 L 44 0`,
-          fill: "none",
-          stroke: primary,
-          "stroke-width": 1.6,
+          fill: "none", stroke: primary, "stroke-width": 1.6,
           transform: `scale(${scale})`
         }));
         group.appendChild(g);
@@ -1386,168 +1250,77 @@
         }));
 
         switch (style) {
-          case "classicDouble": {
+          case "classicDouble":
             addRect(group, x, y, w, h, primary, 7);
             addRect(group, x + 16, y + 16, w - 32, h - 32, secondary, 2.5);
             addRect(group, x + 32, y + 32, w - 64, h - 64, primary, 1.5);
             addRect(group, x + 46, y + 46, w - 92, h - 92, secondary, 1.1);
-
             drawMedallion(group, x + 58, y + 58, 14, primary, secondary);
             drawMedallion(group, x + w - 58, y + 58, 14, primary, secondary);
             drawMedallion(group, x + 58, y + h - 58, 14, primary, secondary);
             drawMedallion(group, x + w - 58, y + h - 58, 14, primary, secondary);
-
-            drawBeadedLine(group, x + 92, y + 24, x + w - 92, y + 24, primary, secondary, true);
-            drawBeadedLine(group, x + 92, y + h - 24, x + w - 92, y + h - 24, primary, secondary, true);
-            drawBeadedLine(group, x + 24, y + 92, x + 24, y + h - 92, primary, secondary, false);
-            drawBeadedLine(group, x + w - 24, y + 92, x + w - 24, y + h - 92, primary, secondary, false);
             break;
-          }
 
-          case "elegantCorners": {
+          case "elegantCorners":
             addRect(group, x + 8, y + 8, w - 16, h - 16, primary, 4);
             addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
             addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.1);
-
-            drawCornerFlourish(group, x + 30, y + 30, 100, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 30, y + 30, 100, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 30, y + h - 30, 100, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 30, y + h - 30, 100, primary, secondary, "br");
-
-            addDiamond(group, cx, y + 22, 22, 22, secondary, primary, 1.5);
-            addDiamond(group, cx, y + h - 22, 22, 22, secondary, primary, 1.5);
-            addDiamond(group, x + 22, y + h / 2, 22, 22, secondary, primary, 1.5);
-            addDiamond(group, x + w - 22, y + h / 2, 22, 22, secondary, primary, 1.5);
+            drawCornerFlourish(group, x + 30, y + 30, primary, secondary, "tl");
+            drawCornerFlourish(group, x + w - 30, y + 30, primary, secondary, "tr");
+            drawCornerFlourish(group, x + 30, y + h - 30, primary, secondary, "bl");
+            drawCornerFlourish(group, x + w - 30, y + h - 30, primary, secondary, "br");
             break;
-          }
 
-          case "ribbonFrame": {
+          case "ribbonFrame":
             addRect(group, x + 14, y + 18, w - 28, h - 36, primary, 5);
             addRect(group, x + 32, y + 36, w - 64, h - 72, secondary, 2.4);
             addRect(group, x + 46, y + 50, w - 92, h - 100, primary, 1.2);
-
             drawRibbonCrest(group, cx, y + 18, 240, 44, primary, secondary);
             drawRibbonCrest(group, cx, y + h - 62, 220, 40, primary, secondary);
-
-            drawMedallion(group, x + 56, y + 56, 15, primary, secondary);
-            drawMedallion(group, x + w - 56, y + 56, 15, primary, secondary);
-            drawMedallion(group, x + 56, y + h - 56, 15, primary, secondary);
-            drawMedallion(group, x + w - 56, y + h - 56, 15, primary, secondary);
             break;
-          }
 
-          case "royalArch": {
+          case "royalArch":
             addRect(group, x + 16, y + 44, w - 32, h - 60, primary, 5);
             addRect(group, x + 34, y + 62, w - 68, h - 96, secondary, 2.2);
-
             addPath(group, `M ${x+120} ${y+44} Q ${cx} ${y-42} ${x+w-120} ${y+44}`, secondary, 6);
             addPath(group, `M ${x+162} ${y+58} Q ${cx} ${y-6} ${x+w-162} ${y+58}`, primary, 2);
-
             drawMedallion(group, cx, y + 26, 16, primary, secondary);
             drawLaurelSprig(group, cx - 46, y + 40, primary, secondary, -1);
             drawLaurelSprig(group, cx + 46, y + 40, primary, secondary, 1);
-
-            addDiamond(group, x + 52, y + 80, 18, 18, secondary, primary, 1.2);
-            addDiamond(group, x + w - 52, y + 80, 18, 18, secondary, primary, 1.2);
             break;
-          }
 
-          case "modernGeo": {
+          case "modernGeo":
             addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4);
             addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
             addRect(group, x + 42, y + 42, w - 84, h - 84, primary, 1.2);
-
-            [
-              [x + 34, y + 34],
-              [x + w - 34, y + 34],
-              [x + 34, y + h - 34],
-              [x + w - 34, y + h - 34]
-            ].forEach(([px, py]) => drawMedallion(group, px, py, 12, primary, secondary));
-
-            addDiamond(group, cx, y + 24, 26, 26, secondary, primary, 1.6);
-            addDiamond(group, cx, y + h - 24, 26, 26, secondary, primary, 1.6);
-
-            addLine(group, x + 68, y + 24, cx - 18, y + 24, primary, 1.5);
-            addLine(group, cx + 18, y + 24, x + w - 68, y + 24, primary, 1.5);
-            addLine(group, x + 68, y + h - 24, cx - 18, y + h - 24, primary, 1.5);
-            addLine(group, cx + 18, y + h - 24, x + w - 68, y + h - 24, primary, 1.5);
-
             drawInnerGuideCorners(group, x + 22, y + 22, w - 44, h - 44, secondary);
             break;
-          }
 
-          case "scallop": {
+          case "scallop":
             drawScallopBand(group, x + 16, y + 16, w - 32, h - 32, primary, secondary);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
             addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1);
-
-            drawMedallion(group, cx, y + 34, 13, primary, secondary);
-            drawMedallion(group, cx, y + h - 34, 13, primary, secondary);
             break;
-          }
 
-          case "ornateLines": {
+          case "ornateLines":
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 1.8);
-
-            addPath(
-              group,
-              `M ${x+120} ${y+24}
-               C ${x+180} ${y-4}, ${x+255} ${y-4}, ${x+318} ${y+24}
-               M ${x+w-120} ${y+24}
-               C ${x+w-180} ${y-4}, ${x+w-255} ${y-4}, ${x+w-318} ${y+24}
-               M ${x+120} ${y+h-24}
-               C ${x+180} ${y+h+4}, ${x+255} ${y+h+4}, ${x+318} ${y+h-24}
-               M ${x+w-120} ${y+h-24}
-               C ${x+w-180} ${y+h+4}, ${x+w-255} ${y+h+4}, ${x+w-318} ${y+h-24}`,
-              secondary,
-              3
-            );
-
-            addPath(
-              group,
-              `M ${x+24} ${y+120}
-               C ${x-4} ${y+180}, ${x-4} ${y+255}, ${x+24} ${y+318}
-               M ${x+w-24} ${y+120}
-               C ${x+w+4} ${y+180}, ${x+w+4} ${y+255}, ${x+w-24} ${y+318}
-               M ${x+24} ${y+h-120}
-               C ${x-4} ${y+h-180}, ${x-4} ${y+h-255}, ${x+24} ${y+h-318}
-               M ${x+w-24} ${y+h-120}
-               C ${x+w+4} ${y+h-180}, ${x+w+4} ${y+h-255}, ${x+w-24} ${y+h-318}`,
-              secondary,
-              3
-            );
-
-            drawCornerFlourish(group, x + 26, y + 26, 100, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 26, y + 26, 100, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 26, y + h - 26, 100, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 26, y + h - 26, 100, primary, secondary, "br");
+            drawCornerFlourish(group, x + 26, y + 26, primary, secondary, "tl");
+            drawCornerFlourish(group, x + w - 26, y + 26, primary, secondary, "tr");
+            drawCornerFlourish(group, x + 26, y + h - 26, primary, secondary, "bl");
+            drawCornerFlourish(group, x + w - 26, y + h - 26, primary, secondary, "br");
             break;
-          }
 
-          case "ticketEdge": {
+          case "ticketEdge":
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4, "none", 20, 20);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2, "none", 14, 14);
-
-            for (let px = x + 84; px < x + w - 84; px += 62) {
-              addCircle(group, px, y + 16, 8, "#fff", secondary, 2);
-              addCircle(group, px, y + h - 16, 8, "#fff", secondary, 2);
-            }
-            for (let py = y + 84; py < y + h - 84; py += 62) {
-              addCircle(group, x + 16, py, 8, "#fff", secondary, 2);
-              addCircle(group, x + w - 16, py, 8, "#fff", secondary, 2);
-            }
-
             drawRibbonCrest(group, cx, y + 22, 210, 40, primary, secondary);
-            drawMedallion(group, cx, y + h - 34, 13, primary, secondary);
             break;
-          }
 
-          case "floralLite": {
+          case "floralLite":
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
             addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.2);
-
             [
               [x + 58, y + 58],
               [x + w - 58, y + 58],
@@ -1556,29 +1329,19 @@
             ].forEach(([px, py]) => {
               drawLeaf(group, px, py, 1.0, primary, secondary, 1);
               drawLeaf(group, px, py, 1.0, primary, secondary, -1);
-              addCircle(group, px, py, 4.5, secondary, primary, 1.2);
             });
-
-            drawLaurelSprig(group, cx - 38, y + 28, primary, secondary, -1);
-            drawLaurelSprig(group, cx + 38, y + 28, primary, secondary, 1);
             break;
-          }
 
-          case "showFrame": {
+          case "showFrame":
             addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 6);
             addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.6);
             addRect(group, x + 38, y + 38, w - 76, h - 76, primary, 1.2);
-
             drawRosette(group, x + 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + 54, y + h - 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + h - 54, 18, primary, secondary);
-
             drawRibbonCrest(group, cx, y + 20, 230, 42, primary, secondary);
-            drawBeadedLine(group, x + 92, y + 26, x + w - 92, y + 26, primary, secondary, true);
-            drawBeadedLine(group, x + 92, y + h - 26, x + w - 92, y + h - 26, primary, secondary, true);
             break;
-          }
         }
       }
 
@@ -1650,7 +1413,6 @@
         try {
           return JSON.parse(decodeParam(raw));
         } catch (err) {
-          console.warn("Could not parse saved settings:", err);
           return null;
         }
       }
@@ -1677,9 +1439,7 @@
             })
           });
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
           saveStatus.textContent = "Settings saved.";
 
@@ -1687,11 +1447,8 @@
             const url = new URL(window.location.href);
             url.searchParams.set("saved", JSON.stringify(settings));
             window.history.replaceState({}, "", url.toString());
-          } catch (historyErr) {
-            console.warn("Could not update URL with saved settings:", historyErr);
-          }
+          } catch (err) {}
         } catch (error) {
-          console.error("Error saving settings:", error);
           saveStatus.textContent = "Could not save settings.";
         } finally {
           saveBtn.disabled = false;
@@ -1714,21 +1471,18 @@
 
         const meta = getLayoutMeta();
         const canvas = meta.canvas;
-
         let boxW = Number(boxWidthInput.value);
         let boxH = Number(boxHeightInput.value);
 
         if (layoutOrientation.value === "portrait") {
-          boxW = Math.min(boxW, 205);
-          if (Number(boxWidthInput.value) !== boxW) {
-            boxWidthInput.value = boxW;
-          }
+          boxW = Math.min(boxW, 280);
+          if (Number(boxWidthInput.value) !== boxW) boxWidthInput.value = boxW;
         }
 
         const positions = getPositions(boxW, boxH);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        svg.setAttribute("preserveAspectRatio", "none");
 
         boxWidthValue.textContent = boxW;
         boxHeightValue.textContent = boxH;
@@ -1791,13 +1545,7 @@
 
         addText(headerLayer, headerTextX, headerTextY + 0, getParam("rabbitry"), { size: 24 * hs, weight: 700 });
         addText(headerLayer, headerTextX, headerTextY + 24 * hs, getParam("street"), { size: 17 * hs, weight: 600 });
-        addText(
-          headerLayer,
-          headerTextX,
-          headerTextY + 46 * hs,
-          [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "),
-          { size: 17 * hs, weight: 600 }
-        );
+        addText(headerLayer, headerTextX, headerTextY + 46 * hs, [getParam("city"), getParam("state"), getParam("zip")].filter(Boolean).join(" "), { size: 17 * hs, weight: 600 });
         addText(headerLayer, headerTextX, headerTextY + 68 * hs, getParam("phone"), { size: 17 * hs, weight: 600 });
         addText(headerLayer, headerTextX, headerTextY + 90 * hs, getParam("email"), { size: 17 * hs, weight: 600 });
         addText(headerLayer, headerTextX, headerTextY + 118 * hs, "Breed:", { size: 17 * hs, weight: 700 });
@@ -1816,34 +1564,19 @@
           const defs = makeEl("defs");
           const clip = makeEl("clipPath", { id: clipId });
           clip.appendChild(makeEl("rect", {
-            x: photoX,
-            y: photoY,
-            width: photoW,
-            height: photoH,
-            rx: 10,
-            ry: 10
+            x: photoX, y: photoY, width: photoW, height: photoH, rx: 10, ry: 10
           }));
           defs.appendChild(clip);
           photoLayer.appendChild(defs);
 
           photoLayer.appendChild(makeEl("rect", {
-            x: photoX,
-            y: photoY,
-            width: photoW,
-            height: photoH,
-            rx: 10,
-            ry: 10,
-            fill: "#ffffff",
-            stroke: "#000000",
-            "stroke-width": 1.3
+            x: photoX, y: photoY, width: photoW, height: photoH, rx: 10, ry: 10,
+            fill: "#ffffff", stroke: "#000000", "stroke-width": 1.3
           }));
 
           photoLayer.appendChild(makeEl("image", {
             href: getUrlParam("rabbitphoto"),
-            x: photoX,
-            y: photoY,
-            width: photoW,
-            height: photoH,
+            x: photoX, y: photoY, width: photoW, height: photoH,
             preserveAspectRatio: "xMidYMid slice",
             "clip-path": `url(#${clipId})`
           }));
@@ -1864,12 +1597,8 @@
         addText(footerLayer, footerX, footerY - 48, "I hereby certify that this pedigree is correct to the best of my knowledge.", { size: 13, weight: 600 });
 
         footerLayer.appendChild(makeEl("line", {
-          x1: footerX,
-          y1: footerY + 8,
-          x2: footerX + 285,
-          y2: footerY + 8,
-          stroke: "#000000",
-          "stroke-width": 1
+          x1: footerX, y1: footerY + 8, x2: footerX + 285, y2: footerY + 8,
+          stroke: "#000000", "stroke-width": 1
         }));
 
         if (sigUrl) {
@@ -1895,11 +1624,288 @@
 
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
-          initPanZoom(currentState);
-          if (!keepZoom && !currentState) {
-            fitToContainer();
-          }
+          tryInitPanZoom(currentState);
         });
+      }
+
+      function getForcedPrintProfile() {
+        const isPortrait = layoutOrientation.value === "portrait";
+
+        if (isPortrait) {
+          return {
+            desktop: { zoom: 1.58, pan: { x: 88, y: 120 } },
+            mobile:  { zoom: 2.85, pan: { x: 96, y: 138 } }
+          };
+        }
+
+        return {
+          desktop: { zoom: 1.45, pan: { x: 55, y: 125 } },
+          mobile:  { zoom: 2.65, pan: { x: 65, y: 100 } }
+        };
+      }
+
+      function capturePrintState() {
+        if (!window.panZoomInstance) return null;
+        return {
+          pan: window.panZoomInstance.getPan(),
+          zoom: window.panZoomInstance.getZoom()
+        };
+      }
+
+      function resetForPrint() {
+        const inst = window.panZoomInstance;
+        if (!inst) return;
+
+        window._savedPrintState = capturePrintState();
+        const profile = getForcedPrintProfile().desktop;
+
+        inst.resetZoom();
+        inst.center();
+        inst.zoom(profile.zoom);
+        inst.pan(profile.pan);
+      }
+
+      function restoreAfterPrint() {
+        const inst = window.panZoomInstance;
+        const s = window._savedPrintState;
+        if (inst && s) {
+          inst.zoom(s.zoom);
+          inst.pan(s.pan);
+        }
+      }
+
+      function runDesktopPrint() {
+        resetForPrint();
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            window.print();
+            setTimeout(restoreAfterPrint, 800);
+          }, 180);
+        });
+      }
+
+      function inlineExternalImagesForExport(targetSvg) {
+        const imageNodes = Array.from(targetSvg.querySelectorAll("image"));
+        const promises = imageNodes.map((img) => {
+          const href = img.getAttribute("href") || img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+          if (!href || href.startsWith("data:")) return Promise.resolve();
+
+          return fetch(href, { mode: "cors" })
+            .then(res => {
+              if (!res.ok) throw new Error("Image fetch failed");
+              return res.blob();
+            })
+            .then(blob => new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                img.setAttribute("href", reader.result);
+                img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", reader.result);
+                resolve();
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            }))
+            .catch(() => {});
+        });
+
+        return Promise.all(promises);
+      }
+
+      async function saveSvgAsPng() {
+        saveStatus.textContent = "Preparing PNG...";
+        try {
+          const serializer = new XMLSerializer();
+          const svgClone = svg.cloneNode(true);
+
+          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+          await inlineExternalImagesForExport(svgClone);
+
+          const viewBox = svg.getAttribute("viewBox");
+          const vb = viewBox ? viewBox.split(" ").map(Number) : [0, 0, 1650, 1275];
+          const exportWidth = vb[2];
+          const exportHeight = vb[3];
+
+          const svgString = serializer.serializeToString(svgClone);
+          const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+
+          const img = new Image();
+          img.onload = function () {
+            const scale = 2;
+            const canvas = document.createElement("canvas");
+            canvas.width = exportWidth * scale;
+            canvas.height = exportHeight * scale;
+
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            URL.revokeObjectURL(url);
+
+            canvas.toBlob(function (pngBlob) {
+              if (!pngBlob) {
+                saveStatus.textContent = "Could not create PNG.";
+                return;
+              }
+
+              const a = document.createElement("a");
+              const pngUrl = URL.createObjectURL(pngBlob);
+              const rabbitName = (getParam("name") || "pedigree").replace(/[^\w\-]+/g, "_").replace(/^_+|_+$/g, "");
+
+              a.href = pngUrl;
+              a.download = `${rabbitName || "pedigree"}.png`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+
+              setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
+              saveStatus.textContent = "PNG saved.";
+            }, "image/png");
+          };
+
+          img.onerror = function () {
+            URL.revokeObjectURL(url);
+            saveStatus.textContent = "Unable to save PNG. One or more external images may be blocking export.";
+          };
+
+          img.src = url;
+        } catch (err) {
+          saveStatus.textContent = "Unable to save PNG.";
+        }
+      }
+
+      async function saveSvgFile() {
+        saveStatus.textContent = "Preparing SVG...";
+        try {
+          const serializer = new XMLSerializer();
+          const svgClone = svg.cloneNode(true);
+
+          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+          await inlineExternalImagesForExport(svgClone);
+
+          const svgString = serializer.serializeToString(svgClone);
+          const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          const rabbitName = (getParam("name") || "pedigree").replace(/[^\w\-]+/g, "_").replace(/^_+|_+$/g, "");
+
+          a.href = url;
+          a.download = `${rabbitName || "pedigree"}.svg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          saveStatus.textContent = "SVG saved.";
+        } catch (err) {
+          saveStatus.textContent = "Unable to save SVG.";
+        }
+      }
+
+      function emailPdfNotice() {
+        const subject = encodeURIComponent("Pedigree PDF");
+        const body = encodeURIComponent("Please save this pedigree as a PDF first, then attach it to your email.");
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+
+      function runMobilePrint() {
+        const containerEl = document.getElementById("pedigree-container");
+        const inst = window.panZoomInstance;
+        if (!containerEl || !inst) return;
+
+        const savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
+        const profile = getForcedPrintProfile().mobile;
+
+        inst.resetZoom();
+        inst.center();
+        inst.zoom(profile.zoom);
+        inst.pan(profile.pan);
+
+        requestAnimationFrame(() => {
+          const svgMarkup = containerEl.innerHTML;
+
+          inst.zoom(savedState.zoom);
+          inst.pan(savedState.pan);
+
+          const styleBlocks = Array.from(document.querySelectorAll("style"))
+            .map(styleEl => styleEl.outerHTML)
+            .join("\n");
+
+          const isPortrait = layoutOrientation.value === "portrait";
+          const popup = window.open("", "_blank", "width=1200,height=900");
+          if (!popup) {
+            alert("Please allow pop-ups for ShowTails to print pedigrees.");
+            return;
+          }
+
+          popup.document.write(`
+            <html>
+              <head>
+                <title>Print Pedigree</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.2">
+                ${styleBlocks}
+                <style>
+                  @page { size: ${isPortrait ? "portrait" : "landscape"}; margin: 0; }
+                  html, body {
+                    width: ${isPortrait ? "7.5in" : "10.25in"};
+                    height: ${isPortrait ? "10.25in" : "7.4in"};
+                    overflow: hidden;
+                    margin: 0;
+                    padding: 0;
+                    background: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  }
+                  #pedigree-container {
+                    width: ${isPortrait ? "7.5in" : "10.25in"};
+                    height: ${isPortrait ? "10.25in" : "7.4in"};
+                    margin: 0;
+                    padding: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                  }
+                  svg {
+                    width: ${isPortrait ? "7.5in" : "10.25in"} !important;
+                    height: ${isPortrait ? "10.25in" : "7.4in"} !important;
+                    background: white !important;
+                    margin: 0;
+                    display: block;
+                    transform: none !important;
+                  }
+                </style>
+              </head>
+              <body>
+                <div id="pedigree-container">${svgMarkup}</div>
+              </body>
+            </html>
+          `);
+
+          popup.document.close();
+
+          setTimeout(() => {
+            popup.focus();
+            popup.print();
+            setTimeout(() => popup.close(), 1500);
+          }, 600);
+        });
+      }
+
+      function runPrintFlow() {
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        if (isMobile) {
+          runMobilePrint();
+        } else {
+          runDesktopPrint();
+        }
       }
 
       function applyPresetIfNeeded() {
@@ -1931,7 +1937,7 @@
           const factor = e.deltaY > 0 ? 0.9 : 1.1;
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
-            panZoom.zoomAtPoint(panZoom.getZoom() * factor, point);
+            panZoom.zoomAtPoint(factor, point);
           }
         }, { passive: false });
 
@@ -2034,176 +2040,6 @@
         if (shouldRender) render(false);
       }
 
-      function capturePrintState() {
-        if (!panZoom) return null;
-        return {
-          pan: panZoom.getPan(),
-          zoom: panZoom.getZoom()
-        };
-      }
-
-      function prepareForPrint() {
-        printState = capturePrintState();
-        destroyPanZoom();
-        viewport.removeAttribute("transform");
-        fitSvgForPrint();
-      }
-
-      function restoreAfterPrint() {
-        requestAnimationFrame(() => {
-          viewport.removeAttribute("transform");
-          render(false);
-          printState = null;
-        });
-      }
-
-      function runPrintFlow() {
-        prepareForPrint();
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            window.print();
-            setTimeout(restoreAfterPrint, 700);
-          }, 120);
-        });
-      }
-
-      function emailPdfNotice() {
-        const subject = encodeURIComponent("Pedigree PDF");
-        const body = encodeURIComponent("Please save this pedigree as a PDF first, then attach it to your email.");
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
-      }
-
-      function inlineExternalImagesForExport(targetSvg) {
-        const imageNodes = Array.from(targetSvg.querySelectorAll("image"));
-        const promises = imageNodes.map((img) => {
-          const href = img.getAttribute("href") || img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
-          if (!href || href.startsWith("data:")) return Promise.resolve();
-
-          return fetch(href, { mode: "cors" })
-            .then(res => {
-              if (!res.ok) throw new Error("Image fetch failed");
-              return res.blob();
-            })
-            .then(blob => new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => {
-                img.setAttribute("href", reader.result);
-                img.setAttributeNS("http://www.w3.org/1999/xlink", "xlink:href", reader.result);
-                resolve();
-              };
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            }))
-            .catch(() => {});
-        });
-
-        return Promise.all(promises);
-      }
-
-      async function saveSvgAsPng() {
-        saveStatus.textContent = "Preparing PNG...";
-        try {
-          const serializer = new XMLSerializer();
-          const svgClone = svg.cloneNode(true);
-
-          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-          await inlineExternalImagesForExport(svgClone);
-
-          const viewBox = svg.getAttribute("viewBox");
-          const vb = viewBox ? viewBox.split(" ").map(Number) : [0, 0, 1650, 1275];
-          const exportWidth = vb[2];
-          const exportHeight = vb[3];
-
-          const svgString = serializer.serializeToString(svgClone);
-          const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-
-          const img = new Image();
-          img.onload = function () {
-            const scale = 2;
-            const canvas = document.createElement("canvas");
-            canvas.width = exportWidth * scale;
-            canvas.height = exportHeight * scale;
-
-            const ctx = canvas.getContext("2d");
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            URL.revokeObjectURL(url);
-
-            canvas.toBlob(function (pngBlob) {
-              if (!pngBlob) {
-                saveStatus.textContent = "Could not create PNG.";
-                return;
-              }
-
-              const a = document.createElement("a");
-              const pngUrl = URL.createObjectURL(pngBlob);
-
-              const rabbitName = (getParam("name") || "pedigree")
-                .replace(/[^\w\-]+/g, "_")
-                .replace(/^_+|_+$/g, "");
-
-              a.href = pngUrl;
-              a.download = `${rabbitName || "pedigree"}.png`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-
-              setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
-              saveStatus.textContent = "PNG saved.";
-            }, "image/png");
-          };
-
-          img.onerror = function () {
-            URL.revokeObjectURL(url);
-            saveStatus.textContent = "Unable to save PNG. One or more external images may be blocking export.";
-          };
-
-          img.src = url;
-        } catch (err) {
-          console.error(err);
-          saveStatus.textContent = "Unable to save PNG.";
-        }
-      }
-
-      async function saveSvgFile() {
-        saveStatus.textContent = "Preparing SVG...";
-        try {
-          const serializer = new XMLSerializer();
-          const svgClone = svg.cloneNode(true);
-
-          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-          await inlineExternalImagesForExport(svgClone);
-
-          const svgString = serializer.serializeToString(svgClone);
-          const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-          const url = URL.createObjectURL(blob);
-
-          const a = document.createElement("a");
-          const rabbitName = (getParam("name") || "pedigree")
-            .replace(/[^\w\-]+/g, "_")
-            .replace(/^_+|_+$/g, "");
-
-          a.href = url;
-          a.download = `${rabbitName || "pedigree"}.svg`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          saveStatus.textContent = "SVG saved.";
-        } catch (err) {
-          console.error(err);
-          saveStatus.textContent = "Unable to save SVG.";
-        }
-      }
-
       menuToggle.addEventListener("click", () => {
         pedigreeMenu.classList.toggle("open");
       });
@@ -2297,18 +2133,19 @@
         if (panZoom) {
           fitToContainer();
         } else {
-          render(false);
+          tryInitPanZoom();
         }
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && panZoom) {
-          fitToContainer();
+        if (document.visibilityState === "visible") {
+          if (panZoom) fitToContainer();
+          else tryInitPanZoom();
         }
       });
 
-      window.addEventListener("beforeprint", prepareForPrint);
+      window.addEventListener("beforeprint", resetForPrint);
       window.addEventListener("afterprint", restoreAfterPrint);
 
       window.addEventListener("load", () => {
