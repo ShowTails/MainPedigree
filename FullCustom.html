@@ -1735,6 +1735,11 @@
         if (status) status.textContent = "Preparing full-page print...";
 
         try {
+          const isPortrait = document.getElementById("layout-orientation").value === "portrait";
+          const canvas = isPortrait
+            ? { width: 1275, height: 1650 }
+            : { width: 1650, height: 1275 };
+
           const printSvg = svg.cloneNode(true);
           const printViewport = printSvg.querySelector("#viewport");
 
@@ -1744,13 +1749,18 @@
           }
 
           printSvg.style.transform = "none";
+          printSvg.style.display = "block";
+          printSvg.style.background = "#ffffff";
+
           printSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
           printSvg.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+          printSvg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
+          printSvg.setAttribute("width", String(canvas.width));
+          printSvg.setAttribute("height", String(canvas.height));
           printSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
           await inlineExternalImagesForExport(printSvg);
 
-          const isPortrait = document.getElementById("layout-orientation").value === "portrait";
           const svgData = new XMLSerializer().serializeToString(printSvg);
 
           const pWin = window.open("", "_blank");
@@ -1759,18 +1769,20 @@
             return;
           }
 
+          pWin.document.open();
           pWin.document.write(`
             <!DOCTYPE html>
             <html>
               <head>
                 <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
                 <title>Rabbit Pedigree Print</title>
                 <style>
                   @page {
                     size: ${isPortrait ? "8.5in 11in portrait" : "11in 8.5in landscape"};
                     margin: 0;
                   }
+
                   html, body {
                     margin: 0;
                     padding: 0;
@@ -1779,22 +1791,37 @@
                     background: #fff;
                     overflow: hidden;
                   }
+
                   body {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
+                    background: #fff;
                   }
-                  svg {
+
+                  .print-page {
+                    position: fixed;
+                    inset: 0;
+                    width: 100vw;
+                    height: 100vh;
+                    overflow: hidden;
+                    background: #fff;
+                  }
+
+                  .print-page svg {
                     display: block;
-                    width: 100%;
-                    height: 100%;
-                    max-width: 100vw;
-                    max-height: 100vh;
+                    width: 100vw !important;
+                    height: 100vh !important;
+                    max-width: 100vw !important;
+                    max-height: 100vh !important;
+                    min-width: 100vw !important;
+                    min-height: 100vh !important;
                     background: #fff;
                   }
                 </style>
               </head>
-              <body>${svgData}</body>
+              <body>
+                <div class="print-page">
+                  ${svgData}
+                </div>
+              </body>
             </html>
           `);
           pWin.document.close();
@@ -1804,7 +1831,7 @@
               pWin.focus();
               pWin.print();
               if (status) status.textContent = "";
-            }, 500);
+            }, 700);
           };
         } catch (err) {
           if (status) status.textContent = "Unable to prepare print.";
