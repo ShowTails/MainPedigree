@@ -178,10 +178,8 @@
 
     #menu-save-btn { background: #2f6f86; color: #fff; }
     #menu-print-btn { background: #234a57; color: #fff; }
-    #menu-pdf-btn { background: #3f6170; color: #fff; }
     #menu-image-btn { background: #4d7c8a; color: #fff; }
     #menu-svg-btn { background: #5d8d99; color: #fff; }
-    #menu-email-pdf-btn { background: #dfe9ee; color: #234a57; }
     #reset-styles-btn { background: #eaf2f6; color: #234a57; }
 
     .font-picker {
@@ -254,52 +252,24 @@
         margin: 0;
       }
 
-      html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-        background: white !important;
-      }
-
-      #pedigree-container {
-        width: 100vw !important;
-        height: 100vh !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        background: white !important;
-        overflow: hidden !important;
-      }
-
-      #pedigree-svg {
-        width: 100% !important;
-        height: 100% !important;
-        transform: none !important;
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        overflow: hidden !important;
-      }
-
-      #pedigree-container svg {
-        transform: scale(1) translate(0, 0) !important;
-        position: absolute !important;
-        top: 0;
-        left: 0;
-      }
-
-      #pedigree-container > * {
-        transform: none !important;
-      }
-
       #menu-toggle,
       #pedigree-menu {
         display: none !important;
-        visibility: hidden !important;
+      }
+
+      html, body,
+      #pedigree-container,
+      #pedigree-svg {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      #viewport {
+        transform: none !important;
       }
     }
   </style>
@@ -315,10 +285,8 @@
       <div class="menu-actions">
         <button id="menu-save-btn" type="button">Save Settings</button>
         <button id="menu-print-btn" type="button">Print</button>
-        <button id="menu-pdf-btn" type="button">Save PDF</button>
         <button id="menu-image-btn" type="button">Save PNG</button>
         <button id="menu-svg-btn" type="button">Save SVG</button>
-        <button id="menu-email-pdf-btn" type="button">Email PDF</button>
         <button id="reset-styles-btn" type="button">Reset Defaults</button>
       </div>
       <div class="menu-note" id="save-status" style="margin-top:8px; margin-bottom:0;"></div>
@@ -430,7 +398,7 @@
       </select>
 
       <label for="box-width">Box Width</label>
-      <input type="range" id="box-width" min="180" max="380" step="5" value="220">
+      <input type="range" id="box-width" min="180" max="320" step="5" value="220">
       <div class="range-readout"><span id="box-width-value">220</span> px</div>
 
       <label for="box-height">Box Height</label>
@@ -534,10 +502,8 @@
       const toggleRabbitPhoto = document.getElementById("toggle-rabbit-photo");
       const resetStylesBtn = document.getElementById("reset-styles-btn");
       const printBtn = document.getElementById("menu-print-btn");
-      const pdfBtn = document.getElementById("menu-pdf-btn");
       const imageBtn = document.getElementById("menu-image-btn");
       const svgBtn = document.getElementById("menu-svg-btn");
-      const emailPdfBtn = document.getElementById("menu-email-pdf-btn");
       const saveBtn = document.getElementById("menu-save-btn");
       const saveStatus = document.getElementById("save-status");
 
@@ -833,14 +799,15 @@
 
       function getLayoutMeta() {
         const canvas = getCanvas();
+        const M = 36;
 
         if (layoutOrientation.value === "portrait") {
           return {
             canvas,
-            border: { x: 18, y: 18, w: 1239, h: 1614 },
-            header: { x: 104, y: 94, logoSize: 124, textScale: 1.0, textGap: 22 },
-            tree: { left: 100, top: 340, right: 1144, bottom: 1328 },
-            footer: { x: 102, y: 1488, right: 1173, taglineY: 1584 },
+            border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
+            header: { x: 96, y: 86, logoSize: 116, textScale: 1.0, textGap: 22 },
+            tree: { left: 92, top: 332, right: canvas.width - 92, bottom: 1310 },
+            footer: { x: 96, y: 1490, right: canvas.width - 96, taglineY: 1576 },
             photoGap: 16,
             photoSize: { w: 176, h: 142 }
           };
@@ -848,10 +815,10 @@
 
         return {
           canvas,
-          border: { x: 18, y: 18, w: 1614, h: 1239 },
-          header: { x: 74, y: 60, logoSize: 108, textScale: 1.0, textGap: 20 },
-          tree: { left: 96, top: 214, right: 1498, bottom: 1012 },
-          footer: { x: 82, y: 1106, right: 1568, taglineY: 1188 },
+          border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
+          header: { x: 72, y: 58, logoSize: 106, textScale: 1.0, textGap: 20 },
+          tree: { left: 84, top: 212, right: canvas.width - 128, bottom: 996 },
+          footer: { x: 84, y: 1098, right: canvas.width - 84, taglineY: 1178 },
           photoGap: 14,
           photoSize: { w: 184, h: 148 }
         };
@@ -1043,17 +1010,17 @@
         }
       }
 
-
       function addCircle(group, cx, cy, r, fill, stroke, sw) {
-  group.appendChild(makeEl("circle", {
-    cx,
-    cy,
-    r,
-    fill,
-    stroke,
-    "stroke-width": sw
-  }));
-}
+        group.appendChild(makeEl("circle", {
+          cx,
+          cy,
+          r,
+          fill,
+          stroke,
+          "stroke-width": sw
+        }));
+      }
+
       function addDiamond(group, cx, cy, w, h, fill, stroke, sw) {
         group.appendChild(makeEl("polygon", {
           points: `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,
@@ -1207,17 +1174,6 @@
           addLine(group, cx, cy, cx + len * sx, cy, primary, 1.5);
           addLine(group, cx, cy, cx, cy + len * sy, primary, 1.5);
         });
-      }
-
-      function drawBeadedLine(group, x1, y1, x2, y2, primary, secondary, horizontal = true) {
-        addLine(group, x1, y1, x2, y2, primary, 1.4);
-        const len = horizontal ? (x2 - x1) : (y2 - y1);
-        const step = 26;
-        for (let i = step; i < len; i += step) {
-          const cx = horizontal ? x1 + i : x1;
-          const cy = horizontal ? y1 : y1 + i;
-          addCircle(group, cx, cy, 2.8, secondary, primary, 0.9);
-        }
       }
 
       function drawRosette(group, cx, cy, r, primary, secondary) {
@@ -1488,12 +1444,15 @@
         if (layoutOrientation.value === "portrait") {
           boxW = Math.min(boxW, 280);
           if (Number(boxWidthInput.value) !== boxW) boxWidthInput.value = boxW;
+        } else {
+          boxW = Math.min(boxW, 300);
+          if (Number(boxWidthInput.value) !== boxW) boxWidthInput.value = boxW;
         }
 
         const positions = getPositions(boxW, boxH);
 
         svg.setAttribute("viewBox", `0 0 ${canvas.width} ${canvas.height}`);
-        svg.setAttribute("preserveAspectRatio", "none");
+        svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
         boxWidthValue.textContent = boxW;
         boxHeightValue.textContent = boxH;
@@ -1639,63 +1598,7 @@
         });
       }
 
-      function getForcedPrintProfile() {
-        const isPortrait = layoutOrientation.value === "portrait";
-
-        if (isPortrait) {
-          return {
-            desktop: { zoom: 1.58, pan: { x: 88, y: 120 } },
-            mobile:  { zoom: 2.85, pan: { x: 96, y: 138 } }
-          };
-        }
-
-        return {
-          desktop: { zoom: 1.45, pan: { x: 55, y: 125 } },
-          mobile:  { zoom: 2.65, pan: { x: 65, y: 100 } }
-        };
-      }
-
-      function capturePrintState() {
-        if (!window.panZoomInstance) return null;
-        return {
-          pan: window.panZoomInstance.getPan(),
-          zoom: window.panZoomInstance.getZoom()
-        };
-      }
-
-      function resetForPrint() {
-        const inst = window.panZoomInstance;
-        if (!inst) return;
-
-        window._savedPrintState = capturePrintState();
-        const profile = getForcedPrintProfile().desktop;
-
-        inst.resetZoom();
-        inst.center();
-        inst.zoom(profile.zoom);
-        inst.pan(profile.pan);
-      }
-
-      function restoreAfterPrint() {
-        const inst = window.panZoomInstance;
-        const s = window._savedPrintState;
-        if (inst && s) {
-          inst.zoom(s.zoom);
-          inst.pan(s.pan);
-        }
-      }
-
-      function runDesktopPrint() {
-        resetForPrint();
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            window.print();
-            setTimeout(restoreAfterPrint, 800);
-          }, 180);
-        });
-      }
-
-      function inlineExternalImagesForExport(targetSvg) {
+      async function inlineExternalImagesForExport(targetSvg) {
         const imageNodes = Array.from(targetSvg.querySelectorAll("image"));
         const promises = imageNodes.map((img) => {
           const href = img.getAttribute("href") || img.getAttributeNS("http://www.w3.org/1999/xlink", "href");
@@ -1722,23 +1625,43 @@
         return Promise.all(promises);
       }
 
+      async function buildStaticExportSvg() {
+        const svgClone = svg.cloneNode(true);
+        svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+        const vb = svg.getAttribute("viewBox");
+        if (vb) {
+          svgClone.setAttribute("viewBox", vb);
+        }
+
+        const canvas = getCanvas();
+        svgClone.setAttribute("width", String(canvas.width));
+        svgClone.setAttribute("height", String(canvas.height));
+        svgClone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        const cloneViewport = svgClone.querySelector("#viewport");
+        if (cloneViewport) cloneViewport.removeAttribute("transform");
+        svgClone.style.transform = "none";
+
+        await inlineExternalImagesForExport(svgClone);
+
+        return svgClone;
+      }
+
       async function saveSvgAsPng() {
         saveStatus.textContent = "Preparing PNG...";
+
         try {
+          const svgClone = await buildStaticExportSvg();
           const serializer = new XMLSerializer();
-          const svgClone = svg.cloneNode(true);
+          const svgString = serializer.serializeToString(svgClone);
 
-          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-          await inlineExternalImagesForExport(svgClone);
-
-          const viewBox = svg.getAttribute("viewBox");
+          const viewBox = svgClone.getAttribute("viewBox");
           const vb = viewBox ? viewBox.split(" ").map(Number) : [0, 0, 1650, 1275];
           const exportWidth = vb[2];
           const exportHeight = vb[3];
 
-          const svgString = serializer.serializeToString(svgClone);
           const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
           const url = URL.createObjectURL(blob);
 
@@ -1790,15 +1713,10 @@
 
       async function saveSvgFile() {
         saveStatus.textContent = "Preparing SVG...";
+
         try {
+          const svgClone = await buildStaticExportSvg();
           const serializer = new XMLSerializer();
-          const svgClone = svg.cloneNode(true);
-
-          svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-          svgClone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-          await inlineExternalImagesForExport(svgClone);
-
           const svgString = serializer.serializeToString(svgClone);
           const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
           const url = URL.createObjectURL(blob);
@@ -1819,103 +1737,90 @@
         }
       }
 
-      function emailPdfNotice() {
-        const subject = encodeURIComponent("Pedigree PDF");
-        const body = encodeURIComponent("Please save this pedigree as a PDF first, then attach it to your email.");
-        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      async function buildPrintMarkup() {
+        const clone = await buildStaticExportSvg();
+        clone.setAttribute("width", "100%");
+        clone.setAttribute("height", "100%");
+        clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+        return new XMLSerializer().serializeToString(clone);
       }
 
-      function runMobilePrint() {
-        const containerEl = document.getElementById("pedigree-container");
-        const inst = window.panZoomInstance;
-        if (!containerEl || !inst) return;
+      async function runPrintFlow() {
+        saveStatus.textContent = "Preparing print...";
 
-        const savedState = { pan: inst.getPan(), zoom: inst.getZoom() };
-        const profile = getForcedPrintProfile().mobile;
-
-        inst.resetZoom();
-        inst.center();
-        inst.zoom(profile.zoom);
-        inst.pan(profile.pan);
-
-        requestAnimationFrame(() => {
-          const svgMarkup = containerEl.innerHTML;
-
-          inst.zoom(savedState.zoom);
-          inst.pan(savedState.pan);
-
-          const styleBlocks = Array.from(document.querySelectorAll("style"))
-            .map(styleEl => styleEl.outerHTML)
-            .join("\n");
-
+        try {
+          const svgMarkup = await buildPrintMarkup();
           const isPortrait = layoutOrientation.value === "portrait";
-          const popup = window.open("", "_blank", "width=1200,height=900");
-          if (!popup) {
-            alert("Please allow pop-ups for ShowTails to print pedigrees.");
+
+          const printWindow = window.open("", "_blank");
+          if (!printWindow) {
+            saveStatus.textContent = "Please allow pop-ups to print.";
             return;
           }
 
-          popup.document.write(`
+          printWindow.document.open();
+          printWindow.document.write(`
+            <!DOCTYPE html>
             <html>
-              <head>
-                <title>Print Pedigree</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1.2">
-                ${styleBlocks}
-                <style>
-                  @page { size: ${isPortrait ? "portrait" : "landscape"}; margin: 0; }
-                  html, body {
-                    width: ${isPortrait ? "7.5in" : "10.25in"};
-                    height: ${isPortrait ? "10.25in" : "7.4in"};
-                    overflow: hidden;
-                    margin: 0;
-                    padding: 0;
-                    background: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                  }
-                  #pedigree-container {
-                    width: ${isPortrait ? "7.5in" : "10.25in"};
-                    height: ${isPortrait ? "10.25in" : "7.4in"};
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    overflow: hidden;
-                  }
-                  svg {
-                    width: ${isPortrait ? "7.5in" : "10.25in"} !important;
-                    height: ${isPortrait ? "10.25in" : "7.4in"} !important;
-                    background: white !important;
-                    margin: 0;
-                    display: block;
-                    transform: none !important;
-                  }
-                </style>
-              </head>
-              <body>
-                <div id="pedigree-container">${svgMarkup}</div>
-              </body>
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Print Pedigree</title>
+              <style>
+                @page {
+                  size: ${isPortrait ? "8.5in 11in" : "11in 8.5in"};
+                  margin: 0;
+                }
+
+                html, body {
+                  margin: 0;
+                  padding: 0;
+                  width: 100%;
+                  height: 100%;
+                  background: #fff;
+                  overflow: hidden;
+                }
+
+                body {
+                  display: flex;
+                  align-items: stretch;
+                  justify-content: stretch;
+                }
+
+                .page {
+                  width: 100vw;
+                  height: 100vh;
+                  overflow: hidden;
+                  background: #fff;
+                }
+
+                .page svg {
+                  display: block;
+                  width: 100%;
+                  height: 100%;
+                  background: #fff;
+                }
+              </style>
+            </head>
+            <body>
+              <div class="page">
+                ${svgMarkup}
+              </div>
+            </body>
             </html>
           `);
+          printWindow.document.close();
 
-          popup.document.close();
-
-          setTimeout(() => {
-            popup.focus();
-            popup.print();
-            setTimeout(() => popup.close(), 1500);
-          }, 600);
-        });
-      }
-
-      function runPrintFlow() {
-        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-        if (isMobile) {
-          runMobilePrint();
-        } else {
-          runDesktopPrint();
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.focus();
+              printWindow.print();
+              saveStatus.textContent = "Print ready.";
+            }, 500);
+          };
+        } catch (err) {
+          saveStatus.textContent = "Unable to prepare print.";
         }
       }
 
@@ -2135,10 +2040,8 @@
       saveBtn.addEventListener("click", saveSettingsToShowTails);
       resetStylesBtn.addEventListener("click", () => resetDefaults(true));
       printBtn.addEventListener("click", runPrintFlow);
-      pdfBtn.addEventListener("click", runPrintFlow);
       imageBtn.addEventListener("click", saveSvgAsPng);
       svgBtn.addEventListener("click", saveSvgFile);
-      emailPdfBtn.addEventListener("click", emailPdfNotice);
 
       const ro = new ResizeObserver(() => {
         if (panZoom) {
@@ -2155,9 +2058,6 @@
           else tryInitPanZoom();
         }
       });
-
-      window.addEventListener("beforeprint", resetForPrint);
-      window.addEventListener("afterprint", restoreAfterPrint);
 
       window.addEventListener("load", () => {
         refreshParams();
