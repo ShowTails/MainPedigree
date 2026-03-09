@@ -768,7 +768,7 @@
         const pageW = layoutOrientation.value === "portrait" ? 816 : 1056;
         const pageH = layoutOrientation.value === "portrait" ? 1056 : 816;
 
-        const scale = Math.min(pageW / vb.width, pageH / vb.height) * 2.5;
+        const scale = Math.min(pageW / vb.width, pageH / vb.height) * 5;
         const tx = (pageW - vb.width * scale) / 2;
         const ty = (pageH - vb.height * scale) / 2;
 
