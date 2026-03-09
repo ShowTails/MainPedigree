@@ -43,7 +43,6 @@
       touch-action: none !important;
     }
 
-    /* UI ELEMENTS */
     #menu-toggle {
       position: fixed;
       top: 12px;
@@ -78,27 +77,26 @@
       color: #234a57;
     }
 
-    #pedigree-menu.open { display: block; }
+    #pedigree-menu.open {
+      display: block;
+    }
 
     .menu-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+    .menu-note { font-size: 12px; color: #5f7280; margin-bottom: 12px; line-height: 1.35; }
     .menu-section { border-top: 1px solid #e9eef2; padding-top: 12px; margin-top: 12px; }
     .menu-section label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; }
     .menu-section select, .menu-section input, .menu-section button { width: 100%; box-sizing: border-box; }
     
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .range-readout { font-size: 12px; color: #617483; margin: 4px 0 8px; }
+
     .menu-actions { display: flex; flex-direction: column; gap: 8px; }
     .menu-actions button { padding: 10px 12px; border: none; border-radius: 9px; font-weight: 700; cursor: pointer; color: #fff; }
-    #menu-print-btn { background: #234a57; }
     #menu-save-btn { background: #2f6f86; }
+    #menu-print-btn { background: #234a57; }
+    #menu-image-btn { background: #4d7c8a; }
+    #menu-svg-btn { background: #5d8d99; }
     #reset-styles-btn { background: #eaf2f6; color: #234a57; }
-
-    /* PRINT SPECIFIC CSS */
-    @media print {
-      body, html { overflow: visible !important; height: auto !important; width: auto !important; margin: 0 !important; }
-      #menu-toggle, #pedigree-menu { display: none !important; }
-      #pedigree-container { display: block !important; position: static !important; width: 100% !important; height: auto !important; }
-      #pedigree-svg { width: 100% !important; height: auto !important; }
-      #viewport { transform: none !important; } /* Reset zoom on print */
-    }
 
     .font-picker-button {
       width: 100%; min-height: 40px; padding: 10px 12px; border: 1px solid #cfd9e1; border-radius: 8px;
@@ -106,11 +104,15 @@
     }
     .font-picker-dropdown {
       position: absolute; background: #fff; border: 1px solid #cfd9e1; border-radius: 10px;
-      max-height: 200px; overflow-y: auto; display: none; width: 310px; z-index: 10030;
+      max-height: 240px; overflow-y: auto; display: none; width: 310px; z-index: 10030;
     }
     .font-picker.open .font-picker-dropdown { display: block; }
-    .font-option { padding: 10px; cursor: pointer; }
-    .font-option:hover { background: #f0f0f0; }
+    .font-option { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #eef2f6; }
+
+    @media print {
+      body, html { overflow: visible !important; height: auto !important; width: auto !important; margin: 0 !important; }
+      #menu-toggle, #pedigree-menu { display: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -121,41 +123,69 @@
     <div class="menu-title">Pedigree Options</div>
     <div class="menu-section">
       <div class="menu-actions">
-        <button id="menu-print-btn" type="button">Print Pedigree</button>
-        <button id="menu-image-btn" style="background:#4d7c8a">Save PNG</button>
         <button id="menu-save-btn" type="button">Save Settings</button>
+        <button id="menu-print-btn" type="button">Print</button>
+        <button id="menu-image-btn" type="button">Save PNG</button>
+        <button id="menu-svg-btn" type="button">Save SVG</button>
         <button id="reset-styles-btn" type="button">Reset Defaults</button>
       </div>
-      <div id="save-status" style="font-size:12px; margin-top:5px; color:#5f7280;"></div>
+      <div id="save-status" class="menu-note" style="margin-top:8px;"></div>
     </div>
 
     <div class="menu-section">
-      <label>Layout Orientation</label>
+      <label for="layout-orientation">Pedigree Layout</label>
       <select id="layout-orientation">
         <option value="landscape">Landscape</option>
         <option value="portrait">Portrait</option>
       </select>
     </div>
-    
+
     <div class="menu-section">
-      <label>Border Style</label>
+      <label for="border-style">Border Style</label>
       <select id="border-style">
         <option value="classicDouble">Classic Double</option>
         <option value="elegantCorners">Elegant Corners</option>
+        <option value="ribbonFrame">Ribbon Frame</option>
+        <option value="royalArch">Royal Arch</option>
+        <option value="modernGeo">Modern Geometric</option>
+        <option value="scallop">Scallop</option>
+        <option value="ornateLines">Ornate Lines</option>
+        <option value="ticketEdge">Ticket Edge</option>
+        <option value="floralLite">Floral Lite</option>
         <option value="showFrame">Show Frame</option>
       </select>
       <label style="margin-top:10px;">Primary Color</label>
       <input type="color" id="border-primary-color" value="#234a57">
+      <label style="margin-top:10px;">Secondary Color</label>
+      <input type="color" id="border-secondary-color" value="#d8c79a">
     </div>
 
     <div class="menu-section">
-        <label>Box Dimensions</label>
-        <input type="range" id="box-width" min="180" max="320" value="220">
-        <div id="box-width-value">220</div>
-        <input type="range" id="box-height" min="110" max="190" value="125">
-        <div id="box-height-value">125</div>
+      <label>Font Style</label>
+      <div class="font-picker" id="fontPicker">
+        <button type="button" class="font-picker-button" id="fontPickerButton">
+          <span id="selectedFontPreview">Arial</span>
+          <span>▾</span>
+        </button>
+        <div class="font-picker-dropdown" id="fontPickerDropdown">
+          <div class="font-option" data-font="Arial, sans-serif">Arial</div>
+          <div class="font-option" data-font="'Poppins', sans-serif">Poppins</div>
+          <div class="font-option" data-font="'Inter', sans-serif">Inter</div>
+          <div class="font-option" data-font="'Georgia', serif">Georgia</div>
+        </div>
+      </div>
+      <label style="margin-top:10px;">Font Color</label>
+      <input type="color" id="font-color" value="#000000">
     </div>
+
+    <div class="menu-section">
+      <label>Box Dimensions</label>
+      <input type="range" id="box-width" min="180" max="320" value="220">
+      <div class="range-readout">Width: <span id="box-width-value">220</span>px</div>
+      <input type="range" id="box-height" min="110" max="190" value="125">
+      <div class="range-readout">Height: <span id="box-height-value">125</span>px</div>
     </div>
+  </div>
 
   <div id="pedigree-container">
     <svg id="pedigree-svg" xmlns="http://www.w3.org/2000/svg">
@@ -168,139 +198,196 @@
   <script>
     (function () {
       const svgNS = "http://www.w3.org/2000/svg";
+      const xlinkNS = "http://www.w3.org/1999/xlink";
       const svg = document.getElementById("pedigree-svg");
       const viewport = document.getElementById("viewport");
       const container = document.getElementById("pedigree-container");
-      
-      // Control Elements
-      const orientationInput = document.getElementById("layout-orientation");
-      const borderStyleInput = document.getElementById("border-style");
-      const primaryColorInput = document.getElementById("border-primary-color");
-      const boxWidthInput = document.getElementById("box-width");
-      const boxHeightInput = document.getElementById("box-height");
-      const saveStatus = document.getElementById("save-status");
+
+      // --- CONFIG & DEFAULTS ---
+      const boxDefs = [
+        { id: "main", gen: 1, sexType: "main", titleChain: ["crabbitry","name"], fields: [["Color","color"],["Ear#","ear number"]] },
+        { id: "sire", gen: 2, sexType: "male", titleChain: ["srabbitry","sire"], fields: [["Color","scolor"],["Ear#","sear"]] },
+        { id: "dam",  gen: 2, sexType: "female", titleChain: ["drabbitry","dam"], fields: [["Color","dcolor"],["Ear#","dear"]] },
+        { id: "ssire", gen: 3, sexType: "male", titleChain: ["ssrabbitry","ssire"], fields: [["Color","sscolor"]] },
+        { id: "sdam",  gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"], fields: [["Color","sdcolor"]] },
+        { id: "dsire", gen: 3, sexType: "male", titleChain: ["dsrabbitry","dsire"], fields: [["Color","dscolor"]] },
+        { id: "ddam",  gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"], fields: [["Color","ddcolor"]] }
+      ];
+
+      const parentMap = [["main","sire"],["main","dam"],["sire","ssire"],["sire","sdam"],["dam","dsire"],["dam","ddam"]];
 
       let panZoom = null;
 
-      // --- HELPER FUNCTIONS ---
-      function getParams() { return new URLSearchParams(window.location.search); }
-      function getParam(name) { return getParams().get(name) || ""; }
+      // --- UTILITIES ---
+      function getParam(name) {
+        const p = new URLSearchParams(window.location.search);
+        return p.get(name) || name.toUpperCase(); // Placeholder if empty
+      }
 
       function makeEl(tag, attrs = {}) {
         const el = document.createElementNS(svgNS, tag);
-        for (let k in attrs) el.setAttribute(k, attrs[k]);
+        for (let k in attrs) {
+            if (k === "href") el.setAttributeNS(xlinkNS, "href", attrs[k]);
+            else el.setAttribute(k, attrs[k]);
+        }
         return el;
       }
 
-      // --- PRINT LOGIC (FIXED) ---
-      async function runPrintFlow() {
-        saveStatus.textContent = "Generating high-res print...";
-        
-        // 1. Build a clean, static version of the SVG
-        const exportSvg = await buildStaticExportSvg();
-        const isPortrait = orientationInput.value === "portrait";
-        
-        // 2. Clear any panning/zooming on the clone
-        const cloneViewport = exportSvg.querySelector("#viewport");
-        if (cloneViewport) cloneViewport.removeAttribute("transform");
+      // --- DRAWING FUNCTIONS ---
+      function drawBorder(group, width, height) {
+        const style = document.getElementById("border-style").value;
+        const p = document.getElementById("border-primary-color").value;
+        const s = document.getElementById("border-secondary-color").value;
+        const margin = 40;
 
-        // 3. Set explicit printing dimensions
-        exportSvg.setAttribute("width", "100%");
-        exportSvg.setAttribute("height", "100%");
-        exportSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-
-        const svgData = new XMLSerializer().serializeToString(exportSvg);
-        
-        // 4. Open specialized Print Window
-        const printWin = window.open("", "_blank");
-        if (!printWin) {
-            saveStatus.textContent = "Pop-up blocked! Please allow pop-ups.";
-            return;
-        }
-
-        printWin.document.write(`
-          <html>
-            <head>
-              <title>Print Pedigree</title>
-              <style>
-                @page { 
-                    size: ${isPortrait ? "8.5in 11in portrait" : "11in 8.5in landscape"}; 
-                    margin: 0; 
-                }
-                body, html { margin: 0; padding: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
-                svg { width: 100%; height: 100%; max-width: 100vw; max-height: 100vh; }
-              </style>
-            </head>
-            <body>${svgData}</body>
-          </html>
-        `);
-        printWin.document.close();
-
-        // 5. Wait for browser to parse and trigger print
-        printWin.onload = () => {
-          setTimeout(() => {
-            printWin.focus();
-            printWin.print();
-            saveStatus.textContent = "Print Ready.";
-          }, 800);
-        };
+        group.appendChild(makeEl("rect", { x: 0, y: 0, width, height, fill: "#fff" }));
+        group.appendChild(makeEl("rect", { 
+            x: margin, y: margin, width: width - margin*2, height: height - margin*2, 
+            fill: "none", stroke: p, "stroke-width": 8 
+        }));
+        group.appendChild(makeEl("rect", { 
+            x: margin + 15, y: margin + 15, width: width - (margin+15)*2, height: height - (margin+15)*2, 
+            fill: "none", stroke: s, "stroke-width": 2 
+        }));
       }
 
-      // --- RENDER LOGIC ---
-      function render() {
-        // Reset Zoom before re-rendering
-        if (panZoom) {
-            panZoom.destroy();
-            panZoom = null;
-        }
+      function drawBox(group, id, x, y, w, h) {
+        const fontCol = document.getElementById("font-color").value;
+        const fontFam = document.getElementById("selectedFontPreview").style.fontFamily || "Arial";
+        
+        const rect = makeEl("rect", { x, y, width: w, height: h, rx: 8, fill: "#f9f9f9", stroke: "#ccc" });
+        group.appendChild(rect);
+
+        const text = makeEl("text", { x: x + 10, y: y + 25, fill: fontCol });
+        text.style.fontFamily = fontFam;
+        text.style.fontWeight = "bold";
+        text.textContent = getParam(id);
+        group.appendChild(text);
+      }
+
+      function drawLine(group, x1, y1, x2, y2) {
+        group.appendChild(makeEl("line", { x1, y1, x2, y2, stroke: "#000", "stroke-width": 1.5 }));
+      }
+
+      // --- CORE RENDERER ---
+      function render(keepZoom = false) {
+        const currentState = panZoom && keepZoom ? { pan: panZoom.getPan(), zoom: panZoom.getZoom() } : null;
+        
+        if (panZoom) { panZoom.destroy(); panZoom = null; }
         while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
-        viewport.removeAttribute("transform");
 
-        const isPortrait = orientationInput.value === "portrait";
-        const width = isPortrait ? 1275 : 1650;
-        const height = isPortrait ? 1650 : 1275;
+        const isPortrait = document.getElementById("layout-orientation").value === "portrait";
+        const canvasW = isPortrait ? 1275 : 1650;
+        const canvasH = isPortrait ? 1650 : 1275;
+        const boxW = parseInt(document.getElementById("box-width").value);
+        const boxH = parseInt(document.getElementById("box-height").value);
 
-        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("viewBox", `0 0 ${canvasW} ${canvasH}`);
 
-        // Drawing code... (Insert your drawBox, drawLine, drawBorder calls here)
-        const rect = makeEl("rect", { 
-            x: 50, y: 50, width: width-100, height: height-100, 
-            fill: "none", stroke: primaryColorInput.value, "stroke-width": 5 
+        const borderLayer = makeEl("g");
+        const lineLayer = makeEl("g");
+        const boxLayer = makeEl("g");
+        viewport.append(borderLayer, lineLayer, boxLayer);
+
+        drawBorder(borderLayer, canvasW, canvasH);
+
+        // Simple positioning logic
+        const positions = {
+            main: { x: 100, y: canvasH / 2 - boxH / 2 },
+            sire: { x: 450, y: canvasH / 4 - boxH / 2 },
+            dam:  { x: 450, y: (canvasH / 4) * 3 - boxH / 2 },
+            ssire: { x: 800, y: canvasH / 8 - boxH / 2 },
+            sdam:  { x: 800, y: (canvasH / 8) * 3 - boxH / 2 },
+            dsire: { x: 800, y: (canvasH / 8) * 5 - boxH / 2 },
+            ddam:  { x: 800, y: (canvasH / 8) * 7 - boxH / 2 }
+        };
+
+        parentMap.forEach(([c, p]) => {
+            const p1 = positions[c], p2 = positions[p];
+            drawLine(lineLayer, p1.x + boxW, p1.y + boxH/2, p2.x, p2.y + boxH/2);
         });
-        viewport.appendChild(rect);
 
-        // Re-init Pan Zoom for live view
+        boxDefs.forEach(def => {
+            if (positions[def.id]) {
+                drawBox(boxLayer, def.id, positions[def.id].x, positions[def.id].y, boxW, boxH);
+            }
+        });
+
+        // Initialize Pan-Zoom
         panZoom = svgPanZoom(svg, {
           viewportSelector: "#viewport",
           panEnabled: true,
           zoomEnabled: true,
-          controlIconsEnabled: false,
           fit: true,
           center: true
         });
+
+        if (currentState) {
+            panZoom.zoom(currentState.zoom);
+            panZoom.pan(currentState.pan);
+        }
+
+        document.getElementById("box-width-value").textContent = boxW;
+        document.getElementById("box-height-value").textContent = boxH;
       }
 
-      // Needed for SVG/PNG export to handle external images (Logo/Photo)
-      async function buildStaticExportSvg() {
+      // --- PRINT FLOW (THE FIX) ---
+      async function runPrintFlow() {
+        document.getElementById("save-status").textContent = "Preparing print...";
+        
+        // 1. Clone the current state
         const clone = svg.cloneNode(true);
-        // Add logic to convert external <img> to Base64 data if needed
-        return clone;
+        const cloneViewport = clone.querySelector("#viewport");
+        
+        // 2. IMPORTANT: Remove the zoom/pan transform for the printout
+        if (cloneViewport) cloneViewport.removeAttribute("transform");
+
+        const isPortrait = document.getElementById("layout-orientation").value === "portrait";
+        const svgMarkup = new XMLSerializer().serializeToString(clone);
+
+        const printWin = window.open("", "_blank");
+        printWin.document.write(`
+          <html>
+            <head>
+              <style>
+                @page { size: ${isPortrait ? "8.5in 11in portrait" : "11in 8.5in landscape"}; margin: 0; }
+                body { margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+                svg { width: 100%; height: 100%; }
+              </style>
+            </head>
+            <body>${svgMarkup}</body>
+          </html>
+        `);
+        printWin.document.close();
+        
+        printWin.onload = () => {
+            setTimeout(() => {
+                printWin.print();
+                document.getElementById("save-status").textContent = "";
+            }, 500);
+        };
       }
 
-      // --- EVENT LISTENERS ---
-      document.getElementById("menu-toggle").addEventListener("click", () => {
-        document.getElementById("pedigree-menu").classList.toggle("open");
-      });
-
+      // --- UI EVENTS ---
+      document.getElementById("menu-toggle").addEventListener("click", () => document.getElementById("pedigree-menu").classList.toggle("open"));
       document.getElementById("menu-print-btn").addEventListener("click", runPrintFlow);
+      document.getElementById("layout-orientation").addEventListener("change", () => render(false));
+      document.getElementById("border-style").addEventListener("change", () => render(true));
+      document.getElementById("box-width").addEventListener("input", () => render(true));
+      document.getElementById("box-height").addEventListener("input", () => render(true));
       
-      [orientationInput, borderStyleInput, primaryColorInput, boxWidthInput, boxHeightInput].forEach(el => {
-        el.addEventListener("input", render);
+      document.getElementById("fontPickerButton").addEventListener("click", () => document.getElementById("fontPicker").classList.toggle("open"));
+      document.querySelectorAll(".font-option").forEach(opt => {
+          opt.addEventListener("click", () => {
+              const f = opt.dataset.font;
+              document.getElementById("selectedFontPreview").textContent = opt.textContent;
+              document.getElementById("selectedFontPreview").style.fontFamily = f;
+              document.getElementById("fontPicker").classList.remove("open");
+              render(true);
+          });
       });
 
-      window.addEventListener("resize", () => { if(panZoom) panZoom.resize(); });
-      window.onload = render;
-
+      window.onload = () => render(false);
     })();
   </script>
 </body>
