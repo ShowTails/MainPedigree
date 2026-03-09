@@ -761,19 +761,32 @@
         panZoom.pan(fit.pan);
       }
 
-      function fitSvgForPrint() {
-        const vb = svg.viewBox.baseVal;
-        if (!validBox(vb)) return;
+   function fitSvgForPrint() {
+  const vb = svg.viewBox.baseVal;
+  if (!validBox(vb)) return;
 
-        const pageW = layoutOrientation.value === "portrait" ? 816 : 1056;
-        const pageH = layoutOrientation.value === "portrait" ? 1056 : 816;
+  let printScale = 1;
+  let offsetX = 0;
+  let offsetY = 0;
 
-        const scale = Math.min(pageW / vb.width, pageH / vb.height) * 100;
-        const tx = (pageW - vb.width * scale) / 2;
-        const ty = (pageH - vb.height * scale) / 2;
+  if (layoutOrientation.value === "portrait") {
+    printScale = 0.96;   // smaller
+    offsetX = 8;         // right
+    offsetY = 12;        // down
+  } else {
+    printScale = 1.02;   // larger
+    offsetX = 6;         // right
+    offsetY = 4;         // down
+  }
 
-        viewport.setAttribute("transform", `translate(${tx},${ty}) scale(${scale})`);
-      }
+  const scaledW = vb.width * printScale;
+  const scaledH = vb.height * printScale;
+
+  const tx = (vb.width - scaledW) / 2 + offsetX;
+  const ty = (vb.height - scaledH) / 2 + offsetY;
+
+  viewport.setAttribute("transform", `translate(${tx},${ty}) scale(${printScale})`);
+}
 
       function initPanZoom(state = null) {
         if (typeof window.svgPanZoom !== "function") return;
