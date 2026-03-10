@@ -882,7 +882,7 @@
         const isPortrait = layoutOrientation.value === "portrait";
 
         const usableWidth = tree.right - tree.left;
-        const gapX = Math.max(isPortrait ? 8 : 16, (usableWidth - (boxW * 4)) / 3);
+        const gapX = Math.max(isPortrait ? 4 : 8, (usableWidth - (boxW * 4)) / 3);
 
         const x1 = tree.left;
         const x2 = x1 + boxW + gapX;
