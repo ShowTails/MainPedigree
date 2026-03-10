@@ -282,9 +282,9 @@
     <div class="menu-section">
       <div class="menu-actions">
         <button id="menu-save-btn" type="button">Save Settings</button>
-        <button id="menu-print-btn" type="button">Print</button>
-        <button id="menu-image-btn" type="button">Save PNG</button>
-        <button id="menu-svg-btn" type="button">Save SVG</button>
+        <button id="menu-print-btn" type="button">Print/SavePDF-Desktop</button>
+        <button id="menu-image-btn" type="button">Save PNG-Mobile</button>
+        <button id="menu-svg-btn" type="button">Save SVG-Mobile</button>
         <button id="reset-styles-btn" type="button">Reset Defaults</button>
       </div>
       <div class="menu-note" id="save-status" style="margin-top:8px; margin-bottom:0;"></div>
@@ -439,7 +439,7 @@
         <span>Show Rabbit Photo</span>
         <input type="checkbox" id="toggle-rabbit-photo">
       </div>
-      <div class="menu-note" style="margin-bottom:0;">Image query parameter: <strong>rabbitphoto</strong></div>
+      <div class="menu-note" style="margin-bottom:0;"><strong></strong></div>
     </div>
   </div>
 
@@ -882,7 +882,7 @@
         const isPortrait = layoutOrientation.value === "portrait";
 
         const usableWidth = tree.right - tree.left;
-        const gapX = Math.max(isPortrait ? 12 : 24, (usableWidth - (boxW * 4)) / 3);
+        const gapX = Math.max(isPortrait ? 8 : 16, (usableWidth - (boxW * 4)) / 3);
 
         const x1 = tree.left;
         const x2 = x1 + boxW + gapX;
