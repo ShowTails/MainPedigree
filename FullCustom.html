@@ -277,7 +277,7 @@
 
   <div id="pedigree-menu">
     <div class="menu-title">Pedigree Options</div>
-    <div class="menu-note">Choose border styles, colors, fonts, and layout settings below.</div>
+    <div class="menu-note">Choose border styles, colors, fonts, layout settings, and rabbit data visibility below.</div>
 
     <div class="menu-section">
       <div class="menu-actions">
@@ -356,6 +356,26 @@
 
       <label for="female-box-color">Female Box Color</label>
       <input type="color" id="female-box-color" value="#f8d7da">
+    </div>
+
+    <div class="menu-section">
+      <label>Rabbit Box Data Visibility</label>
+      <div class="toggle-row">
+        <span>DOB</span>
+        <input type="checkbox" id="toggle-show-dob" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Ear Length</span>
+        <input type="checkbox" id="toggle-show-earl" checked>
+      </div>
+      <div class="toggle-row">
+        <span>Custom</span>
+        <input type="checkbox" id="toggle-show-custom" checked>
+      </div>
+      <div class="toggle-row" style="margin-bottom:0;">
+        <span>Wins</span>
+        <input type="checkbox" id="toggle-show-wins" checked>
+      </div>
     </div>
 
     <div class="menu-section">
@@ -505,6 +525,12 @@
       const mainBoxColor = document.getElementById("main-box-color");
       const maleBoxColor = document.getElementById("male-box-color");
       const femaleBoxColor = document.getElementById("female-box-color");
+
+      const toggleShowDob = document.getElementById("toggle-show-dob");
+      const toggleShowEarl = document.getElementById("toggle-show-earl");
+      const toggleShowCustom = document.getElementById("toggle-show-custom");
+      const toggleShowWins = document.getElementById("toggle-show-wins");
+
       const fontColor = document.getElementById("font-color");
       const layoutOrientation = document.getElementById("layout-orientation");
       const boxWidthInput = document.getElementById("box-width");
@@ -555,6 +581,10 @@
         main: "#ffffff",
         male: "#cce5ff",
         female: "#f8d7da",
+        showDob: true,
+        showEarl: true,
+        showCustom: true,
+        showWins: true,
         fontColor: "#000000",
         fontFamily: "Arial, sans-serif",
         layout: "landscape",
@@ -596,23 +626,35 @@
       };
 
       const boxDefs = [
-        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["customdata"], wins: "win1"   },
-        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustomdata"], wins: "swin1"  },
-        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustomdata"], wins: "dwin1"  },
+        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"],["DOB","dob"],["Ear Length","earl"]], extra: ["customdata"], wins: "win1" },
 
-        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustomdata"], wins: "sswin1" },
-        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustomdata"], wins: "sdwin1" },
-        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustomdata"], wins: "dswin1" },
-        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustomdata"], wins: "ddwin1" },
+        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"],["DOB","sdob"],["Ear Length","searl"]], extra: ["scustomdata"], wins: "swin1" },
 
-        { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustomdata"], wins: "" },
-        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustomdata"], wins: "" },
-        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustomdata"], wins: "" },
-        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustomdata"], wins: "" },
-        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustomdata"], wins: "" },
-        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustomdata"], wins: "" },
-        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustomdata"], wins: "" },
-        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustomdata"], wins: "" }
+        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"],["DOB","ddob"],["Ear Length","dearl"]], extra: ["dcustomdata"], wins: "dwin1" },
+
+        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"],["DOB","ssdob"],["Ear Length","ssearl"]], extra: ["sscustomdata"], wins: "sswin1" },
+
+        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"],["DOB","sddob"],["Ear Length","sdearl"]], extra: ["sdcustomdata"], wins: "sdwin1" },
+
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"],["DOB","dsdob"],["Ear Length","dsearl"]], extra: ["dscustomdata"], wins: "dswin1" },
+
+        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"],["DOB","dddob"],["Ear Length","ddearl"]], extra: ["ddcustomdata"], wins: "ddwin1" },
+
+        { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"],["DOB","sssdob"],["Ear Length","sssearl"]], extra: ["ssscustomdata"], wins: "" },
+
+        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"],["DOB","ssddob"],["Ear Length","ssdearl"]], extra: ["ssdcustomdata"], wins: "" },
+
+        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"],["DOB","sdsdob"],["Ear Length","sdsearl"]], extra: ["sdscustomdata"], wins: "" },
+
+        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"],["DOB","sdddob"],["Ear Length","sddearl"]], extra: ["sddcustomdata"], wins: "" },
+
+        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"],["DOB","dssdob"],["Ear Length","dssearl"]], extra: ["dsscustomdata"], wins: "" },
+
+        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"],["DOB","dsddob"],["Ear Length","dsdearl"]], extra: ["dsdcustomdata"], wins: "" },
+
+        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"],["DOB","ddsdob"],["Ear Length","ddsearl"]], extra: ["ddscustomdata"], wins: "" },
+
+        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"],["DOB","ddddob"],["Ear Length","dddearl"]], extra: ["dddcustomdata"], wins: "" }
       ];
 
       const parentMap = [
@@ -928,21 +970,30 @@
         };
       }
 
+      function shouldShowField(label) {
+        if (label === "DOB") return toggleShowDob.checked;
+        if (label === "Ear Length") return toggleShowEarl.checked;
+        return true;
+      }
+
       function buildBoxText(def) {
         const lines = [];
         lines.push({ text: getChain(def.titleChain), type: "title" });
 
         def.fields.forEach(([label, key]) => {
+          if (!shouldShowField(label)) return;
           lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
         });
 
-        def.extra.forEach(key => {
-          const raw = getParam(key);
-          if (!raw) return;
-          raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
-            if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
+        if (toggleShowCustom.checked) {
+          def.extra.forEach(key => {
+            const raw = getParam(key);
+            if (!raw) return;
+            raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
+              if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
+            });
           });
-        });
+        }
 
         return lines;
       }
@@ -984,7 +1035,9 @@
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
+        if (!toggleShowWins.checked) return;
         if (def.gen >= 4 || !def.wins) return;
+
         const raw = getParam(def.wins);
         if (!raw) return;
 
@@ -1217,21 +1270,6 @@
         addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 2.2);
       }
 
-      function drawInnerGuideCorners(group, x, y, w, h, primary) {
-        const len = 34;
-        const off = 18;
-
-        [
-          [x + off, y + off, 1, 1],
-          [x + w - off, y + off, -1, 1],
-          [x + off, y + h - off, 1, -1],
-          [x + w - off, y + h - off, -1, -1]
-        ].forEach(([cx, cy, sx, sy]) => {
-          addLine(group, cx, cy, cx + len * sx, cy, primary, 1.5);
-          addLine(group, cx, cy, cx, cy + len * sy, primary, 1.5);
-        });
-      }
-
       function drawRosette(group, cx, cy, r, primary, secondary) {
         for (let i = 0; i < 12; i++) {
           const a = (Math.PI * 2 * i) / 12;
@@ -1284,41 +1322,17 @@
         group.appendChild(g);
       }
 
-      function drawArcFan(group, cx, cy, r, primary, secondary, count = 7) {
-        for (let i = 0; i < count; i++) {
-          const start = Math.PI + (Math.PI * i / count);
-          const end = Math.PI + (Math.PI * (i + 1) / count);
-          const x1 = cx + Math.cos(start) * r;
-          const y1 = cy + Math.sin(start) * r;
-          const x2 = cx + Math.cos(end) * r;
-          const y2 = cy + Math.sin(end) * r;
-          addPath(group, `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`, primary, 1, i % 2 === 0 ? secondary : "#ffffff");
-        }
-      }
-
       function drawFretBand(group, x, y, w, h, primary, secondary) {
         const step = 44;
 
         for (let px = x + 24; px < x + w - 24; px += step) {
-          addPolyline(group,
-            `${px} ${y} ${px+10} ${y} ${px+10} ${y+10} ${px+22} ${y+10} ${px+22} ${y} ${px+32} ${y}`,
-            primary, 2
-          );
-          addPolyline(group,
-            `${px} ${y+h} ${px+10} ${y+h} ${px+10} ${y+h-10} ${px+22} ${y+h-10} ${px+22} ${y+h} ${px+32} ${y+h}`,
-            primary, 2
-          );
+          addPolyline(group, `${px} ${y} ${px+10} ${y} ${px+10} ${y+10} ${px+22} ${y+10} ${px+22} ${y} ${px+32} ${y}`, primary, 2);
+          addPolyline(group, `${px} ${y+h} ${px+10} ${y+h} ${px+10} ${y+h-10} ${px+22} ${y+h-10} ${px+22} ${y+h} ${px+32} ${y+h}`, primary, 2);
         }
 
         for (let py = y + 24; py < y + h - 24; py += step) {
-          addPolyline(group,
-            `${x} ${py} ${x} ${py+10} ${x+10} ${py+10} ${x+10} ${py+22} ${x} ${py+22} ${x} ${py+32}`,
-            primary, 2
-          );
-          addPolyline(group,
-            `${x+w} ${py} ${x+w} ${py+10} ${x+w-10} ${py+10} ${x+w-10} ${py+22} ${x+w} ${py+22} ${x+w} ${py+32}`,
-            primary, 2
-          );
+          addPolyline(group, `${x} ${py} ${x} ${py+10} ${x+10} ${py+10} ${x+10} ${py+22} ${x} ${py+22} ${x} ${py+32}`, primary, 2);
+          addPolyline(group, `${x+w} ${py} ${x+w} ${py+10} ${x+w-10} ${py+10} ${x+w-10} ${py+22} ${x+w} ${py+22} ${x+w} ${py+32}`, primary, 2);
         }
 
         addRect(group, x + 10, y + 10, w - 20, h - 20, secondary, 1.7);
@@ -1623,6 +1637,10 @@
           main: mainBoxColor.value,
           male: maleBoxColor.value,
           female: femaleBoxColor.value,
+          showDob: toggleShowDob.checked,
+          showEarl: toggleShowEarl.checked,
+          showCustom: toggleShowCustom.checked,
+          showWins: toggleShowWins.checked,
           fontColor: fontColor.value,
           fontFamily: getCurrentFont(),
           layout: layoutOrientation.value,
@@ -1652,6 +1670,10 @@
         if (settings.main) mainBoxColor.value = settings.main;
         if (settings.male) maleBoxColor.value = settings.male;
         if (settings.female) femaleBoxColor.value = settings.female;
+        if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
+        if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
+        if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
+        if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
         if (settings.fontColor) fontColor.value = settings.fontColor;
         if (settings.layout) layoutOrientation.value = settings.layout;
         if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
@@ -2268,6 +2290,10 @@
         mainBoxColor.value = defaults.main;
         maleBoxColor.value = defaults.male;
         femaleBoxColor.value = defaults.female;
+        toggleShowDob.checked = defaults.showDob;
+        toggleShowEarl.checked = defaults.showEarl;
+        toggleShowCustom.checked = defaults.showCustom;
+        toggleShowWins.checked = defaults.showWins;
         fontColor.value = defaults.fontColor;
         layoutOrientation.value = defaults.layout;
         boxWidthInput.value = defaults.boxWidth;
@@ -2334,6 +2360,10 @@
         mainBoxColor,
         maleBoxColor,
         femaleBoxColor,
+        toggleShowDob,
+        toggleShowEarl,
+        toggleShowCustom,
+        toggleShowWins,
         fontColor,
         layoutOrientation,
         boxWidthInput,
@@ -2351,6 +2381,10 @@
 
       [
         mainSexColorToggle,
+        toggleShowDob,
+        toggleShowEarl,
+        toggleShowCustom,
+        toggleShowWins,
         layoutOrientation,
         toggleWatermark,
         toggleRabbitPhoto
