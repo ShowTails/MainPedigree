@@ -1036,9 +1036,10 @@
       }
 
       function fitTextLinesToBox(lines, boxH) {
-        const topPad = 11;
-        const bottomPad = 4;
-        const usableH = boxH - topPad - bottomPad;
+        const topPadMin = 8;
+        const bottomPadMin = 8;
+        const usableH = boxH - topPadMin - bottomPadMin;
+
         let used = 0;
         const visible = [];
 
@@ -1049,7 +1050,9 @@
           used += metrics.lineHeight;
         }
 
-        return { visible, topPad };
+        const startY = Math.max(topPadMin, (boxH - used) / 2);
+
+        return { visible, startY };
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
@@ -1092,19 +1095,29 @@
         const fitted = fitTextLinesToBox(textLines, boxH);
         const padX = 8;
 
-        const t = makeEl("text", { x: x + padX, y: y + fitted.topPad });
+        const t = makeEl("text", {
+          x: x + padX,
+          y: y + fitted.startY
+        });
+
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
+        t.setAttribute("dominant-baseline", "hanging");
 
-        fitted.visible.forEach((line, i) => {
+        let currentY = y + fitted.startY;
+
+        fitted.visible.forEach((line) => {
           const ts = makeEl("tspan", {
             x: x + padX,
-            dy: i === 0 ? 0 : line.metrics.lineHeight
+            y: currentY
           });
           ts.textContent = line.text;
           ts.style.fontSize = line.metrics.fontSize + "px";
           ts.style.fontWeight = line.metrics.weight;
+          ts.setAttribute("dominant-baseline", "hanging");
           t.appendChild(ts);
+
+          currentY += line.metrics.lineHeight;
         });
 
         group.appendChild(t);
