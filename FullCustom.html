@@ -571,6 +571,9 @@
       let renderNonce = 0;
       let initialized = false;
 
+      let lastViewState = null;
+      let hasFittedInitially = false;
+
       const defaults = {
         borderStyle: "classicDouble",
         borderColorPreset: "showtails",
@@ -738,16 +741,58 @@
       }
 
       function destroyPanZoom() {
+        captureViewState();
+
         if (panZoom) {
           try { panZoom.destroy(); } catch (err) {}
           panZoom = null;
         }
+
         window.panZoomInstance = null;
         initialized = false;
       }
 
       function validBox(vb) {
         return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
+      }
+
+      function captureViewState() {
+        if (!panZoom) return lastViewState;
+        try {
+          const zoom = panZoom.getZoom();
+          const pan = panZoom.getPan();
+          if (!isFinite(zoom) || !pan || !isFinite(pan.x) || !isFinite(pan.y)) {
+            return lastViewState;
+          }
+          lastViewState = {
+            zoom,
+            pan: { x: pan.x, y: pan.y }
+          };
+          return lastViewState;
+        } catch (err) {
+          return lastViewState;
+        }
+      }
+
+      function restoreViewState(state) {
+        if (!panZoom || !state) return false;
+
+        try {
+          const zoom = Math.max(0.25, Math.min(10, Number(state.zoom)));
+          const pan = state.pan || { x: 0, y: 0 };
+
+          if (!isFinite(zoom) || !isFinite(pan.x) || !isFinite(pan.y)) return false;
+
+          panZoom.zoom(zoom);
+          panZoom.pan({ x: pan.x, y: pan.y });
+          lastViewState = {
+            zoom,
+            pan: { x: pan.x, y: pan.y }
+          };
+          return true;
+        } catch (err) {
+          return false;
+        }
       }
 
       function computeFit() {
@@ -774,8 +819,14 @@
         if (!panZoom) return;
         const fit = computeFit();
         if (!fit) return;
+
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
+
+        lastViewState = {
+          zoom: fit.scale,
+          pan: { x: fit.pan.x, y: fit.pan.y }
+        };
       }
 
       function tryInitPanZoom(state = null) {
@@ -797,16 +848,22 @@
           center: false,
           minZoom: 0.25,
           maxZoom: 10,
-          dblClickZoomEnabled: true
+          dblClickZoomEnabled: true,
+          onZoom: function () {
+            captureViewState();
+          },
+          onPan: function () {
+            captureViewState();
+          }
         });
 
         window.panZoomInstance = panZoom;
 
-        if (state && isFinite(state.zoom)) {
-          panZoom.zoom(state.zoom);
-          panZoom.pan(state.pan || { x: 0, y: 0 });
-        } else {
+        const restored = restoreViewState(state || lastViewState);
+
+        if (!restored) {
           fitToContainer();
+          hasFittedInitially = true;
         }
 
         wireWheelZoom();
@@ -815,7 +872,7 @@
         initialized = true;
       }
 
-      function refreshPanZoom(state = null) {
+      function refreshPanZoom(state = null, forceFit = false) {
         if (!panZoom) {
           tryInitPanZoom(state);
           return;
@@ -825,13 +882,20 @@
           panZoom.resize();
           panZoom.updateBBox();
 
-          if (state && isFinite(state.zoom)) {
-            panZoom.zoom(state.zoom);
-            panZoom.pan(state.pan || { x: 0, y: 0 });
+          if (forceFit) {
+            fitToContainer();
+            return;
+          }
+
+          const restored = restoreViewState(state || lastViewState);
+
+          if (!restored && !hasFittedInitially) {
+            fitToContainer();
+            hasFittedInitially = true;
           }
         } catch (err) {
           destroyPanZoom();
-          tryInitPanZoom(state);
+          tryInitPanZoom(state || lastViewState);
         }
       }
 
@@ -1778,10 +1842,7 @@
       function render(keepZoom = true) {
         refreshParams();
 
-        const currentState = panZoom ? {
-          pan: panZoom.getPan(),
-          zoom: panZoom.getZoom()
-        } : null;
+        const preservedState = keepZoom ? captureViewState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1948,10 +2009,9 @@
           if (myNonce !== renderNonce) return;
 
           if (!panZoom) {
-            tryInitPanZoom(keepZoom ? currentState : null);
+            tryInitPanZoom(keepZoom ? preservedState : null);
           } else {
-            refreshPanZoom(keepZoom ? currentState : null);
-            if (!keepZoom) fitToContainer();
+            refreshPanZoom(keepZoom ? preservedState : null, !keepZoom);
           }
         });
       }
@@ -2243,6 +2303,7 @@
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
+            captureViewState();
           }
         }, { passive: false });
 
@@ -2256,6 +2317,7 @@
         let start = { x: 0, y: 0 };
 
         svg.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0 && e.pointerType !== "touch") return;
           isPanning = true;
           start = { x: e.clientX, y: e.clientY };
           if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId);
@@ -2267,6 +2329,7 @@
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
+          captureViewState();
         });
 
         svg.addEventListener("pointerup", () => { isPanning = false; });
@@ -2306,11 +2369,13 @@
             };
 
             panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
+            captureViewState();
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
+          captureViewState();
         });
 
         pinchWired = true;
@@ -2447,13 +2512,15 @@
       const ro = new ResizeObserver(() => {
         if (panZoom) {
           try {
+            captureViewState();
             panZoom.resize();
             panZoom.updateBBox();
+            restoreViewState(lastViewState);
           } catch (err) {
-            tryInitPanZoom();
+            tryInitPanZoom(lastViewState);
           }
         } else {
-          tryInitPanZoom();
+          tryInitPanZoom(lastViewState);
         }
       });
       ro.observe(container);
@@ -2462,13 +2529,15 @@
         if (document.visibilityState === "visible") {
           if (panZoom) {
             try {
+              captureViewState();
               panZoom.resize();
               panZoom.updateBBox();
+              restoreViewState(lastViewState);
             } catch (err) {
-              tryInitPanZoom();
+              tryInitPanZoom(lastViewState);
             }
           } else {
-            tryInitPanZoom();
+            tryInitPanZoom(lastViewState);
           }
         }
       });
@@ -2483,6 +2552,7 @@
         }
 
         render(false);
+        hasFittedInitially = true;
       });
     })();
   </script>
