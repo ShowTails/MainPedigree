@@ -574,6 +574,9 @@
       let lastViewState = null;
       let hasFittedInitially = false;
 
+      const MIN_ZOOM = 0.15;
+      const MAX_ZOOM = 40;
+
       const defaults = {
         borderStyle: "classicDouble",
         borderColorPreset: "showtails",
@@ -778,7 +781,7 @@
         if (!panZoom || !state) return false;
 
         try {
-          const zoom = Math.max(0.25, Math.min(10, Number(state.zoom)));
+          const zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Number(state.zoom)));
           const pan = state.pan || { x: 0, y: 0 };
 
           if (!isFinite(zoom) || !isFinite(pan.x) || !isFinite(pan.y)) return false;
@@ -846,8 +849,8 @@
           controlIconsEnabled: false,
           fit: false,
           center: false,
-          minZoom: 0.25,
-          maxZoom: 10,
+          minZoom: MIN_ZOOM,
+          maxZoom: MAX_ZOOM,
           dblClickZoomEnabled: true,
           onZoom: function () {
             captureViewState();
@@ -2299,7 +2302,7 @@
           if (!panZoom) return;
           const rect = svg.getBoundingClientRect();
           const point = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-          const factor = e.deltaY > 0 ? 0.9 : 1.1;
+          const factor = e.deltaY > 0 ? 0.92 : 1.12;
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
@@ -2368,7 +2371,8 @@
               y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top
             };
 
-            panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
+            const nextZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, startZoom * zoomRatio));
+            panZoom.zoomAtPoint(nextZoom, mid);
             captureViewState();
           }
         }, { passive: false });
