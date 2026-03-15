@@ -789,6 +789,31 @@
         return Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom));
       }
 
+      function computeFit() {
+        const vb = svg.viewBox.baseVal;
+        if (!validBox(vb)) return null;
+
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!cw || !ch) return null;
+
+        const scale = Math.min(cw / vb.width, ch / vb.height);
+        if (!isFinite(scale) || scale <= 0) return null;
+
+        return {
+          scale,
+          pan: {
+            x: (cw - vb.width * scale) / 2,
+            y: (ch - vb.height * scale) / 2
+          }
+        };
+      }
+
+      function getFitScale() {
+        const fit = computeFit();
+        return fit && isFinite(fit.scale) && fit.scale > 0 ? fit.scale : 1;
+      }
+
       function captureViewState() {
         if (!panZoom) return lastViewState;
 
@@ -808,8 +833,11 @@
 
         if (!pan || !isFinite(pan.x) || !isFinite(pan.y)) return lastViewState;
 
+        const fitScale = getFitScale();
+        const relZoom = zoom / fitScale;
+
         return {
-          zoom,
+          relZoom: isFinite(relZoom) && relZoom > 0 ? relZoom : 1,
           center: {
             x: (cw / 2 - pan.x) / zoom,
             y: (ch / 2 - pan.y) / zoom
@@ -818,23 +846,24 @@
       }
 
       function restoreViewState(state) {
-        if (!panZoom || !state || !state.center || !isFinite(state.zoom)) return false;
+        if (!panZoom || !state || !state.center || !isFinite(state.relZoom)) return false;
 
         const cw = container.clientWidth;
         const ch = container.clientHeight;
         if (!cw || !ch) return false;
 
-        const zoom = clampZoom(state.zoom);
+        const fitScale = getFitScale();
+        const targetZoom = clampZoom(fitScale * state.relZoom);
 
         try {
-          panZoom.zoom(zoom);
+          panZoom.zoom(targetZoom);
           panZoom.pan({
-            x: (cw / 2) - (state.center.x * zoom),
-            y: (ch / 2) - (state.center.y * zoom)
+            x: (cw / 2) - (state.center.x * targetZoom),
+            y: (ch / 2) - (state.center.y * targetZoom)
           });
 
           lastViewState = {
-            zoom,
+            relZoom: state.relZoom,
             center: { x: state.center.x, y: state.center.y }
           };
           return true;
@@ -847,26 +876,6 @@
         const state = captureViewState();
         if (state) lastViewState = state;
         return state;
-      }
-
-      function computeFit() {
-        const vb = svg.viewBox.baseVal;
-        if (!validBox(vb)) return null;
-
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!cw || !ch) return null;
-
-        const scale = Math.min(cw / vb.width, ch / vb.height);
-        if (!isFinite(scale) || scale <= 0) return null;
-
-        return {
-          scale,
-          pan: {
-            x: (cw - vb.width * scale) / 2,
-            y: (ch - vb.height * scale) / 2
-          }
-        };
       }
 
       function fitToContainer() {
@@ -925,6 +934,8 @@
           panZoom.updateBBox();
 
           if (!(state && restoreViewState(state))) {
+            fitToContainer();
+          } else {
             storeCurrentViewState();
           }
         } catch (err) {
@@ -1811,7 +1822,7 @@
         refreshParams();
         updateContainerAspectRatio();
 
-        const currentState = keepZoom ? (captureViewState() || lastViewState) : null;
+        const currentState = keepZoom ? storeCurrentViewState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -2489,7 +2500,7 @@
       svgBtn.addEventListener("click", saveSvgFile);
 
       const ro = new ResizeObserver(() => {
-        const state = captureViewState() || lastViewState;
+        const state = storeCurrentViewState();
 
         if (panZoom) {
           try {
@@ -2513,7 +2524,7 @@
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          const state = captureViewState() || lastViewState;
+          const state = storeCurrentViewState();
 
           if (panZoom) {
             try {
