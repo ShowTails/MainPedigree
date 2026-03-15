@@ -521,7 +521,7 @@
           headerX: 80,
           headerY: 100,
           treeLeft: 70,
-          treeTop: 210,
+          treeTop: 250,
           treeRightInset: 80,
           treeBottom: 1514,
           footerX: 90,
@@ -595,8 +595,8 @@
         scale: 1,
         x: 0,
         y: 0,
-        minScale: 0.25,
-        maxScale: 10
+        minScale: 0.2,
+        maxScale: 12
       };
 
       const pointerState = {
@@ -609,7 +609,11 @@
         pinchStartScale: 1,
         pinchStartMid: null,
         pinchStartX: 0,
-        pinchStartY: 0
+        pinchStartY: 0,
+        velocityX: 0,
+        velocityY: 0,
+        lastMoveTime: 0,
+        raf: 0
       };
 
       const defaults = {
@@ -694,108 +698,6 @@
         ["ddam","ddsire"],["ddam","dddam"]
       ];
 
-      function getSearchParams() {
-        let search = window.location.search || "";
-        while (search.startsWith("?")) search = search.slice(1);
-        return new URLSearchParams(search);
-      }
-
-      function refreshParams() {
-        params = getSearchParams();
-      }
-
-      function base64ToUtf8(str) {
-        return decodeURIComponent(
-          Array.from(atob(str))
-            .map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
-            .join("")
-        );
-      }
-
-      function loadPackedParams() {
-        const search = new URLSearchParams(window.location.search);
-        const packed = search.get("p");
-
-        if (!packed) {
-          packedParams = null;
-          return;
-        }
-
-        try {
-          packedParams = JSON.parse(base64ToUtf8(decodeURIComponent(packed)));
-        } catch (err) {
-          console.error("Failed to decode packed pedigree data:", err);
-          packedParams = null;
-        }
-      }
-
-      function getRawParam(name) {
-        if (packedParams && Object.prototype.hasOwnProperty.call(packedParams, name)) {
-          return packedParams[name] || "";
-        }
-        return params.get(name) || "";
-      }
-
-      function decodeParam(raw) {
-        const urlDecoded = decodeURIComponent(String(raw).replace(/\+/g, " "));
-        const ta = document.createElement("textarea");
-        ta.innerHTML = urlDecoded;
-        return ta.value;
-      }
-
-      function getParam(name) {
-        return decodeParam(getRawParam(name));
-      }
-
-      function getUrlParam(name) {
-        const raw = getRawParam(name);
-        return raw ? decodeURIComponent(raw) : "";
-      }
-
-      function getChain(keys) {
-        return keys.map(k => getParam(k)).filter(Boolean).join(" ");
-      }
-
-      function setPrintPage() {
-        if (layoutOrientation.value === "portrait") {
-          printPageStyle.textContent = "@page { size: 8.5in 11in portrait; margin: 0; }";
-        } else {
-          printPageStyle.textContent = "@page { size: 11in 8.5in landscape; margin: 0; }";
-        }
-      }
-
-      function makeEl(tag, attrs = {}) {
-        const el = document.createElementNS(svgNS, tag);
-        Object.entries(attrs).forEach(([k, v]) => {
-          if (k === "href") {
-            el.setAttributeNS(xlinkNS, "xlink:href", v);
-            el.setAttribute("href", v);
-          } else {
-            el.setAttribute(k, v);
-          }
-        });
-        return el;
-      }
-
-      function addText(group, x, y, text, opts = {}) {
-        const t = makeEl("text", { x, y, "text-anchor": opts.anchor || "start" });
-        t.style.fontFamily = getCurrentFont();
-        t.style.fill = fontColor.value;
-        t.style.fontSize = (opts.size || 14) + "px";
-        if (opts.weight) t.style.fontWeight = opts.weight;
-        t.textContent = text || "";
-        group.appendChild(t);
-        return t;
-      }
-
-      function clearViewport() {
-        while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
-      }
-
-      function validBox(vb) {
-        return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
-      }
-
       function getCurrentFont() {
         const active = Array.from(fontOptions).find(opt => opt.classList.contains("active"));
         return active ? active.dataset.font : defaults.fontFamily;
@@ -816,6 +718,121 @@
         document.documentElement.style.setProperty("--menu-font", fontValue);
         setActiveFontOption(fontValue);
         if (shouldRender) render(true);
+      }
+
+      function getCurrentSettings() {
+        return {
+          borderStyle: borderStyleInput.value,
+          borderColorPreset: borderColorPreset.value,
+          borderPrimary: borderPrimaryColor.value,
+          borderSecondary: borderSecondaryColor.value,
+          preset: colorPreset.value,
+          mainSexColor: mainSexColorToggle.checked,
+          main: mainBoxColor.value,
+          male: maleBoxColor.value,
+          female: femaleBoxColor.value,
+          showDob: toggleShowDob.checked,
+          showEarl: toggleShowEarl.checked,
+          showCustom: toggleShowCustom.checked,
+          showWins: toggleShowWins.checked,
+          fontColor: fontColor.value,
+          fontFamily: getCurrentFont(),
+          layout: layoutOrientation.value,
+          boxWidth: Number(boxWidthInput.value),
+          boxHeight: Number(boxHeightInput.value),
+          nameFont: Number(boxNameFontSizeInput.value),
+          bodyFont: Number(boxBodyFontSizeInput.value),
+          lineStyle: lineStyleInput.value,
+          lineColor: lineColorInput.value,
+          lineThickness: Number(lineThicknessInput.value),
+          watermarkEnabled: toggleWatermark.checked,
+          watermarkOpacity: Number(watermarkOpacity.value),
+          watermarkSize: Number(watermarkSize.value),
+          rabbitPhotoEnabled: toggleRabbitPhoto.checked
+        };
+      }
+
+      function applySettings(settings, shouldRender = true) {
+        if (!settings || typeof settings !== "object") return;
+
+        if (settings.borderStyle) borderStyleInput.value = settings.borderStyle;
+        if (settings.borderColorPreset != null) borderColorPreset.value = settings.borderColorPreset;
+        if (settings.borderPrimary) borderPrimaryColor.value = settings.borderPrimary;
+        if (settings.borderSecondary) borderSecondaryColor.value = settings.borderSecondary;
+        if (settings.preset != null) colorPreset.value = settings.preset;
+        if (settings.mainSexColor != null) mainSexColorToggle.checked = !!settings.mainSexColor;
+        if (settings.main) mainBoxColor.value = settings.main;
+        if (settings.male) maleBoxColor.value = settings.male;
+        if (settings.female) femaleBoxColor.value = settings.female;
+        if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
+        if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
+        if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
+        if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
+        if (settings.fontColor) fontColor.value = settings.fontColor;
+        if (settings.layout) layoutOrientation.value = settings.layout;
+        if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
+        if (settings.boxHeight != null) boxHeightInput.value = settings.boxHeight;
+        if (settings.nameFont != null) boxNameFontSizeInput.value = settings.nameFont;
+        if (settings.bodyFont != null) boxBodyFontSizeInput.value = settings.bodyFont;
+        if (settings.lineStyle) lineStyleInput.value = settings.lineStyle;
+        if (settings.lineColor) lineColorInput.value = settings.lineColor;
+        if (settings.lineThickness != null) lineThicknessInput.value = settings.lineThickness;
+        if (settings.watermarkEnabled != null) toggleWatermark.checked = !!settings.watermarkEnabled;
+        if (settings.watermarkOpacity != null) watermarkOpacity.value = settings.watermarkOpacity;
+        if (settings.watermarkSize != null) watermarkSize.value = settings.watermarkSize;
+        if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
+
+        if (settings.fontFamily) applyFont(settings.fontFamily, false);
+        if (shouldRender) render(false);
+      }
+
+      function getSavedSettingsFromUrl() {
+        const raw = getRawParam("saved");
+        if (!raw) return null;
+
+        try {
+          return JSON.parse(decodeParam(raw));
+        } catch (err) {
+          return null;
+        }
+      }
+
+      async function saveSettingsToShowTails() {
+        const settings = getCurrentSettings();
+        const email = getParam("email").trim();
+
+        if (!email) {
+          saveStatus.textContent = "Unable to save: missing email address.";
+          return;
+        }
+
+        saveStatus.textContent = "Saving settings...";
+        saveBtn.disabled = true;
+
+        try {
+          const response = await fetch(SAVE_SETTINGS_WEBHOOK, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              savedPedigreeSettings: JSON.stringify(settings)
+            })
+          });
+
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+          saveStatus.textContent = "Settings saved.";
+
+          try {
+            const url = new URL(window.location.href);
+            url.searchParams.set("saved", JSON.stringify(settings));
+            window.history.replaceState({}, "", url.toString());
+          } catch (err) {}
+        } catch (error) {
+          saveStatus.textContent = "Could not save settings.";
+        } finally {
+          saveBtn.disabled = false;
+        }
       }
 
       function getMainRabbitSex() {
@@ -1605,6 +1622,40 @@
         initializedView = true;
       }
 
+      function stopMomentum() {
+        if (pointerState.raf) {
+          cancelAnimationFrame(pointerState.raf);
+          pointerState.raf = 0;
+        }
+      }
+
+      function startMomentum() {
+        stopMomentum();
+
+        const friction = 0.92;
+        const minVelocity = 0.08;
+
+        function step() {
+          pointerState.velocityX *= friction;
+          pointerState.velocityY *= friction;
+
+          if (Math.abs(pointerState.velocityX) < minVelocity && Math.abs(pointerState.velocityY) < minVelocity) {
+            pointerState.raf = 0;
+            return;
+          }
+
+          viewState.x += pointerState.velocityX * 16;
+          viewState.y += pointerState.velocityY * 16;
+          applyViewportTransform();
+
+          pointerState.raf = requestAnimationFrame(step);
+        }
+
+        if (Math.abs(pointerState.velocityX) >= minVelocity || Math.abs(pointerState.velocityY) >= minVelocity) {
+          pointerState.raf = requestAnimationFrame(step);
+        }
+      }
+
       function getDistance(p1, p2) {
         return Math.hypot(p2.x - p1.x, p2.y - p1.y);
       }
@@ -1624,16 +1675,19 @@
         pointerState.pinchStartMid = null;
         pointerState.pinchStartX = viewState.x;
         pointerState.pinchStartY = viewState.y;
+        pointerState.lastMoveTime = 0;
       }
 
       function wirePanZoom() {
         container.addEventListener("wheel", (e) => {
           e.preventDefault();
+          stopMomentum();
           const factor = e.deltaY > 0 ? 0.9 : 1.1;
           zoomAtClientPoint(e.clientX, e.clientY, viewState.scale * factor);
         }, { passive: false });
 
         svg.addEventListener("pointerdown", (e) => {
+          stopMomentum();
           svg.setPointerCapture?.(e.pointerId);
           pointerState.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
@@ -1642,6 +1696,9 @@
             pointerState.isPanning = true;
             pointerState.lastX = e.clientX;
             pointerState.lastY = e.clientY;
+            pointerState.velocityX = 0;
+            pointerState.velocityY = 0;
+            pointerState.lastMoveTime = performance.now();
           }
 
           if (pointerState.pointers.size === 2) {
@@ -1653,6 +1710,8 @@
             pointerState.pinchStartMid = getMidpoint(pts[0], pts[1]);
             pointerState.pinchStartX = viewState.x;
             pointerState.pinchStartY = viewState.y;
+            pointerState.velocityX = 0;
+            pointerState.velocityY = 0;
           }
         });
 
@@ -1661,13 +1720,20 @@
           pointerState.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
           if (pointerState.pointers.size === 1 && pointerState.isPanning && pointerState.panPointerId === e.pointerId) {
+            const now = performance.now();
+            const dt = Math.max(1, now - pointerState.lastMoveTime);
             const dx = e.clientX - pointerState.lastX;
             const dy = e.clientY - pointerState.lastY;
+
             viewState.x += dx;
             viewState.y += dy;
+            applyViewportTransform();
+
+            pointerState.velocityX = dx / dt;
+            pointerState.velocityY = dy / dt;
             pointerState.lastX = e.clientX;
             pointerState.lastY = e.clientY;
-            applyViewportTransform();
+            pointerState.lastMoveTime = now;
             return;
           }
 
@@ -1695,6 +1761,9 @@
           pointerState.pointers.delete(e.pointerId);
 
           if (pointerState.pointers.size === 0) {
+            if (pointerState.isPanning) {
+              startMomentum();
+            }
             resetPointerGestureState();
           } else if (pointerState.pointers.size === 1) {
             const [id, pt] = Array.from(pointerState.pointers.entries())[0];
@@ -1702,6 +1771,7 @@
             pointerState.isPanning = true;
             pointerState.lastX = pt.x;
             pointerState.lastY = pt.y;
+            pointerState.lastMoveTime = performance.now();
             pointerState.pinchStartDistance = 0;
             pointerState.pinchStartMid = null;
           }
@@ -1709,121 +1779,6 @@
 
         svg.addEventListener("pointerup", endPointer);
         svg.addEventListener("pointercancel", endPointer);
-      }
-
-      function getCurrentSettings() {
-        return {
-          borderStyle: borderStyleInput.value,
-          borderColorPreset: borderColorPreset.value,
-          borderPrimary: borderPrimaryColor.value,
-          borderSecondary: borderSecondaryColor.value,
-          preset: colorPreset.value,
-          mainSexColor: mainSexColorToggle.checked,
-          main: mainBoxColor.value,
-          male: maleBoxColor.value,
-          female: femaleBoxColor.value,
-          showDob: toggleShowDob.checked,
-          showEarl: toggleShowEarl.checked,
-          showCustom: toggleShowCustom.checked,
-          showWins: toggleShowWins.checked,
-          fontColor: fontColor.value,
-          fontFamily: getCurrentFont(),
-          layout: layoutOrientation.value,
-          boxWidth: Number(boxWidthInput.value),
-          boxHeight: Number(boxHeightInput.value),
-          nameFont: Number(boxNameFontSizeInput.value),
-          bodyFont: Number(boxBodyFontSizeInput.value),
-          lineStyle: lineStyleInput.value,
-          lineColor: lineColorInput.value,
-          lineThickness: Number(lineThicknessInput.value),
-          watermarkEnabled: toggleWatermark.checked,
-          watermarkOpacity: Number(watermarkOpacity.value),
-          watermarkSize: Number(watermarkSize.value),
-          rabbitPhotoEnabled: toggleRabbitPhoto.checked
-        };
-      }
-
-      function applySettings(settings, shouldRender = true) {
-        if (!settings || typeof settings !== "object") return;
-
-        if (settings.borderStyle) borderStyleInput.value = settings.borderStyle;
-        if (settings.borderColorPreset != null) borderColorPreset.value = settings.borderColorPreset;
-        if (settings.borderPrimary) borderPrimaryColor.value = settings.borderPrimary;
-        if (settings.borderSecondary) borderSecondaryColor.value = settings.borderSecondary;
-        if (settings.preset != null) colorPreset.value = settings.preset;
-        if (settings.mainSexColor != null) mainSexColorToggle.checked = !!settings.mainSexColor;
-        if (settings.main) mainBoxColor.value = settings.main;
-        if (settings.male) maleBoxColor.value = settings.male;
-        if (settings.female) femaleBoxColor.value = settings.female;
-        if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
-        if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
-        if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
-        if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
-        if (settings.fontColor) fontColor.value = settings.fontColor;
-        if (settings.layout) layoutOrientation.value = settings.layout;
-        if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
-        if (settings.boxHeight != null) boxHeightInput.value = settings.boxHeight;
-        if (settings.nameFont != null) boxNameFontSizeInput.value = settings.nameFont;
-        if (settings.bodyFont != null) boxBodyFontSizeInput.value = settings.bodyFont;
-        if (settings.lineStyle) lineStyleInput.value = settings.lineStyle;
-        if (settings.lineColor) lineColorInput.value = settings.lineColor;
-        if (settings.lineThickness != null) lineThicknessInput.value = settings.lineThickness;
-        if (settings.watermarkEnabled != null) toggleWatermark.checked = !!settings.watermarkEnabled;
-        if (settings.watermarkOpacity != null) watermarkOpacity.value = settings.watermarkOpacity;
-        if (settings.watermarkSize != null) watermarkSize.value = settings.watermarkSize;
-        if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
-
-        if (settings.fontFamily) applyFont(settings.fontFamily, false);
-        if (shouldRender) render(false);
-      }
-
-      function getSavedSettingsFromUrl() {
-        const raw = getRawParam("saved");
-        if (!raw) return null;
-
-        try {
-          return JSON.parse(decodeParam(raw));
-        } catch (err) {
-          return null;
-        }
-      }
-
-      async function saveSettingsToShowTails() {
-        const settings = getCurrentSettings();
-        const email = getParam("email").trim();
-
-        if (!email) {
-          saveStatus.textContent = "Unable to save: missing email address.";
-          return;
-        }
-
-        saveStatus.textContent = "Saving settings...";
-        saveBtn.disabled = true;
-
-        try {
-          const response = await fetch(SAVE_SETTINGS_WEBHOOK, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: email,
-              savedPedigreeSettings: JSON.stringify(settings)
-            })
-          });
-
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-          saveStatus.textContent = "Settings saved.";
-
-          try {
-            const url = new URL(window.location.href);
-            url.searchParams.set("saved", JSON.stringify(settings));
-            window.history.replaceState({}, "", url.toString());
-          } catch (err) {}
-        } catch (error) {
-          saveStatus.textContent = "Could not save settings.";
-        } finally {
-          saveBtn.disabled = false;
-        }
       }
 
       function render(keepZoom = true) {
@@ -1997,12 +1952,6 @@
 
           if (!initializedView) {
             initializeViewIfNeeded();
-          } else if (!keepZoom) {
-            suppressAutoFit = true;
-            fitToContainer();
-            requestAnimationFrame(() => {
-              suppressAutoFit = false;
-            });
           }
         });
       }
@@ -2391,7 +2340,7 @@
         toggleRabbitPhoto
       ].forEach(el => el.addEventListener("change", () => render(true)));
 
-      layoutOrientation.addEventListener("change", () => render(false));
+      layoutOrientation.addEventListener("change", () => render(true));
 
       [borderPrimaryColor, borderSecondaryColor].forEach(el => {
         el.addEventListener("input", () => {
@@ -2425,14 +2374,15 @@
         if (suppressAutoFit) return;
         if (!initializedView) return;
 
-        fitToContainer();
+        // Keep current zoom/pan on ordinary size changes.
+        applyViewportTransform();
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState !== "visible") return;
         if (!initializedView) return;
-        fitToContainer();
+        applyViewportTransform();
       });
 
       wirePanZoom();
