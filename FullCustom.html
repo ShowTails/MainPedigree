@@ -589,14 +589,13 @@
       let packedParams = null;
       let renderNonce = 0;
       let initializedView = false;
-      let suppressAutoFit = false;
 
       const viewState = {
         scale: 1,
         x: 0,
         y: 0,
-        minScale: 0.2,
-        maxScale: 12
+        minScale: 0.25,
+        maxScale: 10
       };
 
       const pointerState = {
@@ -698,878 +697,106 @@
         ["ddam","ddsire"],["ddam","dddam"]
       ];
 
-      function getCurrentFont() {
-        const active = Array.from(fontOptions).find(opt => opt.classList.contains("active"));
-        return active ? active.dataset.font : defaults.fontFamily;
+      function getSearchParams() {
+        let search = window.location.search || "";
+        while (search.startsWith("?")) search = search.slice(1);
+        return new URLSearchParams(search);
       }
 
-      function getFontLabel(fontValue) {
-        const option = Array.from(fontOptions).find(opt => opt.dataset.font === fontValue);
-        return option ? option.textContent.trim() : "Arial";
+      function refreshParams() {
+        params = getSearchParams();
       }
 
-      function setActiveFontOption(fontValue) {
-        fontOptions.forEach(opt => opt.classList.toggle("active", opt.dataset.font === fontValue));
+      function base64ToUtf8(str) {
+        return decodeURIComponent(
+          Array.from(atob(str))
+            .map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+            .join("")
+        );
       }
 
-      function applyFont(fontValue, shouldRender = true) {
-        selectedFontPreview.textContent = getFontLabel(fontValue);
-        selectedFontPreview.style.fontFamily = fontValue;
-        document.documentElement.style.setProperty("--menu-font", fontValue);
-        setActiveFontOption(fontValue);
-        if (shouldRender) render(true);
-      }
+      function loadPackedParams() {
+        const search = new URLSearchParams(window.location.search);
+        const packed = search.get("p");
 
-      function getCurrentSettings() {
-        return {
-          borderStyle: borderStyleInput.value,
-          borderColorPreset: borderColorPreset.value,
-          borderPrimary: borderPrimaryColor.value,
-          borderSecondary: borderSecondaryColor.value,
-          preset: colorPreset.value,
-          mainSexColor: mainSexColorToggle.checked,
-          main: mainBoxColor.value,
-          male: maleBoxColor.value,
-          female: femaleBoxColor.value,
-          showDob: toggleShowDob.checked,
-          showEarl: toggleShowEarl.checked,
-          showCustom: toggleShowCustom.checked,
-          showWins: toggleShowWins.checked,
-          fontColor: fontColor.value,
-          fontFamily: getCurrentFont(),
-          layout: layoutOrientation.value,
-          boxWidth: Number(boxWidthInput.value),
-          boxHeight: Number(boxHeightInput.value),
-          nameFont: Number(boxNameFontSizeInput.value),
-          bodyFont: Number(boxBodyFontSizeInput.value),
-          lineStyle: lineStyleInput.value,
-          lineColor: lineColorInput.value,
-          lineThickness: Number(lineThicknessInput.value),
-          watermarkEnabled: toggleWatermark.checked,
-          watermarkOpacity: Number(watermarkOpacity.value),
-          watermarkSize: Number(watermarkSize.value),
-          rabbitPhotoEnabled: toggleRabbitPhoto.checked
-        };
-      }
-
-      function applySettings(settings, shouldRender = true) {
-        if (!settings || typeof settings !== "object") return;
-
-        if (settings.borderStyle) borderStyleInput.value = settings.borderStyle;
-        if (settings.borderColorPreset != null) borderColorPreset.value = settings.borderColorPreset;
-        if (settings.borderPrimary) borderPrimaryColor.value = settings.borderPrimary;
-        if (settings.borderSecondary) borderSecondaryColor.value = settings.borderSecondary;
-        if (settings.preset != null) colorPreset.value = settings.preset;
-        if (settings.mainSexColor != null) mainSexColorToggle.checked = !!settings.mainSexColor;
-        if (settings.main) mainBoxColor.value = settings.main;
-        if (settings.male) maleBoxColor.value = settings.male;
-        if (settings.female) femaleBoxColor.value = settings.female;
-        if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
-        if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
-        if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
-        if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
-        if (settings.fontColor) fontColor.value = settings.fontColor;
-        if (settings.layout) layoutOrientation.value = settings.layout;
-        if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
-        if (settings.boxHeight != null) boxHeightInput.value = settings.boxHeight;
-        if (settings.nameFont != null) boxNameFontSizeInput.value = settings.nameFont;
-        if (settings.bodyFont != null) boxBodyFontSizeInput.value = settings.bodyFont;
-        if (settings.lineStyle) lineStyleInput.value = settings.lineStyle;
-        if (settings.lineColor) lineColorInput.value = settings.lineColor;
-        if (settings.lineThickness != null) lineThicknessInput.value = settings.lineThickness;
-        if (settings.watermarkEnabled != null) toggleWatermark.checked = !!settings.watermarkEnabled;
-        if (settings.watermarkOpacity != null) watermarkOpacity.value = settings.watermarkOpacity;
-        if (settings.watermarkSize != null) watermarkSize.value = settings.watermarkSize;
-        if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
-
-        if (settings.fontFamily) applyFont(settings.fontFamily, false);
-        if (shouldRender) render(false);
-      }
-
-      function getSavedSettingsFromUrl() {
-        const raw = getRawParam("saved");
-        if (!raw) return null;
-
-        try {
-          return JSON.parse(decodeParam(raw));
-        } catch (err) {
-          return null;
-        }
-      }
-
-      async function saveSettingsToShowTails() {
-        const settings = getCurrentSettings();
-        const email = getParam("email").trim();
-
-        if (!email) {
-          saveStatus.textContent = "Unable to save: missing email address.";
+        if (!packed) {
+          packedParams = null;
           return;
         }
 
-        saveStatus.textContent = "Saving settings...";
-        saveBtn.disabled = true;
-
         try {
-          const response = await fetch(SAVE_SETTINGS_WEBHOOK, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: email,
-              savedPedigreeSettings: JSON.stringify(settings)
-            })
-          });
-
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-          saveStatus.textContent = "Settings saved.";
-
-          try {
-            const url = new URL(window.location.href);
-            url.searchParams.set("saved", JSON.stringify(settings));
-            window.history.replaceState({}, "", url.toString());
-          } catch (err) {}
-        } catch (error) {
-          saveStatus.textContent = "Could not save settings.";
-        } finally {
-          saveBtn.disabled = false;
+          packedParams = JSON.parse(base64ToUtf8(decodeURIComponent(packed)));
+        } catch (err) {
+          console.error("Failed to decode packed pedigree data:", err);
+          packedParams = null;
         }
       }
 
-      function getMainRabbitSex() {
-        const sex = getParam("sex").trim().toLowerCase();
-        if (sex.startsWith("m") || sex === "buck") return "male";
-        if (sex.startsWith("f") || sex === "doe") return "female";
-        return "main";
-      }
-
-      function getBoxFill(sexType) {
-        if (sexType === "main") {
-          if (mainSexColorToggle.checked) {
-            const mainSex = getMainRabbitSex();
-            if (mainSex === "male") return maleBoxColor.value;
-            if (mainSex === "female") return femaleBoxColor.value;
-          }
-          return mainBoxColor.value;
+      function getRawParam(name) {
+        if (packedParams && Object.prototype.hasOwnProperty.call(packedParams, name)) {
+          return packedParams[name] || "";
         }
-        return sexType === "male" ? maleBoxColor.value : femaleBoxColor.value;
+        return params.get(name) || "";
       }
 
-      function getCanvas() {
-        return layoutOrientation.value === "portrait"
-          ? { width: 1275, height: 1650 }
-          : { width: 1650, height: 1275 };
+      function decodeParam(raw) {
+        const urlDecoded = decodeURIComponent(String(raw).replace(/\+/g, " "));
+        const ta = document.createElement("textarea");
+        ta.innerHTML = urlDecoded;
+        return ta.value;
       }
 
-      function getPrintTuning() {
-        return layoutOrientation.value === "portrait"
-          ? PRINT_TUNING.portrait
-          : PRINT_TUNING.landscape;
+      function getParam(name) {
+        return decodeParam(getRawParam(name));
       }
 
-      function getLayoutMeta() {
-        const canvas = getCanvas();
-        const t = getPrintTuning();
-        const M = t.borderMargin;
+      function getUrlParam(name) {
+        const raw = getRawParam(name);
+        return raw ? decodeURIComponent(raw) : "";
+      }
 
+      function getChain(keys) {
+        return keys.map(k => getParam(k)).filter(Boolean).join(" ");
+      }
+
+      function setPrintPage() {
         if (layoutOrientation.value === "portrait") {
-          return {
-            canvas,
-            border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
-            header: { x: t.headerX, y: t.headerY, logoSize: 116, textScale: 1.0, textGap: 22 },
-            tree: {
-              left: t.treeLeft,
-              top: t.treeTop,
-              right: canvas.width - t.treeRightInset,
-              bottom: t.treeBottom
-            },
-            footer: {
-              x: t.footerX,
-              y: t.footerY,
-              right: canvas.width - t.footerX,
-              taglineY: t.footerTaglineY
-            },
-            photoGap: 16,
-            photoSize: { w: 176, h: 142 }
-          };
+          printPageStyle.textContent = "@page { size: 8.5in 11in portrait; margin: 0; }";
+        } else {
+          printPageStyle.textContent = "@page { size: 11in 8.5in landscape; margin: 0; }";
         }
-
-        return {
-          canvas,
-          border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
-          header: { x: t.headerX, y: t.headerY, logoSize: 106, textScale: 1.0, textGap: 20 },
-          tree: {
-            left: t.treeLeft,
-            top: t.treeTop,
-            right: canvas.width - t.treeRightInset,
-            bottom: t.treeBottom
-          },
-          footer: {
-            x: t.footerX,
-            y: t.footerY,
-            right: canvas.width - t.footerX,
-            taglineY: t.footerTaglineY
-          },
-          photoGap: 14,
-          photoSize: { w: 184, h: 148 }
-        };
       }
 
-      function getPositions(boxW, boxH) {
-        const meta = getLayoutMeta();
-        const tree = meta.tree;
-        const isPortrait = layoutOrientation.value === "portrait";
-
-        const usableWidth = tree.right - tree.left;
-        const gapX = Math.max(isPortrait ? 4 : 8, (usableWidth - (boxW * 4)) / 3);
-
-        const x1 = tree.left;
-        const x2 = x1 + boxW + gapX;
-        const x3 = x2 + boxW + gapX;
-        const x4 = x3 + boxW + gapX;
-
-        const usableHeight = tree.bottom - tree.top;
-        const gap4 = Math.max(isPortrait ? 4 : 6, (usableHeight - (boxH * 8)) / 7);
-
-        const gen4 = [];
-        for (let i = 0; i < 8; i++) {
-          gen4.push(tree.top + i * (boxH + gap4));
-        }
-
-        const centerY = (boxTop) => boxTop + (boxH / 2);
-        const topFromCenter = (center) => center - (boxH / 2);
-
-        const ssireY = topFromCenter((centerY(gen4[0]) + centerY(gen4[1])) / 2);
-        const sdamY  = topFromCenter((centerY(gen4[2]) + centerY(gen4[3])) / 2);
-        const dsireY = topFromCenter((centerY(gen4[4]) + centerY(gen4[5])) / 2);
-        const ddamY  = topFromCenter((centerY(gen4[6]) + centerY(gen4[7])) / 2);
-
-        const sireY = topFromCenter((centerY(ssireY) + centerY(sdamY)) / 2);
-        const damY  = topFromCenter((centerY(dsireY) + centerY(ddamY)) / 2);
-        const mainY = topFromCenter((centerY(sireY) + centerY(damY)) / 2);
-
-        return {
-          main:   { x: x1, y: mainY },
-          sire:   { x: x2, y: sireY },
-          dam:    { x: x2, y: damY },
-          ssire:  { x: x3, y: ssireY },
-          sdam:   { x: x3, y: sdamY },
-          dsire:  { x: x3, y: dsireY },
-          ddam:   { x: x3, y: ddamY },
-          sssire: { x: x4, y: gen4[0] },
-          ssdam:  { x: x4, y: gen4[1] },
-          sdsire: { x: x4, y: gen4[2] },
-          sddam:  { x: x4, y: gen4[3] },
-          dssire: { x: x4, y: gen4[4] },
-          dsdam:  { x: x4, y: gen4[5] },
-          ddsire: { x: x4, y: gen4[6] },
-          dddam:  { x: x4, y: gen4[7] }
-        };
-      }
-
-      function shouldShowField(label) {
-        if (label === "DOB") return toggleShowDob.checked;
-        if (label === "Ear Length") return toggleShowEarl.checked;
-        return true;
-      }
-
-      function buildBoxText(def) {
-        const lines = [];
-        lines.push({ text: getChain(def.titleChain), type: "title" });
-
-        def.fields.forEach(([label, key]) => {
-          if (!shouldShowField(label)) return;
-          lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
+      function makeEl(tag, attrs = {}) {
+        const el = document.createElementNS(svgNS, tag);
+        Object.entries(attrs).forEach(([k, v]) => {
+          if (k === "href") {
+            el.setAttributeNS(xlinkNS, "xlink:href", v);
+            el.setAttribute("href", v);
+          } else {
+            el.setAttribute(k, v);
+          }
         });
-
-        if (toggleShowCustom.checked) {
-          def.extra.forEach(key => {
-            const raw = getParam(key);
-            if (!raw) return;
-            raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
-              if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
-            });
-          });
-        }
-
-        return lines;
+        return el;
       }
 
-      function getLineRenderMetrics(line) {
-        const bodySize = Number(boxBodyFontSizeInput.value);
-        const nameSize = Number(boxNameFontSizeInput.value);
-
-        if (line.type === "title") {
-          return {
-            fontSize: nameSize,
-            lineHeight: Math.max(nameSize, bodySize + 1),
-            weight: "700"
-          };
-        }
-
-        return {
-          fontSize: bodySize,
-          lineHeight: Math.max(bodySize, 10),
-          weight: "400"
-        };
-      }
-
-      function fitTextLinesToBox(lines, boxH) {
-        const topPadMin = 8;
-        const bottomPadMin = 8;
-        const usableH = boxH - topPadMin - bottomPadMin;
-
-        let used = 0;
-        const visible = [];
-
-        for (const line of lines) {
-          const metrics = getLineRenderMetrics(line);
-          if (used + metrics.lineHeight > usableH) break;
-          visible.push({ ...line, metrics });
-          used += metrics.lineHeight;
-        }
-
-        const startY = Math.max(topPadMin, (boxH - used) / 2);
-        return { visible, startY };
-      }
-
-      function drawWins(group, def, x, y, boxW, boxH) {
-        if (!toggleShowWins.checked) return;
-        if (def.gen >= 4 || !def.wins) return;
-
-        const raw = getParam(def.wins);
-        if (!raw) return;
-
-        const lines = raw.replace(/\\n/g, "\n").split("\n").filter(Boolean);
-        if (!lines.length) return;
-
-        const size = Math.max(10, Number(boxBodyFontSizeInput.value));
-        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 16 });
-        textEl.style.fontFamily = getCurrentFont();
-        textEl.style.fill = fontColor.value;
-        textEl.style.fontSize = size + "px";
-
-        lines.slice(0, 3).forEach((line, i) => {
-          const ts = makeEl("tspan", {
-            x: x + 6,
-            dy: i === 0 ? 0 : size + 2
-          });
-          ts.textContent = line;
-          textEl.appendChild(ts);
-        });
-
-        group.appendChild(textEl);
-      }
-
-      function drawBox(group, winsLayer, def, x, y, boxW, boxH) {
-        const fill = getBoxFill(def.sexType);
-
-        group.appendChild(makeEl("rect", {
-          x, y, width: boxW, height: boxH, rx: 8, ry: 8,
-          fill, stroke: "#000000", "stroke-width": 1.1
-        }));
-
-        const textLines = buildBoxText(def);
-        const fitted = fitTextLinesToBox(textLines, boxH);
-        const padX = 8;
-
-        const t = makeEl("text", {
-          x: x + padX,
-          y: y + fitted.startY
-        });
-
+      function addText(group, x, y, text, opts = {}) {
+        const t = makeEl("text", { x, y, "text-anchor": opts.anchor || "start" });
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
-        t.setAttribute("dominant-baseline", "hanging");
-
-        let currentY = y + fitted.startY;
-
-        fitted.visible.forEach((line) => {
-          const ts = makeEl("tspan", {
-            x: x + padX,
-            y: currentY
-          });
-          ts.textContent = line.text;
-          ts.style.fontSize = line.metrics.fontSize + "px";
-          ts.style.fontWeight = line.metrics.weight;
-          ts.setAttribute("dominant-baseline", "hanging");
-          t.appendChild(ts);
-
-          currentY += line.metrics.lineHeight;
-        });
-
+        t.style.fontSize = (opts.size || 14) + "px";
+        if (opts.weight) t.style.fontWeight = opts.weight;
+        t.textContent = text || "";
         group.appendChild(t);
-        drawWins(winsLayer, def, x, y, boxW, boxH);
+        return t;
       }
 
-      function drawLine(group, childPos, parentPos, boxW, boxH) {
-        const stroke = lineColorInput.value;
-        const sw = lineThicknessInput.value;
-        const style = lineStyleInput.value;
-
-        const p1 = { x: childPos.x + boxW, y: childPos.y + boxH / 2 };
-        const p2 = { x: parentPos.x, y: parentPos.y + boxH / 2 };
-
-        if (style === "diagonal") {
-          group.appendChild(makeEl("line", {
-            x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
-            stroke, "stroke-width": sw
-          }));
-        } else {
-          const midX = (p1.x + p2.x) / 2;
-          group.appendChild(makeEl("path", {
-            d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
-            fill: "none", stroke, "stroke-width": sw
-          }));
-        }
+      function clearViewport() {
+        while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
       }
 
-      function addCircle(group, cx, cy, r, fill, stroke, sw) {
-        group.appendChild(makeEl("circle", {
-          cx, cy, r, fill, stroke, "stroke-width": sw
-        }));
-      }
-
-      function addDiamond(group, cx, cy, w, h, fill, stroke, sw) {
-        group.appendChild(makeEl("polygon", {
-          points: `${cx},${cy-h/2} ${cx+w/2},${cy} ${cx},${cy+h/2} ${cx-w/2},${cy}`,
-          fill, stroke, "stroke-width": sw
-        }));
-      }
-
-      function addLine(group, x1, y1, x2, y2, stroke, sw) {
-        group.appendChild(makeEl("line", { x1, y1, x2, y2, stroke, "stroke-width": sw }));
-      }
-
-      function addRect(group, x, y, width, height, stroke, sw, fill = "none", rx = 0, ry = 0) {
-        group.appendChild(makeEl("rect", {
-          x, y, width, height, fill, stroke, "stroke-width": sw, rx, ry
-        }));
-      }
-
-      function addPath(group, d, stroke, sw, fill = "none") {
-        group.appendChild(makeEl("path", { d, fill, stroke, "stroke-width": sw }));
-      }
-
-      function addPolyline(group, points, stroke, sw, fill = "none") {
-        group.appendChild(makeEl("polyline", {
-          points,
-          fill,
-          stroke,
-          "stroke-width": sw
-        }));
-      }
-
-      function drawCornerFlourish(group, x, y, primary, secondary, corner) {
-        let sx = 1, sy = 1;
-        if (corner === "tr") sx = -1;
-        if (corner === "bl") sy = -1;
-        if (corner === "br") { sx = -1; sy = -1; }
-
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
-
-        addPath(g, `M 0 0 C 24 0, 42 2, 58 10 C 84 22, 98 40, 102 66 C 88 62, 75 58, 64 48 C 54 40, 46 28, 42 16 C 35 36, 22 54, 0 72`, primary, 3, "none");
-        addPath(g, `M 14 14 C 30 12, 44 16, 58 24 C 72 32, 80 42, 82 58 C 72 52, 62 48, 54 40 C 44 31, 36 22, 32 14`, secondary, 2, "none");
-
-        addCircle(g, 22, 22, 4.5, secondary, primary, 1.5);
-        addCircle(g, 58, 24, 3.6, secondary, primary, 1.2);
-        addCircle(g, 80, 58, 3.6, secondary, primary, 1.2);
-
-        group.appendChild(g);
-      }
-
-      function drawMedallion(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 16; i++) {
-          const a = (Math.PI * 2 * i) / 16;
-          const px = cx + Math.cos(a) * (r * 1.15);
-          const py = cy + Math.sin(a) * (r * 1.15);
-          addCircle(group, px, py, r * 0.18, secondary, primary, 1);
-        }
-        addCircle(group, cx, cy, r, "none", primary, 2.2);
-        addCircle(group, cx, cy, r * 0.73, secondary, primary, 1.8);
-        addDiamond(group, cx, cy, r * 0.78, r * 0.78, "none", primary, 1.2);
-        addCircle(group, cx, cy, r * 0.12, primary, primary, 1);
-      }
-
-      function drawRibbonCrest(group, cx, y, width, height, primary, secondary) {
-        const left = cx - width / 2;
-        const right = cx + width / 2;
-        const midY = y + height / 2;
-
-        group.appendChild(makeEl("path", {
-          d: `M ${left+18} ${y} L ${right-18} ${y} Q ${right} ${y} ${right} ${y+18} L ${right} ${y+height-18} Q ${right} ${y+height} ${right-18} ${y+height} L ${left+18} ${y+height} Q ${left} ${y+height} ${left} ${y+height-18} L ${left} ${y+18} Q ${left} ${y} ${left+18} ${y} Z`,
-          fill: secondary,
-          stroke: primary,
-          "stroke-width": 3
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${left} ${midY} ${left-34} ${y+8} ${left-34} ${y+height-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 3
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${right} ${midY} ${right+34} ${y+8} ${right+34} ${y+height-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 3
-        }));
-
-        addLine(group, left + 18, midY, right - 18, midY, primary, 1.5);
-        drawMedallion(group, cx, midY, 12, primary, secondary);
-      }
-
-      function drawLaurelSprig(group, x, y, primary, secondary, flipX = 1) {
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
-        addPath(g, `M 0 52 C 18 40, 28 26, 42 0`, primary, 2.2);
-
-        [[10, 42, 12, -20],[18, 34, 12, -16],[26, 25, 11, -12],[34, 15, 10, -8]].forEach(([lx, ly, s, rot]) => {
-          g.appendChild(makeEl("ellipse", {
-            cx: lx, cy: ly, rx: s, ry: s * 0.45,
-            fill: secondary, stroke: primary, "stroke-width": 1.5,
-            transform: `rotate(${rot} ${lx} ${ly})`
-          }));
-        });
-
-        group.appendChild(g);
-      }
-
-      function drawScallopBand(group, x, y, w, h, primary, secondary) {
-        const step = 28;
-        const r = 9;
-
-        for (let px = x + 34; px < x + w - 34; px += step) {
-          addCircle(group, px, y, r, "#fff", secondary, 1.8);
-          addCircle(group, px, y + h, r, "#fff", secondary, 1.8);
-        }
-
-        for (let py = y + 34; py < y + h - 34; py += step) {
-          addCircle(group, x, py, r, "#fff", secondary, 1.8);
-          addCircle(group, x + w, py, r, "#fff", secondary, 1.8);
-        }
-
-        addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 2.2);
-      }
-
-      function drawRosette(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 12; i++) {
-          const a = (Math.PI * 2 * i) / 12;
-          const px = cx + Math.cos(a) * (r * 1.1);
-          const py = cy + Math.sin(a) * (r * 1.1);
-          addCircle(group, px, py, r * 0.34, secondary, primary, 1);
-        }
-        addCircle(group, cx, cy, r * 0.65, secondary, primary, 2);
-      }
-
-      function drawLeaf(group, x, y, scale, primary, secondary, flipX = 1) {
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
-        g.appendChild(makeEl("path", {
-          d: `M 0 0 C 18 -16, 36 -16, 48 0 C 36 16, 18 16, 0 0 Z`,
-          fill: secondary, stroke: primary, "stroke-width": 2,
-          transform: `scale(${scale})`
-        }));
-        g.appendChild(makeEl("path", {
-          d: `M 4 0 L 44 0`,
-          fill: "none", stroke: primary, "stroke-width": 1.6,
-          transform: `scale(${scale})`
-        }));
-        group.appendChild(g);
-      }
-
-      function drawBeadLine(group, x1, y1, x2, y2, count, r, fill, stroke, sw) {
-        for (let i = 0; i <= count; i++) {
-          const t = i / count;
-          const cx = x1 + (x2 - x1) * t;
-          const cy = y1 + (y2 - y1) * t;
-          addCircle(group, cx, cy, r, fill, stroke, sw);
-        }
-      }
-
-      function drawCornerShell(group, x, y, primary, secondary, corner) {
-        let sx = 1, sy = 1;
-        if (corner === "tr") sx = -1;
-        if (corner === "bl") sy = -1;
-        if (corner === "br") { sx = -1; sy = -1; }
-
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
-
-        addPath(g, `M 0 0 Q 18 0 32 10 Q 48 22 58 40 Q 66 54 70 74`, primary, 3);
-        addPath(g, `M 8 8 Q 22 8 34 16 Q 46 26 54 40 Q 58 48 61 60`, secondary, 2);
-        addPath(g, `M 14 18 Q 24 18 33 24 Q 42 31 48 42`, secondary, 1.5);
-        addCircle(g, 18, 18, 3.5, secondary, primary, 1.1);
-        addCircle(g, 34, 26, 3, secondary, primary, 1);
-        addCircle(g, 48, 42, 2.8, secondary, primary, 1);
-
-        group.appendChild(g);
-      }
-
-      function drawFretBand(group, x, y, w, h, primary, secondary) {
-        const step = 44;
-
-        for (let px = x + 24; px < x + w - 24; px += step) {
-          addPolyline(group, `${px} ${y} ${px+10} ${y} ${px+10} ${y+10} ${px+22} ${y+10} ${px+22} ${y} ${px+32} ${y}`, primary, 2);
-          addPolyline(group, `${px} ${y+h} ${px+10} ${y+h} ${px+10} ${y+h-10} ${px+22} ${y+h-10} ${px+22} ${y+h} ${px+32} ${y+h}`, primary, 2);
-        }
-
-        for (let py = y + 24; py < y + h - 24; py += step) {
-          addPolyline(group, `${x} ${py} ${x} ${py+10} ${x+10} ${py+10} ${x+10} ${py+22} ${x} ${py+22} ${x} ${py+32}`, primary, 2);
-          addPolyline(group, `${x+w} ${py} ${x+w} ${py+10} ${x+w-10} ${py+10} ${x+w-10} ${py+22} ${x+w} ${py+22} ${x+w} ${py+32}`, primary, 2);
-        }
-
-        addRect(group, x + 10, y + 10, w - 20, h - 20, secondary, 1.7);
-      }
-
-      function drawSideVine(group, x, y1, y2, primary, secondary, flipX = 1) {
-        const g = makeEl("g", { transform: `translate(${x},0) scale(${flipX},1)` });
-
-        addPath(g, `M 0 ${y1} C 18 ${y1+30}, 18 ${y1+70}, 0 ${y1+100}
-                       C -18 ${y1+130}, -18 ${y1+170}, 0 ${y1+200}
-                       C 18 ${y1+230}, 18 ${y2-30}, 0 ${y2}`, primary, 2.4);
-
-        for (let py = y1 + 28; py < y2 - 20; py += 42) {
-          g.appendChild(makeEl("ellipse", {
-            cx: 12, cy: py, rx: 12, ry: 5.5,
-            fill: secondary, stroke: primary, "stroke-width": 1.4,
-            transform: `rotate(-28 12 ${py})`
-          }));
-          g.appendChild(makeEl("ellipse", {
-            cx: -12, cy: py + 16, rx: 12, ry: 5.5,
-            fill: secondary, stroke: primary, "stroke-width": 1.4,
-            transform: `rotate(28 -12 ${py + 16})`
-          }));
-          addCircle(g, 0, py + 8, 2.6, secondary, primary, 1);
-        }
-
-        group.appendChild(g);
-      }
-
-      function drawBannerPlate(group, cx, y, w, h, primary, secondary) {
-        const x = cx - w / 2;
-        const midY = y + h / 2;
-
-        group.appendChild(makeEl("path", {
-          d: `M ${x+20} ${y} L ${x+w-20} ${y} Q ${x+w} ${y} ${x+w} ${y+18}
-              L ${x+w} ${y+h-18} Q ${x+w} ${y+h} ${x+w-20} ${y+h}
-              L ${x+20} ${y+h} Q ${x} ${y+h} ${x} ${y+h-18}
-              L ${x} ${y+18} Q ${x} ${y} ${x+20} ${y} Z`,
-          fill: "#ffffff",
-          stroke: primary,
-          "stroke-width": 3
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${x} ${midY} ${x-28} ${y+8} ${x-28} ${y+h-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 2.4
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${x+w} ${midY} ${x+w+28} ${y+8} ${x+w+28} ${y+h-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 2.4
-        }));
-
-        addLine(group, x + 18, midY, x + w - 18, midY, secondary, 1.5);
-        addDiamond(group, cx, midY, 18, 18, secondary, primary, 1.3);
-      }
-
-      function drawPetalMedallion(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 8; i++) {
-          const a = (Math.PI * 2 * i) / 8;
-          const px = cx + Math.cos(a) * (r * 0.82);
-          const py = cy + Math.sin(a) * (r * 0.82);
-          group.appendChild(makeEl("ellipse", {
-            cx: px, cy: py, rx: r * 0.34, ry: r * 0.18,
-            fill: secondary, stroke: primary, "stroke-width": 1.2,
-            transform: `rotate(${(a * 180 / Math.PI)} ${px} ${py})`
-          }));
-        }
-        addCircle(group, cx, cy, r * 0.48, "#ffffff", primary, 1.8);
-        addCircle(group, cx, cy, r * 0.15, primary, primary, 1);
-      }
-
-      function drawBracketCorners(group, x, y, w, h, primary, secondary) {
-        const s = 32;
-
-        [
-          [x, y, 1, 1],
-          [x+w, y, -1, 1],
-          [x, y+h, 1, -1],
-          [x+w, y+h, -1, -1]
-        ].forEach(([cx, cy, sx, sy]) => {
-          const g = makeEl("g", { transform: `translate(${cx},${cy}) scale(${sx},${sy})` });
-          addLine(g, 0, 0, s, 0, primary, 3);
-          addLine(g, 0, 0, 0, s, primary, 3);
-          addLine(g, 12, 12, s - 4, 12, secondary, 1.5);
-          addLine(g, 12, 12, 12, s - 4, secondary, 1.5);
-          group.appendChild(g);
-        });
-      }
-
-      function drawSunburst(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 20; i++) {
-          const a = (Math.PI * 2 * i) / 20;
-          const x1 = cx + Math.cos(a) * (r * 0.95);
-          const y1 = cy + Math.sin(a) * (r * 0.95);
-          const x2 = cx + Math.cos(a) * (r * 1.45);
-          const y2 = cy + Math.sin(a) * (r * 1.45);
-          addLine(group, x1, y1, x2, y2, secondary, 1.2);
-        }
-        addCircle(group, cx, cy, r, "#ffffff", primary, 2.3);
-        addDiamond(group, cx, cy, r * 0.8, r * 0.8, secondary, primary, 1.2);
-        addCircle(group, cx, cy, r * 0.16, primary, primary, 1);
-      }
-
-      function drawNotchTicks(group, x, y, w, h, primary) {
-        const step = 36;
-
-        for (let px = x + 22; px < x + w - 22; px += step) {
-          addLine(group, px, y, px + 10, y + 10, primary, 1.2);
-          addLine(group, px, y + h, px + 10, y + h - 10, primary, 1.2);
-        }
-
-        for (let py = y + 22; py < y + h - 22; py += step) {
-          addLine(group, x, py, x + 10, py + 10, primary, 1.2);
-          addLine(group, x + w, py, x + w - 10, py + 10, primary, 1.2);
-        }
-      }
-
-      function drawBorder(group, meta) {
-        const style = borderStyleInput.value;
-        const primary = borderPrimaryColor.value;
-        const secondary = borderSecondaryColor.value;
-        const b = meta.border;
-        const x = b.x;
-        const y = b.y;
-        const w = b.w;
-        const h = b.h;
-        const cx = x + w / 2;
-        const cy = y + h / 2;
-
-        group.appendChild(makeEl("rect", {
-          x: 0, y: 0, width: meta.canvas.width, height: meta.canvas.height, fill: "#ffffff"
-        }));
-
-        switch (style) {
-          case "classicDouble":
-            addRect(group, x, y, w, h, primary, 8);
-            addRect(group, x + 14, y + 14, w - 28, h - 28, secondary, 3);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, primary, 1.8);
-            addRect(group, x + 42, y + 42, w - 84, h - 84, secondary, 1.1);
-            drawBeadLine(group, x + 70, y + 20, x + w - 70, y + 20, 26, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + 70, y + h - 20, x + w - 70, y + h - 20, 26, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + 20, y + 70, x + 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + w - 20, y + 70, x + w - 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
-            drawPetalMedallion(group, x + 54, y + 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + 54, y + h - 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + h - 54, 15, primary, secondary);
-            break;
-
-          case "elegantCorners":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
-            addRect(group, x + 44, y + 44, w - 88, h - 88, primary, 1.1);
-            drawCornerFlourish(group, x + 28, y + 28, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 28, y + 28, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 28, y + h - 28, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 28, y + h - 28, primary, secondary, "br");
-            drawCornerShell(group, x + 72, y + 72, primary, secondary, "tl");
-            drawCornerShell(group, x + w - 72, y + 72, primary, secondary, "tr");
-            drawCornerShell(group, x + 72, y + h - 72, primary, secondary, "bl");
-            drawCornerShell(group, x + w - 72, y + h - 72, primary, secondary, "br");
-            break;
-
-          case "ribbonFrame":
-            addRect(group, x + 16, y + 18, w - 32, h - 36, primary, 5.5);
-            addRect(group, x + 34, y + 36, w - 68, h - 72, secondary, 2.5);
-            addRect(group, x + 50, y + 52, w - 100, h - 104, primary, 1.2);
-            drawRibbonCrest(group, cx, y + 18, 270, 48, primary, secondary);
-            drawBannerPlate(group, cx, y + h - 64, 250, 42, primary, secondary);
-            drawPetalMedallion(group, x + 66, y + 44, 11, primary, secondary);
-            drawPetalMedallion(group, x + w - 66, y + 44, 11, primary, secondary);
-            break;
-
-          case "royalArch":
-            addRect(group, x + 18, y + 50, w - 36, h - 66, primary, 5);
-            addRect(group, x + 36, y + 68, w - 72, h - 102, secondary, 2.2);
-            addPath(group, `M ${x+120} ${y+50} Q ${cx} ${y-46} ${x+w-120} ${y+50}`, primary, 6);
-            addPath(group, `M ${x+158} ${y+66} Q ${cx} ${y+2} ${x+w-158} ${y+66}`, secondary, 2.6);
-            drawSunburst(group, cx, y + 28, 14, primary, secondary);
-            drawLaurelSprig(group, cx - 54, y + 42, primary, secondary, -1);
-            drawLaurelSprig(group, cx + 54, y + 42, primary, secondary, 1);
-            addLine(group, x + 70, y + 50, x + 70, y + h - 18, secondary, 1.2);
-            addLine(group, x + w - 70, y + 50, x + w - 70, y + h - 18, secondary, 1.2);
-            break;
-
-          case "modernGeo":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
-            addRect(group, x + 42, y + 42, w - 84, h - 84, primary, 1.2);
-            drawFretBand(group, x + 18, y + 18, w - 36, h - 36, primary, secondary);
-            drawBracketCorners(group, x + 24, y + 24, w - 48, h - 48, primary, secondary);
-            addDiamond(group, cx, y + 30, 18, 18, secondary, primary, 1.2);
-            addDiamond(group, cx, y + h - 30, 18, 18, secondary, primary, 1.2);
-            break;
-
-          case "scallop":
-            drawScallopBand(group, x + 14, y + 14, w - 28, h - 28, primary, secondary);
-            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1);
-            addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1);
-            drawBeadLine(group, x + 54, y + 54, x + w - 54, y + 54, 22, 2.2, secondary, primary, 0.8);
-            drawBeadLine(group, x + 54, y + h - 54, x + w - 54, y + h - 54, 22, 2.2, secondary, primary, 0.8);
-            drawPetalMedallion(group, x + 54, y + 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + 54, y + h - 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + h - 54, 10, primary, secondary);
-            break;
-
-          case "ornateLines":
-            addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
-            addRect(group, x + 32, y + 32, w - 64, h - 64, secondary, 1.8);
-            addRect(group, x + 46, y + 46, w - 92, h - 92, primary, 1);
-            drawCornerFlourish(group, x + 24, y + 24, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 24, y + 24, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 24, y + h - 24, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 24, y + h - 24, primary, secondary, "br");
-            addPath(group, `M ${x+120} ${y+26} C ${cx-180} ${y+34}, ${cx-80} ${y+8}, ${cx} ${y+26}
-                            C ${cx+80} ${y+44}, ${cx+180} ${y+18}, ${x+w-120} ${y+26}`, secondary, 2.2);
-            addPath(group, `M ${x+120} ${y+h-26} C ${cx-180} ${y+h-34}, ${cx-80} ${y+h-8}, ${cx} ${y+h-26}
-                            C ${cx+80} ${y+h-44}, ${cx+180} ${y+h-18}, ${x+w-120} ${y+h-26}`, secondary, 2.2);
-            break;
-
-          case "ticketEdge":
-            addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4.5, "none", 22, 22);
-            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1, "none", 14, 14);
-            addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1, "none", 8, 8);
-            drawBannerPlate(group, cx, y + 18, 240, 42, primary, secondary);
-            drawNotchTicks(group, x + 18, y + 18, w - 36, h - 36, secondary);
-            addDiamond(group, x + 52, cy, 16, 16, secondary, primary, 1.1);
-            addDiamond(group, x + w - 52, cy, 16, 16, secondary, primary, 1.1);
-            break;
-
-          case "floralLite":
-            addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
-            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
-            addRect(group, x + 50, y + 50, w - 100, h - 100, primary, 1.1);
-            drawSideVine(group, x + 28, y + 72, y + h - 72, primary, secondary, 1);
-            drawSideVine(group, x + w - 28, y + 72, y + h - 72, primary, secondary, -1);
-            drawLeaf(group, cx - 32, y + 34, 1.0, primary, secondary, 1);
-            drawLeaf(group, cx + 32, y + 34, 1.0, primary, secondary, -1);
-            drawPetalMedallion(group, cx, y + 34, 10, primary, secondary);
-            drawLeaf(group, cx - 32, y + h - 34, 1.0, primary, secondary, 1);
-            drawLeaf(group, cx + 32, y + h - 34, 1.0, primary, secondary, -1);
-            drawPetalMedallion(group, cx, y + h - 34, 10, primary, secondary);
-            break;
-
-          case "showFrame":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 7);
-            addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.8);
-            addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.2);
-            drawRibbonCrest(group, cx, y + 18, 250, 44, primary, secondary);
-            drawBannerPlate(group, cx, y + h - 60, 230, 40, primary, secondary);
-            drawRosette(group, x + 54, y + 54, 18, primary, secondary);
-            drawRosette(group, x + w - 54, y + 54, 18, primary, secondary);
-            drawRosette(group, x + 54, y + h - 54, 18, primary, secondary);
-            drawRosette(group, x + w - 54, y + h - 54, 18, primary, secondary);
-            drawSunburst(group, cx, y + 46, 11, primary, secondary);
-            break;
-        }
+      function validBox(vb) {
+        return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
       }
 
       function applyViewportTransform() {
@@ -1761,9 +988,7 @@
           pointerState.pointers.delete(e.pointerId);
 
           if (pointerState.pointers.size === 0) {
-            if (pointerState.isPanning) {
-              startMomentum();
-            }
+            if (pointerState.isPanning) startMomentum();
             resetPointerGestureState();
           } else if (pointerState.pointers.size === 1) {
             const [id, pt] = Array.from(pointerState.pointers.entries())[0];
@@ -1779,6 +1004,275 @@
 
         svg.addEventListener("pointerup", endPointer);
         svg.addEventListener("pointercancel", endPointer);
+      }
+
+      function getCanvas() {
+        return layoutOrientation.value === "portrait"
+          ? { width: 1275, height: 1650 }
+          : { width: 1650, height: 1275 };
+      }
+
+      function getPrintTuning() {
+        return layoutOrientation.value === "portrait"
+          ? PRINT_TUNING.portrait
+          : PRINT_TUNING.landscape;
+      }
+
+      function getLayoutMeta() {
+        const canvas = getCanvas();
+        const t = getPrintTuning();
+        const M = t.borderMargin;
+
+        if (layoutOrientation.value === "portrait") {
+          return {
+            canvas,
+            border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
+            header: { x: t.headerX, y: t.headerY, logoSize: 116, textScale: 1.0, textGap: 22 },
+            tree: {
+              left: t.treeLeft,
+              top: t.treeTop,
+              right: canvas.width - t.treeRightInset,
+              bottom: t.treeBottom
+            },
+            footer: {
+              x: t.footerX,
+              y: t.footerY,
+              right: canvas.width - t.footerX,
+              taglineY: t.footerTaglineY
+            },
+            photoGap: 16,
+            photoSize: { w: 176, h: 142 }
+          };
+        }
+
+        return {
+          canvas,
+          border: { x: M, y: M, w: canvas.width - (M * 2), h: canvas.height - (M * 2) },
+          header: { x: t.headerX, y: t.headerY, logoSize: 106, textScale: 1.0, textGap: 20 },
+          tree: {
+            left: t.treeLeft,
+            top: t.treeTop,
+            right: canvas.width - t.treeRightInset,
+            bottom: t.treeBottom
+          },
+          footer: {
+            x: t.footerX,
+            y: t.footerY,
+            right: canvas.width - t.footerX,
+            taglineY: t.footerTaglineY
+          },
+          photoGap: 14,
+          photoSize: { w: 184, h: 148 }
+        };
+      }
+
+      function shouldShowField(label) {
+        if (label === "DOB") return toggleShowDob.checked;
+        if (label === "Ear Length") return toggleShowEarl.checked;
+        return true;
+      }
+
+      function buildBoxText(def) {
+        const lines = [];
+        lines.push({ text: getChain(def.titleChain), type: "title" });
+
+        def.fields.forEach(([label, key]) => {
+          if (!shouldShowField(label)) return;
+          lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
+        });
+
+        if (toggleShowCustom.checked) {
+          def.extra.forEach(key => {
+            const raw = getParam(key);
+            if (!raw) return;
+            raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
+              if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
+            });
+          });
+        }
+
+        return lines;
+      }
+
+      function getLineRenderMetrics(line) {
+        const bodySize = Number(boxBodyFontSizeInput.value);
+        const nameSize = Number(boxNameFontSizeInput.value);
+
+        if (line.type === "title") {
+          return {
+            fontSize: nameSize,
+            lineHeight: Math.max(nameSize, bodySize + 1),
+            weight: "700"
+          };
+        }
+
+        return {
+          fontSize: bodySize,
+          lineHeight: Math.max(bodySize, 10),
+          weight: "400"
+        };
+      }
+
+      function fitTextLinesToBox(lines, boxH) {
+        const topPadMin = 8;
+        const bottomPadMin = 8;
+        const usableH = boxH - topPadMin - bottomPadMin;
+
+        let used = 0;
+        const visible = [];
+
+        for (const line of lines) {
+          const metrics = getLineRenderMetrics(line);
+          if (used + metrics.lineHeight > usableH) break;
+          visible.push({ ...line, metrics });
+          used += metrics.lineHeight;
+        }
+
+        const startY = Math.max(topPadMin, (boxH - used) / 2);
+        return { visible, startY };
+      }
+
+      function drawWins(group, def, x, y, boxW, boxH) {
+        if (!toggleShowWins.checked) return;
+        if (def.gen >= 4 || !def.wins) return;
+
+        const raw = getParam(def.wins);
+        if (!raw) return;
+
+        const lines = raw.replace(/\\n/g, "\n").split("\n").filter(Boolean);
+        if (!lines.length) return;
+
+        const size = Math.max(10, Number(boxBodyFontSizeInput.value));
+        const textEl = makeEl("text", { x: x + 6, y: y + boxH + 16 });
+        textEl.style.fontFamily = getCurrentFont();
+        textEl.style.fill = fontColor.value;
+        textEl.style.fontSize = size + "px";
+
+        lines.slice(0, 3).forEach((line, i) => {
+          const ts = makeEl("tspan", {
+            x: x + 6,
+            dy: i === 0 ? 0 : size + 2
+          });
+          ts.textContent = line;
+          textEl.appendChild(ts);
+        });
+
+        group.appendChild(textEl);
+      }
+
+      function drawBox(group, winsLayer, def, x, y, boxW, boxH) {
+        const fill = getBoxFill(def.sexType);
+
+        group.appendChild(makeEl("rect", {
+          x, y, width: boxW, height: boxH, rx: 8, ry: 8,
+          fill, stroke: "#000000", "stroke-width": 1.1
+        }));
+
+        const textLines = buildBoxText(def);
+        const fitted = fitTextLinesToBox(textLines, boxH);
+        const padX = 8;
+
+        const t = makeEl("text", {
+          x: x + padX,
+          y: y + fitted.startY
+        });
+
+        t.style.fontFamily = getCurrentFont();
+        t.style.fill = fontColor.value;
+        t.setAttribute("dominant-baseline", "hanging");
+
+        let currentY = y + fitted.startY;
+
+        fitted.visible.forEach((line) => {
+          const ts = makeEl("tspan", {
+            x: x + padX,
+            y: currentY
+          });
+          ts.textContent = line.text;
+          ts.style.fontSize = line.metrics.fontSize + "px";
+          ts.style.fontWeight = line.metrics.weight;
+          ts.setAttribute("dominant-baseline", "hanging");
+          t.appendChild(ts);
+
+          currentY += line.metrics.lineHeight;
+        });
+
+        group.appendChild(t);
+        drawWins(winsLayer, def, x, y, boxW, boxH);
+      }
+
+      function drawLine(group, childPos, parentPos, boxW, boxH) {
+        const stroke = lineColorInput.value;
+        const sw = lineThicknessInput.value;
+        const style = lineStyleInput.value;
+
+        const p1 = { x: childPos.x + boxW, y: childPos.y + boxH / 2 };
+        const p2 = { x: parentPos.x, y: parentPos.y + boxH / 2 };
+
+        if (style === "diagonal") {
+          group.appendChild(makeEl("line", {
+            x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+            stroke, "stroke-width": sw
+          }));
+        } else {
+          const midX = (p1.x + p2.x) / 2;
+          group.appendChild(makeEl("path", {
+            d: `M ${p1.x} ${p1.y} L ${midX} ${p1.y} L ${midX} ${p2.y} L ${p2.x} ${p2.y}`,
+            fill: "none", stroke, "stroke-width": sw
+          }));
+        }
+      }
+
+      function getPositions(boxW, boxH) {
+        const meta = getLayoutMeta();
+        const tree = meta.tree;
+        const isPortrait = layoutOrientation.value === "portrait";
+
+        const usableWidth = tree.right - tree.left;
+        const gapX = Math.max(isPortrait ? 4 : 8, (usableWidth - (boxW * 4)) / 3);
+
+        const x1 = tree.left;
+        const x2 = x1 + boxW + gapX;
+        const x3 = x2 + boxW + gapX;
+        const x4 = x3 + boxW + gapX;
+
+        const usableHeight = tree.bottom - tree.top;
+        const gap4 = Math.max(isPortrait ? 4 : 6, (usableHeight - (boxH * 8)) / 7);
+
+        const gen4 = [];
+        for (let i = 0; i < 8; i++) {
+          gen4.push(tree.top + i * (boxH + gap4));
+        }
+
+        const centerY = (boxTop) => boxTop + (boxH / 2);
+        const topFromCenter = (center) => center - (boxH / 2);
+
+        const ssireY = topFromCenter((centerY(gen4[0]) + centerY(gen4[1])) / 2);
+        const sdamY  = topFromCenter((centerY(gen4[2]) + centerY(gen4[3])) / 2);
+        const dsireY = topFromCenter((centerY(gen4[4]) + centerY(gen4[5])) / 2);
+        const ddamY  = topFromCenter((centerY(gen4[6]) + centerY(gen4[7])) / 2);
+
+        const sireY = topFromCenter((centerY(ssireY) + centerY(sdamY)) / 2);
+        const damY  = topFromCenter((centerY(dsireY) + centerY(ddamY)) / 2);
+        const mainY = topFromCenter((centerY(sireY) + centerY(damY)) / 2);
+
+        return {
+          main:   { x: x1, y: mainY },
+          sire:   { x: x2, y: sireY },
+          dam:    { x: x2, y: damY },
+          ssire:  { x: x3, y: ssireY },
+          sdam:   { x: x3, y: sdamY },
+          dsire:  { x: x3, y: dsireY },
+          ddam:   { x: x3, y: ddamY },
+          sssire: { x: x4, y: gen4[0] },
+          ssdam:  { x: x4, y: gen4[1] },
+          sdsire: { x: x4, y: gen4[2] },
+          sddam:  { x: x4, y: gen4[3] },
+          dssire: { x: x4, y: gen4[4] },
+          dsdam:  { x: x4, y: gen4[5] },
+          ddsire: { x: x4, y: gen4[6] },
+          dddam:  { x: x4, y: gen4[7] }
+        };
       }
 
       function render(keepZoom = true) {
@@ -2371,10 +1865,8 @@
         lastContainerSize = { width, height };
 
         if (!sizeChanged) return;
-        if (suppressAutoFit) return;
         if (!initializedView) return;
 
-        // Keep current zoom/pan on ordinary size changes.
         applyViewportTransform();
       });
       ro.observe(container);
