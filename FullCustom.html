@@ -277,7 +277,7 @@
 
   <div id="pedigree-menu">
     <div class="menu-title">Pedigree Options</div>
-    <div class="menu-note">Choose border styles, colors, fonts, layout settings, and rabbit data visibility below.</div>
+    <div class="menu-note">Choose border styles, colors, fonts, and layout settings below.</div>
 
     <div class="menu-section">
       <div class="menu-actions">
@@ -293,16 +293,16 @@
     <div class="menu-section">
       <label for="border-style">Border Style</label>
       <select id="border-style">
-        <option value="classicDouble">Victorian Double Frame</option>
-        <option value="elegantCorners">Baroque Corner Flourish</option>
-        <option value="ribbonFrame">Heraldic Ribbon Crest</option>
-        <option value="royalArch">Cathedral Arch</option>
-        <option value="modernGeo">Art Deco Geometric</option>
-        <option value="scallop">Pearled Scallop</option>
-        <option value="ornateLines">Scrollwork Engraved</option>
-        <option value="ticketEdge">Plaque & Notched Frame</option>
-        <option value="floralLite">Botanical Vine Border</option>
-        <option value="showFrame">Championship Showcase</option>
+        <option value="classicDouble">Classic Double</option>
+        <option value="elegantCorners">Elegant Corners</option>
+        <option value="ribbonFrame">Ribbon Frame</option>
+        <option value="royalArch">Royal Arch</option>
+        <option value="modernGeo">Modern Geometric</option>
+        <option value="scallop">Scallop</option>
+        <option value="ornateLines">Ornate Lines</option>
+        <option value="ticketEdge">Ticket Edge</option>
+        <option value="floralLite">Floral Lite</option>
+        <option value="showFrame">Show Frame</option>
       </select>
 
       <label for="border-color-preset" style="margin-top:10px;">Border Color Preset</label>
@@ -356,26 +356,6 @@
 
       <label for="female-box-color">Female Box Color</label>
       <input type="color" id="female-box-color" value="#f8d7da">
-    </div>
-
-    <div class="menu-section">
-      <label>Rabbit Box Data Visibility</label>
-      <div class="toggle-row">
-        <span>DOB</span>
-        <input type="checkbox" id="toggle-show-dob" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Ear Length</span>
-        <input type="checkbox" id="toggle-show-earl" checked>
-      </div>
-      <div class="toggle-row">
-        <span>Custom</span>
-        <input type="checkbox" id="toggle-show-custom" checked>
-      </div>
-      <div class="toggle-row" style="margin-bottom:0;">
-        <span>Wins</span>
-        <input type="checkbox" id="toggle-show-wins" checked>
-      </div>
     </div>
 
     <div class="menu-section">
@@ -483,28 +463,28 @@
 
       const PRINT_TUNING = {
         landscape: {
-          borderMargin: 20,
-          headerX: 70,
-          headerY: 80,
-          treeLeft: 90,
-          treeTop: 110,
-          treeRightInset: 100,
+          borderMargin: 12,
+          headerX: 38,
+          headerY: 24,
+          treeLeft: 28,
+          treeTop: 1100,
+          treeRightInset: 50,
           treeBottom: 1152,
-          footerX: 80,
-          footerY: 1140,
-          footerTaglineY: 1144
+          footerX: 34,
+          footerY: 1188,
+          footerTaglineY: 1244
         },
         portrait: {
-          borderMargin: 20,
-          headerX: 80,
+          borderMargin: 12,
+          headerX: 60,
           headerY: 100,
-          treeLeft: 70,
+          treeLeft: 42,
           treeTop: 250,
-          treeRightInset: 80,
+          treeRightInset: 60,
           treeBottom: 1514,
-          footerX: 90,
-          footerY: 1500,
-          footerTaglineY: 1560
+          footerX: 480,
+          footerY: 1552,
+          footerTaglineY: 1616
         }
       };
 
@@ -525,12 +505,6 @@
       const mainBoxColor = document.getElementById("main-box-color");
       const maleBoxColor = document.getElementById("male-box-color");
       const femaleBoxColor = document.getElementById("female-box-color");
-
-      const toggleShowDob = document.getElementById("toggle-show-dob");
-      const toggleShowEarl = document.getElementById("toggle-show-earl");
-      const toggleShowCustom = document.getElementById("toggle-show-custom");
-      const toggleShowWins = document.getElementById("toggle-show-wins");
-
       const fontColor = document.getElementById("font-color");
       const layoutOrientation = document.getElementById("layout-orientation");
       const boxWidthInput = document.getElementById("box-width");
@@ -581,10 +555,6 @@
         main: "#ffffff",
         male: "#cce5ff",
         female: "#f8d7da",
-        showDob: true,
-        showEarl: true,
-        showCustom: true,
-        showWins: true,
         fontColor: "#000000",
         fontFamily: "Arial, sans-serif",
         layout: "landscape",
@@ -626,35 +596,23 @@
       };
 
       const boxDefs = [
-        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"],["DOB","dob"],["Ear Length","earl"]], extra: ["customdata"], wins: "win1" },
+        { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"]], extra: ["customdata"], wins: "win1"   },
+        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"]], extra: ["scustomdata"], wins: "swin1"  },
+        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"]], extra: ["dcustomdata"], wins: "dwin1"  },
 
-        { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"],["DOB","sdob"],["Ear Length","searl"]], extra: ["scustomdata"], wins: "swin1" },
+        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"]], extra: ["sscustomdata"], wins: "sswin1" },
+        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"]], extra: ["sdcustomdata"], wins: "sdwin1" },
+        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"]], extra: ["dscustomdata"], wins: "dswin1" },
+        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"]], extra: ["ddcustomdata"], wins: "ddwin1" },
 
-        { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"],["DOB","ddob"],["Ear Length","dearl"]], extra: ["dcustomdata"], wins: "dwin1" },
-
-        { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"],["DOB","ssdob"],["Ear Length","ssearl"]], extra: ["sscustomdata"], wins: "sswin1" },
-
-        { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"],["DOB","sddob"],["Ear Length","sdearl"]], extra: ["sdcustomdata"], wins: "sdwin1" },
-
-        { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"],["DOB","dsdob"],["Ear Length","dsearl"]], extra: ["dscustomdata"], wins: "dswin1" },
-
-        { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"],["DOB","dddob"],["Ear Length","ddearl"]], extra: ["ddcustomdata"], wins: "ddwin1" },
-
-        { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"],["DOB","sssdob"],["Ear Length","sssearl"]], extra: ["ssscustomdata"], wins: "" },
-
-        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"],["DOB","ssddob"],["Ear Length","ssdearl"]], extra: ["ssdcustomdata"], wins: "" },
-
-        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"],["DOB","sdsdob"],["Ear Length","sdsearl"]], extra: ["sdscustomdata"], wins: "" },
-
-        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"],["DOB","sdddob"],["Ear Length","sddearl"]], extra: ["sddcustomdata"], wins: "" },
-
-        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"],["DOB","dssdob"],["Ear Length","dssearl"]], extra: ["dsscustomdata"], wins: "" },
-
-        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"],["DOB","dsddob"],["Ear Length","dsdearl"]], extra: ["dsdcustomdata"], wins: "" },
-
-        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"],["DOB","ddsdob"],["Ear Length","ddsearl"]], extra: ["ddscustomdata"], wins: "" },
-
-        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"],["DOB","ddddob"],["Ear Length","dddearl"]], extra: ["dddcustomdata"], wins: "" }
+        { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"]], extra: ["ssscustomdata"], wins: "" },
+        { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"]], extra: ["ssdcustomdata"], wins: "" },
+        { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"]], extra: ["sdscustomdata"], wins: "" },
+        { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"]], extra: ["sddcustomdata"], wins: "" },
+        { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"]], extra: ["dsscustomdata"], wins: "" },
+        { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"]], extra: ["dsdcustomdata"], wins: "" },
+        { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"]], extra: ["ddscustomdata"], wins: "" },
+        { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"]], extra: ["dddcustomdata"], wins: "" }
       ];
 
       const parentMap = [
@@ -970,30 +928,21 @@
         };
       }
 
-      function shouldShowField(label) {
-        if (label === "DOB") return toggleShowDob.checked;
-        if (label === "Ear Length") return toggleShowEarl.checked;
-        return true;
-      }
-
       function buildBoxText(def) {
         const lines = [];
         lines.push({ text: getChain(def.titleChain), type: "title" });
 
         def.fields.forEach(([label, key]) => {
-          if (!shouldShowField(label)) return;
           lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
         });
 
-        if (toggleShowCustom.checked) {
-          def.extra.forEach(key => {
-            const raw = getParam(key);
-            if (!raw) return;
-            raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
-              if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
-            });
+        def.extra.forEach(key => {
+          const raw = getParam(key);
+          if (!raw) return;
+          raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
+            if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
           });
-        }
+        });
 
         return lines;
       }
@@ -1035,9 +984,7 @@
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
-        if (!toggleShowWins.checked) return;
         if (def.gen >= 4 || !def.wins) return;
-
         const raw = getParam(def.wins);
         if (!raw) return;
 
@@ -1140,15 +1087,6 @@
 
       function addPath(group, d, stroke, sw, fill = "none") {
         group.appendChild(makeEl("path", { d, fill, stroke, "stroke-width": sw }));
-      }
-
-      function addPolyline(group, points, stroke, sw, fill = "none") {
-        group.appendChild(makeEl("polyline", {
-          points,
-          fill,
-          stroke,
-          "stroke-width": sw
-        }));
       }
 
       function drawCornerFlourish(group, x, y, primary, secondary, corner) {
@@ -1270,6 +1208,21 @@
         addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 2.2);
       }
 
+      function drawInnerGuideCorners(group, x, y, w, h, primary) {
+        const len = 34;
+        const off = 18;
+
+        [
+          [x + off, y + off, 1, 1],
+          [x + w - off, y + off, -1, 1],
+          [x + off, y + h - off, 1, -1],
+          [x + w - off, y + h - off, -1, -1]
+        ].forEach(([cx, cy, sx, sy]) => {
+          addLine(group, cx, cy, cx + len * sx, cy, primary, 1.5);
+          addLine(group, cx, cy, cx, cy + len * sy, primary, 1.5);
+        });
+      }
+
       function drawRosette(group, cx, cy, r, primary, secondary) {
         for (let i = 0; i < 12; i++) {
           const a = (Math.PI * 2 * i) / 12;
@@ -1295,170 +1248,6 @@
         group.appendChild(g);
       }
 
-      function drawBeadLine(group, x1, y1, x2, y2, count, r, fill, stroke, sw) {
-        for (let i = 0; i <= count; i++) {
-          const t = i / count;
-          const cx = x1 + (x2 - x1) * t;
-          const cy = y1 + (y2 - y1) * t;
-          addCircle(group, cx, cy, r, fill, stroke, sw);
-        }
-      }
-
-      function drawCornerShell(group, x, y, primary, secondary, corner) {
-        let sx = 1, sy = 1;
-        if (corner === "tr") sx = -1;
-        if (corner === "bl") sy = -1;
-        if (corner === "br") { sx = -1; sy = -1; }
-
-        const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
-
-        addPath(g, `M 0 0 Q 18 0 32 10 Q 48 22 58 40 Q 66 54 70 74`, primary, 3);
-        addPath(g, `M 8 8 Q 22 8 34 16 Q 46 26 54 40 Q 58 48 61 60`, secondary, 2);
-        addPath(g, `M 14 18 Q 24 18 33 24 Q 42 31 48 42`, secondary, 1.5);
-        addCircle(g, 18, 18, 3.5, secondary, primary, 1.1);
-        addCircle(g, 34, 26, 3, secondary, primary, 1);
-        addCircle(g, 48, 42, 2.8, secondary, primary, 1);
-
-        group.appendChild(g);
-      }
-
-      function drawFretBand(group, x, y, w, h, primary, secondary) {
-        const step = 44;
-
-        for (let px = x + 24; px < x + w - 24; px += step) {
-          addPolyline(group, `${px} ${y} ${px+10} ${y} ${px+10} ${y+10} ${px+22} ${y+10} ${px+22} ${y} ${px+32} ${y}`, primary, 2);
-          addPolyline(group, `${px} ${y+h} ${px+10} ${y+h} ${px+10} ${y+h-10} ${px+22} ${y+h-10} ${px+22} ${y+h} ${px+32} ${y+h}`, primary, 2);
-        }
-
-        for (let py = y + 24; py < y + h - 24; py += step) {
-          addPolyline(group, `${x} ${py} ${x} ${py+10} ${x+10} ${py+10} ${x+10} ${py+22} ${x} ${py+22} ${x} ${py+32}`, primary, 2);
-          addPolyline(group, `${x+w} ${py} ${x+w} ${py+10} ${x+w-10} ${py+10} ${x+w-10} ${py+22} ${x+w} ${py+22} ${x+w} ${py+32}`, primary, 2);
-        }
-
-        addRect(group, x + 10, y + 10, w - 20, h - 20, secondary, 1.7);
-      }
-
-      function drawSideVine(group, x, y1, y2, primary, secondary, flipX = 1) {
-        const g = makeEl("g", { transform: `translate(${x},0) scale(${flipX},1)` });
-
-        addPath(g, `M 0 ${y1} C 18 ${y1+30}, 18 ${y1+70}, 0 ${y1+100}
-                       C -18 ${y1+130}, -18 ${y1+170}, 0 ${y1+200}
-                       C 18 ${y1+230}, 18 ${y2-30}, 0 ${y2}`, primary, 2.4);
-
-        for (let py = y1 + 28; py < y2 - 20; py += 42) {
-          g.appendChild(makeEl("ellipse", {
-            cx: 12, cy: py, rx: 12, ry: 5.5,
-            fill: secondary, stroke: primary, "stroke-width": 1.4,
-            transform: `rotate(-28 12 ${py})`
-          }));
-          g.appendChild(makeEl("ellipse", {
-            cx: -12, cy: py + 16, rx: 12, ry: 5.5,
-            fill: secondary, stroke: primary, "stroke-width": 1.4,
-            transform: `rotate(28 -12 ${py + 16})`
-          }));
-          addCircle(g, 0, py + 8, 2.6, secondary, primary, 1);
-        }
-
-        group.appendChild(g);
-      }
-
-      function drawBannerPlate(group, cx, y, w, h, primary, secondary) {
-        const x = cx - w / 2;
-        const midY = y + h / 2;
-
-        group.appendChild(makeEl("path", {
-          d: `
-            M ${x+20} ${y}
-            L ${x+w-20} ${y}
-            Q ${x+w} ${y} ${x+w} ${y+18}
-            L ${x+w} ${y+h-18}
-            Q ${x+w} ${y+h} ${x+w-20} ${y+h}
-            L ${x+20} ${y+h}
-            Q ${x} ${y+h} ${x} ${y+h-18}
-            L ${x} ${y+18}
-            Q ${x} ${y} ${x+20} ${y}
-            Z
-          `,
-          fill: "#ffffff",
-          stroke: primary,
-          "stroke-width": 3
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${x} ${midY} ${x-28} ${y+8} ${x-28} ${y+h-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 2.4
-        }));
-
-        group.appendChild(makeEl("polygon", {
-          points: `${x+w} ${midY} ${x+w+28} ${y+8} ${x+w+28} ${y+h-8}`,
-          fill: secondary, stroke: primary, "stroke-width": 2.4
-        }));
-
-        addLine(group, x + 18, midY, x + w - 18, midY, secondary, 1.5);
-        addDiamond(group, cx, midY, 18, 18, secondary, primary, 1.3);
-      }
-
-      function drawPetalMedallion(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 8; i++) {
-          const a = (Math.PI * 2 * i) / 8;
-          const px = cx + Math.cos(a) * (r * 0.82);
-          const py = cy + Math.sin(a) * (r * 0.82);
-          group.appendChild(makeEl("ellipse", {
-            cx: px, cy: py, rx: r * 0.34, ry: r * 0.18,
-            fill: secondary, stroke: primary, "stroke-width": 1.2,
-            transform: `rotate(${(a * 180 / Math.PI)} ${px} ${py})`
-          }));
-        }
-        addCircle(group, cx, cy, r * 0.48, "#ffffff", primary, 1.8);
-        addCircle(group, cx, cy, r * 0.15, primary, primary, 1);
-      }
-
-      function drawBracketCorners(group, x, y, w, h, primary, secondary) {
-        const s = 32;
-
-        [
-          [x, y, 1, 1],
-          [x+w, y, -1, 1],
-          [x, y+h, 1, -1],
-          [x+w, y+h, -1, -1]
-        ].forEach(([cx, cy, sx, sy]) => {
-          const g = makeEl("g", { transform: `translate(${cx},${cy}) scale(${sx},${sy})` });
-          addLine(g, 0, 0, s, 0, primary, 3);
-          addLine(g, 0, 0, 0, s, primary, 3);
-          addLine(g, 12, 12, s - 4, 12, secondary, 1.5);
-          addLine(g, 12, 12, 12, s - 4, secondary, 1.5);
-          group.appendChild(g);
-        });
-      }
-
-      function drawSunburst(group, cx, cy, r, primary, secondary) {
-        for (let i = 0; i < 20; i++) {
-          const a = (Math.PI * 2 * i) / 20;
-          const x1 = cx + Math.cos(a) * (r * 0.95);
-          const y1 = cy + Math.sin(a) * (r * 0.95);
-          const x2 = cx + Math.cos(a) * (r * 1.45);
-          const y2 = cy + Math.sin(a) * (r * 1.45);
-          addLine(group, x1, y1, x2, y2, secondary, 1.2);
-        }
-        addCircle(group, cx, cy, r, "#ffffff", primary, 2.3);
-        addDiamond(group, cx, cy, r * 0.8, r * 0.8, secondary, primary, 1.2);
-        addCircle(group, cx, cy, r * 0.16, primary, primary, 1);
-      }
-
-      function drawNotchTicks(group, x, y, w, h, primary) {
-        const step = 36;
-
-        for (let px = x + 22; px < x + w - 22; px += step) {
-          addLine(group, px, y, px + 10, y + 10, primary, 1.2);
-          addLine(group, px, y + h, px + 10, y + h - 10, primary, 1.2);
-        }
-
-        for (let py = y + 22; py < y + h - 22; py += step) {
-          addLine(group, x, py, x + 10, py + 10, primary, 1.2);
-          addLine(group, x + w, py, x + w - 10, py + 10, primary, 1.2);
-        }
-      }
-
       function drawBorder(group, meta) {
         const style = borderStyleInput.value;
         const primary = borderPrimaryColor.value;
@@ -1469,7 +1258,6 @@
         const w = b.w;
         const h = b.h;
         const cx = x + w / 2;
-        const cy = y + h / 2;
 
         group.appendChild(makeEl("rect", {
           x: 0, y: 0, width: meta.canvas.width, height: meta.canvas.height, fill: "#ffffff"
@@ -1477,151 +1265,96 @@
 
         switch (style) {
           case "classicDouble":
-            addRect(group, x, y, w, h, primary, 8);
-            addRect(group, x + 14, y + 14, w - 28, h - 28, secondary, 3);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, primary, 1.8);
-            addRect(group, x + 42, y + 42, w - 84, h - 84, secondary, 1.1);
-
-            drawBeadLine(group, x + 70, y + 20, x + w - 70, y + 20, 26, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + 70, y + h - 20, x + w - 70, y + h - 20, 26, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + 20, y + 70, x + 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
-            drawBeadLine(group, x + w - 20, y + 70, x + w - 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
-
-            drawPetalMedallion(group, x + 54, y + 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + 54, y + h - 54, 15, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + h - 54, 15, primary, secondary);
+            addRect(group, x, y, w, h, primary, 7);
+            addRect(group, x + 16, y + 16, w - 32, h - 32, secondary, 2.5);
+            addRect(group, x + 32, y + 32, w - 64, h - 64, primary, 1.5);
+            addRect(group, x + 46, y + 46, w - 92, h - 92, secondary, 1.1);
+            drawMedallion(group, x + 58, y + 58, 14, primary, secondary);
+            drawMedallion(group, x + w - 58, y + 58, 14, primary, secondary);
+            drawMedallion(group, x + 58, y + h - 58, 14, primary, secondary);
+            drawMedallion(group, x + w - 58, y + h - 58, 14, primary, secondary);
             break;
 
           case "elegantCorners":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
-            addRect(group, x + 44, y + 44, w - 88, h - 88, primary, 1.1);
-
-            drawCornerFlourish(group, x + 28, y + 28, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 28, y + 28, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 28, y + h - 28, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 28, y + h - 28, primary, secondary, "br");
-
-            drawCornerShell(group, x + 72, y + 72, primary, secondary, "tl");
-            drawCornerShell(group, x + w - 72, y + 72, primary, secondary, "tr");
-            drawCornerShell(group, x + 72, y + h - 72, primary, secondary, "bl");
-            drawCornerShell(group, x + w - 72, y + h - 72, primary, secondary, "br");
+            addRect(group, x + 8, y + 8, w - 16, h - 16, primary, 4);
+            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
+            addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.1);
+            drawCornerFlourish(group, x + 30, y + 30, primary, secondary, "tl");
+            drawCornerFlourish(group, x + w - 30, y + 30, primary, secondary, "tr");
+            drawCornerFlourish(group, x + 30, y + h - 30, primary, secondary, "bl");
+            drawCornerFlourish(group, x + w - 30, y + h - 30, primary, secondary, "br");
             break;
 
           case "ribbonFrame":
-            addRect(group, x + 16, y + 18, w - 32, h - 36, primary, 5.5);
-            addRect(group, x + 34, y + 36, w - 68, h - 72, secondary, 2.5);
-            addRect(group, x + 50, y + 52, w - 100, h - 104, primary, 1.2);
-
-            drawRibbonCrest(group, cx, y + 18, 270, 48, primary, secondary);
-            drawBannerPlate(group, cx, y + h - 64, 250, 42, primary, secondary);
-
-            drawPetalMedallion(group, x + 66, y + 44, 11, primary, secondary);
-            drawPetalMedallion(group, x + w - 66, y + 44, 11, primary, secondary);
+            addRect(group, x + 14, y + 18, w - 28, h - 36, primary, 5);
+            addRect(group, x + 32, y + 36, w - 64, h - 72, secondary, 2.4);
+            addRect(group, x + 46, y + 50, w - 92, h - 100, primary, 1.2);
+            drawRibbonCrest(group, cx, y + 18, 240, 44, primary, secondary);
+            drawRibbonCrest(group, cx, y + h - 62, 220, 40, primary, secondary);
             break;
 
           case "royalArch":
-            addRect(group, x + 18, y + 50, w - 36, h - 66, primary, 5);
-            addRect(group, x + 36, y + 68, w - 72, h - 102, secondary, 2.2);
-
-            addPath(group, `M ${x+120} ${y+50} Q ${cx} ${y-46} ${x+w-120} ${y+50}`, primary, 6);
-            addPath(group, `M ${x+158} ${y+66} Q ${cx} ${y+2} ${x+w-158} ${y+66}`, secondary, 2.6);
-
-            drawSunburst(group, cx, y + 28, 14, primary, secondary);
-            drawLaurelSprig(group, cx - 54, y + 42, primary, secondary, -1);
-            drawLaurelSprig(group, cx + 54, y + 42, primary, secondary, 1);
-
-            addLine(group, x + 70, y + 50, x + 70, y + h - 18, secondary, 1.2);
-            addLine(group, x + w - 70, y + 50, x + w - 70, y + h - 18, secondary, 1.2);
+            addRect(group, x + 16, y + 44, w - 32, h - 60, primary, 5);
+            addRect(group, x + 34, y + 62, w - 68, h - 96, secondary, 2.2);
+            addPath(group, `M ${x+120} ${y+44} Q ${cx} ${y-42} ${x+w-120} ${y+44}`, secondary, 6);
+            addPath(group, `M ${x+162} ${y+58} Q ${cx} ${y-6} ${x+w-162} ${y+58}`, primary, 2);
+            drawMedallion(group, cx, y + 26, 16, primary, secondary);
+            drawLaurelSprig(group, cx - 46, y + 40, primary, secondary, -1);
+            drawLaurelSprig(group, cx + 46, y + 40, primary, secondary, 1);
             break;
 
           case "modernGeo":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
-            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
+            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4);
+            addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2);
             addRect(group, x + 42, y + 42, w - 84, h - 84, primary, 1.2);
-
-            drawFretBand(group, x + 18, y + 18, w - 36, h - 36, primary, secondary);
-            drawBracketCorners(group, x + 24, y + 24, w - 48, h - 48, primary, secondary);
-
-            addDiamond(group, cx, y + 30, 18, 18, secondary, primary, 1.2);
-            addDiamond(group, cx, y + h - 30, 18, 18, secondary, primary, 1.2);
+            drawInnerGuideCorners(group, x + 22, y + 22, w - 44, h - 44, secondary);
             break;
 
           case "scallop":
-            drawScallopBand(group, x + 14, y + 14, w - 28, h - 28, primary, secondary);
-            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1);
+            drawScallopBand(group, x + 16, y + 16, w - 32, h - 32, primary, secondary);
+            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
             addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1);
-
-            drawBeadLine(group, x + 54, y + 54, x + w - 54, y + 54, 22, 2.2, secondary, primary, 0.8);
-            drawBeadLine(group, x + 54, y + h - 54, x + w - 54, y + h - 54, 22, 2.2, secondary, primary, 0.8);
-
-            drawPetalMedallion(group, x + 54, y + 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + 54, y + h - 54, 10, primary, secondary);
-            drawPetalMedallion(group, x + w - 54, y + h - 54, 10, primary, secondary);
             break;
 
           case "ornateLines":
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
-            addRect(group, x + 32, y + 32, w - 64, h - 64, secondary, 1.8);
-            addRect(group, x + 46, y + 46, w - 92, h - 92, primary, 1);
-
-            drawCornerFlourish(group, x + 24, y + 24, primary, secondary, "tl");
-            drawCornerFlourish(group, x + w - 24, y + 24, primary, secondary, "tr");
-            drawCornerFlourish(group, x + 24, y + h - 24, primary, secondary, "bl");
-            drawCornerFlourish(group, x + w - 24, y + h - 24, primary, secondary, "br");
-
-            addPath(group, `M ${x+120} ${y+26} C ${cx-180} ${y+34}, ${cx-80} ${y+8}, ${cx} ${y+26}
-                            C ${cx+80} ${y+44}, ${cx+180} ${y+18}, ${x+w-120} ${y+26}`, secondary, 2.2);
-
-            addPath(group, `M ${x+120} ${y+h-26} C ${cx-180} ${y+h-34}, ${cx-80} ${y+h-8}, ${cx} ${y+h-26}
-                            C ${cx+80} ${y+h-44}, ${cx+180} ${y+h-18}, ${x+w-120} ${y+h-26}`, secondary, 2.2);
+            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 1.8);
+            drawCornerFlourish(group, x + 26, y + 26, primary, secondary, "tl");
+            drawCornerFlourish(group, x + w - 26, y + 26, primary, secondary, "tr");
+            drawCornerFlourish(group, x + 26, y + h - 26, primary, secondary, "bl");
+            drawCornerFlourish(group, x + w - 26, y + h - 26, primary, secondary, "br");
             break;
 
           case "ticketEdge":
-            addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4.5, "none", 22, 22);
-            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1, "none", 14, 14);
-            addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1, "none", 8, 8);
-
-            drawBannerPlate(group, cx, y + 18, 240, 42, primary, secondary);
-            drawNotchTicks(group, x + 18, y + 18, w - 36, h - 36, secondary);
-
-            addDiamond(group, x + 52, cy, 16, 16, secondary, primary, 1.1);
-            addDiamond(group, x + w - 52, cy, 16, 16, secondary, primary, 1.1);
+            addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4, "none", 20, 20);
+            addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2, "none", 14, 14);
+            drawRibbonCrest(group, cx, y + 22, 210, 40, primary, secondary);
             break;
 
           case "floralLite":
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
-            addRect(group, x + 50, y + 50, w - 100, h - 100, primary, 1.1);
-
-            drawSideVine(group, x + 28, y + 72, y + h - 72, primary, secondary, 1);
-            drawSideVine(group, x + w - 28, y + 72, y + h - 72, primary, secondary, -1);
-
-            drawLeaf(group, cx - 32, y + 34, 1.0, primary, secondary, 1);
-            drawLeaf(group, cx + 32, y + 34, 1.0, primary, secondary, -1);
-            drawPetalMedallion(group, cx, y + 34, 10, primary, secondary);
-
-            drawLeaf(group, cx - 32, y + h - 34, 1.0, primary, secondary, 1);
-            drawLeaf(group, cx + 32, y + h - 34, 1.0, primary, secondary, -1);
-            drawPetalMedallion(group, cx, y + h - 34, 10, primary, secondary);
+            addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.2);
+            [
+              [x + 58, y + 58],
+              [x + w - 58, y + 58],
+              [x + 58, y + h - 58],
+              [x + w - 58, y + h - 58]
+            ].forEach(([px, py]) => {
+              drawLeaf(group, px, py, 1.0, primary, secondary, 1);
+              drawLeaf(group, px, py, 1.0, primary, secondary, -1);
+            });
             break;
 
           case "showFrame":
-            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 7);
-            addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.8);
-            addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.2);
-
-            drawRibbonCrest(group, cx, y + 18, 250, 44, primary, secondary);
-            drawBannerPlate(group, cx, y + h - 60, 230, 40, primary, secondary);
-
+            addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 6);
+            addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.6);
+            addRect(group, x + 38, y + 38, w - 76, h - 76, primary, 1.2);
             drawRosette(group, x + 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + 54, y + h - 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + h - 54, 18, primary, secondary);
-
-            drawSunburst(group, cx, y + 46, 11, primary, secondary);
+            drawRibbonCrest(group, cx, y + 20, 230, 42, primary, secondary);
             break;
         }
       }
@@ -1637,10 +1370,6 @@
           main: mainBoxColor.value,
           male: maleBoxColor.value,
           female: femaleBoxColor.value,
-          showDob: toggleShowDob.checked,
-          showEarl: toggleShowEarl.checked,
-          showCustom: toggleShowCustom.checked,
-          showWins: toggleShowWins.checked,
           fontColor: fontColor.value,
           fontFamily: getCurrentFont(),
           layout: layoutOrientation.value,
@@ -1670,10 +1399,6 @@
         if (settings.main) mainBoxColor.value = settings.main;
         if (settings.male) maleBoxColor.value = settings.male;
         if (settings.female) femaleBoxColor.value = settings.female;
-        if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
-        if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
-        if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
-        if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
         if (settings.fontColor) fontColor.value = settings.fontColor;
         if (settings.layout) layoutOrientation.value = settings.layout;
         if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
@@ -2290,10 +2015,6 @@
         mainBoxColor.value = defaults.main;
         maleBoxColor.value = defaults.male;
         femaleBoxColor.value = defaults.female;
-        toggleShowDob.checked = defaults.showDob;
-        toggleShowEarl.checked = defaults.showEarl;
-        toggleShowCustom.checked = defaults.showCustom;
-        toggleShowWins.checked = defaults.showWins;
         fontColor.value = defaults.fontColor;
         layoutOrientation.value = defaults.layout;
         boxWidthInput.value = defaults.boxWidth;
@@ -2360,10 +2081,6 @@
         mainBoxColor,
         maleBoxColor,
         femaleBoxColor,
-        toggleShowDob,
-        toggleShowEarl,
-        toggleShowCustom,
-        toggleShowWins,
         fontColor,
         layoutOrientation,
         boxWidthInput,
@@ -2381,10 +2098,6 @@
 
       [
         mainSexColorToggle,
-        toggleShowDob,
-        toggleShowEarl,
-        toggleShowCustom,
-        toggleShowWins,
         layoutOrientation,
         toggleWatermark,
         toggleRabbitPhoto
