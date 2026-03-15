@@ -735,6 +735,7 @@
 
       function clearViewport() {
         while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
+        viewport.removeAttribute("transform");
       }
 
       function destroyPanZoom() {
@@ -742,6 +743,7 @@
           try { panZoom.destroy(); } catch (err) {}
           panZoom = null;
         }
+        viewport.removeAttribute("transform");
         window.panZoomInstance = null;
         initialized = false;
       }
@@ -815,26 +817,6 @@
         initialized = true;
       }
 
-      function refreshPanZoom(state = null) {
-        if (!panZoom) {
-          tryInitPanZoom(state);
-          return;
-        }
-
-        try {
-          panZoom.resize();
-          panZoom.updateBBox();
-
-          if (state && isFinite(state.zoom)) {
-            panZoom.zoom(state.zoom);
-            panZoom.pan(state.pan || { x: 0, y: 0 });
-          }
-        } catch (err) {
-          destroyPanZoom();
-          tryInitPanZoom(state);
-        }
-      }
-
       function getCurrentFont() {
         const active = Array.from(fontOptions).find(opt => opt.classList.contains("active"));
         return active ? active.dataset.font : defaults.fontFamily;
@@ -854,7 +836,7 @@
         selectedFontPreview.style.fontFamily = fontValue;
         document.documentElement.style.setProperty("--menu-font", fontValue);
         setActiveFontOption(fontValue);
-        if (shouldRender) render(true);
+        if (shouldRender) render(false);
       }
 
       function getMainRabbitSex() {
@@ -1762,10 +1744,10 @@
         }
       }
 
-      function render(keepZoom = true) {
+      function render(keepZoom = false) {
         refreshParams();
 
-        const currentState = panZoom ? {
+        const currentState = panZoom && keepZoom ? {
           pan: panZoom.getPan(),
           zoom: panZoom.getZoom()
         } : null;
@@ -1773,6 +1755,7 @@
         renderNonce += 1;
         const myNonce = renderNonce;
 
+        destroyPanZoom();
         clearViewport();
 
         const meta = getLayoutMeta();
@@ -1933,13 +1916,7 @@
 
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
-
-          if (!panZoom) {
-            tryInitPanZoom(keepZoom ? currentState : null);
-          } else {
-            refreshPanZoom(keepZoom ? currentState : null);
-            if (!keepZoom) fitToContainer();
-          }
+          tryInitPanZoom(currentState);
         });
       }
 
@@ -2354,7 +2331,7 @@
       fontOptions.forEach(option => {
         option.addEventListener("click", () => {
           applyFont(option.dataset.font, false);
-          render(true);
+          render(false);
           fontPicker.classList.remove("open");
         });
       });
@@ -2367,12 +2344,12 @@
 
       colorPreset.addEventListener("change", () => {
         applyPresetIfNeeded();
-        render(true);
+        render(false);
       });
 
       borderColorPreset.addEventListener("change", () => {
         applyBorderPresetIfNeeded();
-        render(true);
+        render(false);
       });
 
       [
@@ -2388,6 +2365,7 @@
         toggleShowCustom,
         toggleShowWins,
         fontColor,
+        layoutOrientation,
         boxWidthInput,
         boxHeightInput,
         boxNameFontSizeInput,
@@ -2399,7 +2377,7 @@
         watermarkOpacity,
         watermarkSize,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("input", () => render(true)));
+      ].forEach(el => el.addEventListener("input", () => render(false)));
 
       [
         mainSexColorToggle,
@@ -2407,11 +2385,10 @@
         toggleShowEarl,
         toggleShowCustom,
         toggleShowWins,
+        layoutOrientation,
         toggleWatermark,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("change", () => render(true)));
-
-      layoutOrientation.addEventListener("change", () => render(false));
+      ].forEach(el => el.addEventListener("change", () => render(false)));
 
       [borderPrimaryColor, borderSecondaryColor].forEach(el => {
         el.addEventListener("input", () => {
@@ -2433,12 +2410,7 @@
 
       const ro = new ResizeObserver(() => {
         if (panZoom) {
-          try {
-            panZoom.resize();
-            panZoom.updateBBox();
-          } catch (err) {
-            tryInitPanZoom();
-          }
+          fitToContainer();
         } else {
           tryInitPanZoom();
         }
@@ -2447,16 +2419,8 @@
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          if (panZoom) {
-            try {
-              panZoom.resize();
-              panZoom.updateBBox();
-            } catch (err) {
-              tryInitPanZoom();
-            }
-          } else {
-            tryInitPanZoom();
-          }
+          if (panZoom) fitToContainer();
+          else tryInitPanZoom();
         }
       });
 
