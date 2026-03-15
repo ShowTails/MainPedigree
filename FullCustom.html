@@ -18,33 +18,30 @@
       margin: 0;
       padding: 0;
       width: 100%;
+      height: 100%;
+      overflow: hidden;
       background: #fff;
       font-family: var(--menu-font);
-      overflow-x: hidden;
-      overflow-y: auto;
-    }
-
-    body {
-      min-height: 100svh;
     }
 
     #pedigree-container {
-      width: 100%;
-      max-width: 100%;
-      margin: 0 auto;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
       overflow: hidden;
       background: #fff;
-      aspect-ratio: 11 / 8.5;
     }
 
     #pedigree-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
       display: block;
-      background: #fff;
+      width: 100% !important;
+      height: 100% !important;
+      transform: none !important;
+      margin: 0 auto !important;
+      background: #fff !important;
       touch-action: none !important;
       -ms-touch-action: none !important;
     }
@@ -260,15 +257,35 @@
         display: none !important;
       }
 
-      html, body,
-      #pedigree-container,
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden !important;
+        background: white;
+      }
+
+      #pedigree-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background: white;
+        overflow: hidden;
+      }
+
       #pedigree-svg {
-        margin: 0 !important;
-        padding: 0 !important;
         width: 100% !important;
         height: 100% !important;
-        overflow: hidden !important;
-        background: #fff !important;
+        transform: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
       }
 
       #viewport {
@@ -576,12 +593,8 @@
       let renderNonce = 0;
       let initialized = false;
       let packedParams = null;
-      let lastViewState = null;
-
-      const ZOOM_LIMITS = {
-        min: 0.25,
-        max: 10
-      };
+      let suppressAutoFit = false;
+      let lastPanZoomState = null;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -673,14 +686,6 @@
 
       function refreshParams() {
         params = getSearchParams();
-      }
-
-      function updateContainerAspectRatio() {
-        if (layoutOrientation.value === "portrait") {
-          container.style.aspectRatio = "8.5 / 11";
-        } else {
-          container.style.aspectRatio = "11 / 8.5";
-        }
       }
 
       function base64ToUtf8(str) {
@@ -784,11 +789,6 @@
         return vb && isFinite(vb.width) && vb.width > 0 && isFinite(vb.height) && vb.height > 0;
       }
 
-      function clampZoom(zoom) {
-        if (!isFinite(zoom) || zoom <= 0) return 1;
-        return Math.max(ZOOM_LIMITS.min, Math.min(ZOOM_LIMITS.max, zoom));
-      }
-
       function computeFit() {
         const vb = svg.viewBox.baseVal;
         if (!validBox(vb)) return null;
@@ -809,62 +809,54 @@
         };
       }
 
-      function getFitScale() {
+      window.computeFit = computeFit;
+
+      function fitToContainer() {
+        if (!panZoom) return;
         const fit = computeFit();
-        return fit && isFinite(fit.scale) && fit.scale > 0 ? fit.scale : 1;
-      }
+        if (!fit) return;
 
-      function captureViewState() {
-        if (!panZoom) return lastViewState;
-
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!cw || !ch) return lastViewState;
-
-        let pan;
-        let zoom;
-
-        try {
-          pan = panZoom.getPan();
-          zoom = clampZoom(panZoom.getZoom());
-        } catch (err) {
-          return lastViewState;
-        }
-
-        if (!pan || !isFinite(pan.x) || !isFinite(pan.y)) return lastViewState;
-
-        const fitScale = getFitScale();
-        const relZoom = zoom / fitScale;
-
-        return {
-          relZoom: isFinite(relZoom) && relZoom > 0 ? relZoom : 1,
-          center: {
-            x: (cw / 2 - pan.x) / zoom,
-            y: (ch / 2 - pan.y) / zoom
-          }
+        panZoom.zoom(fit.scale);
+        panZoom.pan(fit.pan);
+        lastPanZoomState = {
+          zoom: fit.scale,
+          pan: { ...fit.pan }
         };
       }
 
-      function restoreViewState(state) {
-        if (!panZoom || !state || !state.center || !isFinite(state.relZoom)) return false;
-
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!cw || !ch) return false;
-
-        const fitScale = getFitScale();
-        const targetZoom = clampZoom(fitScale * state.relZoom);
-
+      function capturePanZoomState() {
+        if (!panZoom) return lastPanZoomState;
         try {
-          panZoom.zoom(targetZoom);
-          panZoom.pan({
-            x: (cw / 2) - (state.center.x * targetZoom),
-            y: (ch / 2) - (state.center.y * targetZoom)
-          });
+          const state = {
+            zoom: panZoom.getZoom(),
+            pan: panZoom.getPan()
+          };
+          if (
+            isFinite(state.zoom) &&
+            state.pan &&
+            isFinite(state.pan.x) &&
+            isFinite(state.pan.y)
+          ) {
+            lastPanZoomState = {
+              zoom: state.zoom,
+              pan: { x: state.pan.x, y: state.pan.y }
+            };
+            return lastPanZoomState;
+          }
+        } catch (err) {}
+        return lastPanZoomState;
+      }
 
-          lastViewState = {
-            relZoom: state.relZoom,
-            center: { x: state.center.x, y: state.center.y }
+      function restorePanZoomState(state) {
+        if (!panZoom || !state) return false;
+        try {
+          if (isFinite(state.zoom)) panZoom.zoom(state.zoom);
+          if (state.pan && isFinite(state.pan.x) && isFinite(state.pan.y)) {
+            panZoom.pan({ x: state.pan.x, y: state.pan.y });
+          }
+          lastPanZoomState = {
+            zoom: state.zoom,
+            pan: { x: state.pan.x, y: state.pan.y }
           };
           return true;
         } catch (err) {
@@ -872,24 +864,12 @@
         }
       }
 
-      function storeCurrentViewState() {
-        const state = captureViewState();
-        if (state) lastViewState = state;
-        return state;
-      }
-
-      function fitToContainer() {
-        if (!panZoom) return;
-        const fit = computeFit();
-        if (!fit) return;
-        panZoom.zoom(fit.scale);
-        panZoom.pan(fit.pan);
-        storeCurrentViewState();
-      }
-
-      function tryInitPanZoom(state = null) {
+      function tryInitPanZoom() {
         if (initialized) return;
-        if (typeof window.svgPanZoom !== "function") return;
+        if (typeof window.svgPanZoom !== "function") {
+          console.error("svg-pan-zoom not loaded.");
+          return;
+        }
 
         const vb = svg.viewBox.baseVal;
         const cw = container.clientWidth;
@@ -903,29 +883,29 @@
           mouseWheelZoomEnabled: false,
           controlIconsEnabled: false,
           fit: false,
-          center: false,
-          minZoom: ZOOM_LIMITS.min,
-          maxZoom: ZOOM_LIMITS.max,
-          dblClickZoomEnabled: true
+          center: true,
+          minZoom: 0.25,
+          maxZoom: 10,
+          dblClickZoomEnabled: true,
+          onUpdatedCTM: function () {}
         });
 
         window.panZoomInstance = panZoom;
+        initialized = true;
 
-        if (!(state && restoreViewState(state))) {
+        if (!restorePanZoomState(lastPanZoomState)) {
           fitToContainer();
-        } else {
-          storeCurrentViewState();
         }
 
         wireWheelZoom();
         enablePointerPan();
         enablePinchZoom();
-        initialized = true;
       }
 
-      function refreshPanZoom(state = null) {
+      function refreshPanZoom(state = null, shouldFit = false) {
         if (!panZoom) {
-          tryInitPanZoom(state);
+          tryInitPanZoom();
+          if (state && panZoom) restorePanZoomState(state);
           return;
         }
 
@@ -933,14 +913,17 @@
           panZoom.resize();
           panZoom.updateBBox();
 
-          if (!(state && restoreViewState(state))) {
+          if (shouldFit) {
             fitToContainer();
-          } else {
-            storeCurrentViewState();
+          } else if (state) {
+            restorePanZoomState(state);
+          } else if (lastPanZoomState) {
+            restorePanZoomState(lastPanZoomState);
           }
         } catch (err) {
           destroyPanZoom();
-          tryInitPanZoom(state);
+          tryInitPanZoom();
+          if (state && panZoom) restorePanZoomState(state);
         }
       }
 
@@ -1820,9 +1803,8 @@
 
       function render(keepZoom = true) {
         refreshParams();
-        updateContainerAspectRatio();
 
-        const currentState = keepZoom ? storeCurrentViewState() : null;
+        const currentState = keepZoom ? capturePanZoomState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1988,14 +1970,27 @@
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
 
+          suppressAutoFit = true;
+
           if (!panZoom) {
-            tryInitPanZoom(currentState);
+            tryInitPanZoom();
+            if (keepZoom && currentState && panZoom) {
+              restorePanZoomState(currentState);
+            } else if (!keepZoom) {
+              fitToContainer();
+            }
           } else {
-            refreshPanZoom(currentState);
-            if (!keepZoom) fitToContainer();
+            refreshPanZoom(currentState, false);
+            if (!keepZoom) {
+              fitToContainer();
+            }
           }
 
-          storeCurrentViewState();
+          capturePanZoomState();
+
+          requestAnimationFrame(() => {
+            suppressAutoFit = false;
+          });
         });
       }
 
@@ -2286,7 +2281,7 @@
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
-            storeCurrentViewState();
+            capturePanZoomState();
           }
         }, { passive: false });
 
@@ -2300,7 +2295,6 @@
         let start = { x: 0, y: 0 };
 
         svg.addEventListener("pointerdown", (e) => {
-          if (e.button !== 0) return;
           isPanning = true;
           start = { x: e.clientX, y: e.clientY };
           if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId);
@@ -2312,17 +2306,17 @@
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
-          storeCurrentViewState();
+          capturePanZoomState();
         });
 
         svg.addEventListener("pointerup", () => {
           isPanning = false;
-          storeCurrentViewState();
+          capturePanZoomState();
         });
 
         svg.addEventListener("pointercancel", () => {
           isPanning = false;
-          storeCurrentViewState();
+          capturePanZoomState();
         });
 
         pointerWired = true;
@@ -2358,14 +2352,14 @@
               y: (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top
             };
 
-            panZoom.zoomAtPoint(clampZoom(startZoom * zoomRatio), mid);
-            storeCurrentViewState();
+            panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
+            capturePanZoomState();
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
-          storeCurrentViewState();
+          capturePanZoomState();
         });
 
         pinchWired = true;
@@ -2499,57 +2493,72 @@
       imageBtn.addEventListener("click", saveSvgAsPng);
       svgBtn.addEventListener("click", saveSvgFile);
 
+      let lastContainerSize = {
+        width: 0,
+        height: 0
+      };
+
       const ro = new ResizeObserver(() => {
-        const state = storeCurrentViewState();
+        const width = container.clientWidth;
+        const height = container.clientHeight;
 
-        if (panZoom) {
-          try {
-            panZoom.resize();
-            panZoom.updateBBox();
+        if (!width || !height) return;
 
-            if (!(state && restoreViewState(state))) {
-              fitToContainer();
-            }
-          } catch (err) {
-            destroyPanZoom();
-            tryInitPanZoom(state);
-          }
-        } else {
-          tryInitPanZoom(state);
+        const sizeChanged =
+          width !== lastContainerSize.width ||
+          height !== lastContainerSize.height;
+
+        lastContainerSize = { width, height };
+
+        if (!sizeChanged) return;
+        if (suppressAutoFit) return;
+
+        const state = capturePanZoomState();
+
+        if (!initialized) {
+          tryInitPanZoom();
+          return;
         }
 
-        storeCurrentViewState();
+        try {
+          panZoom.resize();
+          panZoom.updateBBox();
+
+          if (!restorePanZoomState(state)) {
+            fitToContainer();
+          }
+        } catch (err) {
+          destroyPanZoom();
+          tryInitPanZoom();
+        }
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          const state = storeCurrentViewState();
+        if (document.visibilityState !== "visible") return;
 
-          if (panZoom) {
-            try {
-              panZoom.resize();
-              panZoom.updateBBox();
+        const state = capturePanZoomState();
 
-              if (!(state && restoreViewState(state))) {
-                fitToContainer();
-              }
-            } catch (err) {
-              destroyPanZoom();
-              tryInitPanZoom(state);
-            }
-          } else {
-            tryInitPanZoom(state);
+        if (!initialized) {
+          tryInitPanZoom();
+          return;
+        }
+
+        try {
+          panZoom.resize();
+          panZoom.updateBBox();
+          if (!restorePanZoomState(state)) {
+            fitToContainer();
           }
-
-          storeCurrentViewState();
+        } catch (err) {
+          destroyPanZoom();
+          tryInitPanZoom();
         }
       });
 
       window.addEventListener("load", () => {
         refreshParams();
         loadPackedParams();
-        updateContainerAspectRatio();
         resetDefaults(false);
 
         const savedSettings = getSavedSettingsFromUrl();
