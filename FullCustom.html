@@ -594,7 +594,6 @@
       let initialized = false;
       let packedParams = null;
       let suppressAutoFit = false;
-      let lastPanZoomState = null;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -815,53 +814,8 @@
         if (!panZoom) return;
         const fit = computeFit();
         if (!fit) return;
-
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
-        lastPanZoomState = {
-          zoom: fit.scale,
-          pan: { ...fit.pan }
-        };
-      }
-
-      function capturePanZoomState() {
-        if (!panZoom) return lastPanZoomState;
-        try {
-          const state = {
-            zoom: panZoom.getZoom(),
-            pan: panZoom.getPan()
-          };
-          if (
-            isFinite(state.zoom) &&
-            state.pan &&
-            isFinite(state.pan.x) &&
-            isFinite(state.pan.y)
-          ) {
-            lastPanZoomState = {
-              zoom: state.zoom,
-              pan: { x: state.pan.x, y: state.pan.y }
-            };
-            return lastPanZoomState;
-          }
-        } catch (err) {}
-        return lastPanZoomState;
-      }
-
-      function restorePanZoomState(state) {
-        if (!panZoom || !state) return false;
-        try {
-          if (isFinite(state.zoom)) panZoom.zoom(state.zoom);
-          if (state.pan && isFinite(state.pan.x) && isFinite(state.pan.y)) {
-            panZoom.pan({ x: state.pan.x, y: state.pan.y });
-          }
-          lastPanZoomState = {
-            zoom: state.zoom,
-            pan: { x: state.pan.x, y: state.pan.y }
-          };
-          return true;
-        } catch (err) {
-          return false;
-        }
       }
 
       function tryInitPanZoom() {
@@ -893,38 +847,10 @@
         window.panZoomInstance = panZoom;
         initialized = true;
 
-        if (!restorePanZoomState(lastPanZoomState)) {
-          fitToContainer();
-        }
-
+        fitToContainer();
         wireWheelZoom();
         enablePointerPan();
         enablePinchZoom();
-      }
-
-      function refreshPanZoom(state = null, shouldFit = false) {
-        if (!panZoom) {
-          tryInitPanZoom();
-          if (state && panZoom) restorePanZoomState(state);
-          return;
-        }
-
-        try {
-          panZoom.resize();
-          panZoom.updateBBox();
-
-          if (shouldFit) {
-            fitToContainer();
-          } else if (state) {
-            restorePanZoomState(state);
-          } else if (lastPanZoomState) {
-            restorePanZoomState(lastPanZoomState);
-          }
-        } catch (err) {
-          destroyPanZoom();
-          tryInitPanZoom();
-          if (state && panZoom) restorePanZoomState(state);
-        }
       }
 
       function getCurrentFont() {
@@ -1804,8 +1730,6 @@
       function render(keepZoom = true) {
         refreshParams();
 
-        const currentState = keepZoom ? capturePanZoomState() : null;
-
         renderNonce += 1;
         const myNonce = renderNonce;
 
@@ -1970,23 +1894,22 @@
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
 
-          suppressAutoFit = true;
-
           if (!panZoom) {
             tryInitPanZoom();
-            if (keepZoom && currentState && panZoom) {
-              restorePanZoomState(currentState);
-            } else if (!keepZoom) {
-              fitToContainer();
-            }
-          } else {
-            refreshPanZoom(currentState, false);
-            if (!keepZoom) {
-              fitToContainer();
-            }
+            return;
           }
 
-          capturePanZoomState();
+          if (keepZoom) return;
+
+          suppressAutoFit = true;
+          try {
+            panZoom.resize();
+            panZoom.updateBBox();
+            fitToContainer();
+          } catch (err) {
+            destroyPanZoom();
+            tryInitPanZoom();
+          }
 
           requestAnimationFrame(() => {
             suppressAutoFit = false;
@@ -2281,7 +2204,6 @@
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
-            capturePanZoomState();
           }
         }, { passive: false });
 
@@ -2306,17 +2228,14 @@
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
-          capturePanZoomState();
         });
 
         svg.addEventListener("pointerup", () => {
           isPanning = false;
-          capturePanZoomState();
         });
 
         svg.addEventListener("pointercancel", () => {
           isPanning = false;
-          capturePanZoomState();
         });
 
         pointerWired = true;
@@ -2353,13 +2272,11 @@
             };
 
             panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
-            capturePanZoomState();
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
-          capturePanZoomState();
         });
 
         pinchWired = true;
@@ -2513,8 +2430,6 @@
         if (!sizeChanged) return;
         if (suppressAutoFit) return;
 
-        const state = capturePanZoomState();
-
         if (!initialized) {
           tryInitPanZoom();
           return;
@@ -2523,10 +2438,7 @@
         try {
           panZoom.resize();
           panZoom.updateBBox();
-
-          if (!restorePanZoomState(state)) {
-            fitToContainer();
-          }
+          fitToContainer();
         } catch (err) {
           destroyPanZoom();
           tryInitPanZoom();
@@ -2537,8 +2449,6 @@
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState !== "visible") return;
 
-        const state = capturePanZoomState();
-
         if (!initialized) {
           tryInitPanZoom();
           return;
@@ -2547,9 +2457,7 @@
         try {
           panZoom.resize();
           panZoom.updateBBox();
-          if (!restorePanZoomState(state)) {
-            fitToContainer();
-          }
+          fitToContainer();
         } catch (err) {
           destroyPanZoom();
           tryInitPanZoom();
