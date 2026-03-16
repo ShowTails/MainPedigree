@@ -570,8 +570,6 @@
       let pinchWired = false;
       let renderNonce = 0;
       let initialized = false;
-      let lastLayoutSignature = "";
-      let resizeFrame = null;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -780,26 +778,6 @@
         panZoom.pan(fit.pan);
       }
 
-      function getPanZoomState() {
-        if (!panZoom) return null;
-        try {
-          return {
-            zoom: panZoom.getZoom(),
-            pan: panZoom.getPan()
-          };
-        } catch (err) {
-          return null;
-        }
-      }
-
-      function restorePanZoomState(state) {
-        if (!panZoom || !state || !isFinite(state.zoom)) return;
-        try {
-          panZoom.zoom(state.zoom);
-          panZoom.pan(state.pan || { x: 0, y: 0 });
-        } catch (err) {}
-      }
-
       function tryInitPanZoom(state = null) {
         if (initialized) return;
         if (typeof window.svgPanZoom !== "function") return;
@@ -825,7 +803,8 @@
         window.panZoomInstance = panZoom;
 
         if (state && isFinite(state.zoom)) {
-          restorePanZoomState(state);
+          panZoom.zoom(state.zoom);
+          panZoom.pan(state.pan || { x: 0, y: 0 });
         } else {
           fitToContainer();
         }
@@ -836,23 +815,19 @@
         initialized = true;
       }
 
-      function refreshPanZoom(state = null, options = {}) {
+      function refreshPanZoom(state = null) {
         if (!panZoom) {
           tryInitPanZoom(state);
           return;
         }
 
-        const { refreshBBox = false } = options;
-
         try {
           panZoom.resize();
-
-          if (refreshBBox) {
-            panZoom.updateBBox();
-          }
+          panZoom.updateBBox();
 
           if (state && isFinite(state.zoom)) {
-            restorePanZoomState(state);
+            panZoom.zoom(state.zoom);
+            panZoom.pan(state.pan || { x: 0, y: 0 });
           }
         } catch (err) {
           destroyPanZoom();
@@ -1790,7 +1765,10 @@
       function render(keepZoom = true) {
         refreshParams();
 
-        const currentState = keepZoom ? getPanZoomState() : null;
+        const currentState = panZoom ? {
+          pan: panZoom.getPan(),
+          zoom: panZoom.getZoom()
+        } : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1809,16 +1787,6 @@
           boxW = Math.min(boxW, 300);
           if (Number(boxWidthInput.value) !== boxW) boxWidthInput.value = boxW;
         }
-
-        const layoutSignature = JSON.stringify({
-          orientation: layoutOrientation.value,
-          canvasW: canvas.width,
-          canvasH: canvas.height,
-          boxW,
-          boxH
-        });
-        const layoutChanged = layoutSignature !== lastLayoutSignature;
-        lastLayoutSignature = layoutSignature;
 
         const positions = getPositions(boxW, boxH);
 
@@ -1968,15 +1936,9 @@
 
           if (!panZoom) {
             tryInitPanZoom(keepZoom ? currentState : null);
-            return;
-          }
-
-          refreshPanZoom(keepZoom ? currentState : null, {
-            refreshBBox: layoutChanged
-          });
-
-          if (!keepZoom) {
-            fitToContainer();
+          } else {
+            refreshPanZoom(keepZoom ? currentState : null);
+            if (!keepZoom) fitToContainer();
           }
         });
       }
@@ -2374,25 +2336,6 @@
         if (shouldRender) render(false);
       }
 
-      function handleContainerResize() {
-        if (resizeFrame) cancelAnimationFrame(resizeFrame);
-
-        resizeFrame = requestAnimationFrame(() => {
-          const state = getPanZoomState();
-
-          if (panZoom) {
-            try {
-              refreshPanZoom(state, { refreshBBox: false });
-            } catch (err) {
-              destroyPanZoom();
-              tryInitPanZoom(state);
-            }
-          } else {
-            tryInitPanZoom(state);
-          }
-        });
-      }
-
       menuToggle.addEventListener("click", () => {
         pedigreeMenu.classList.toggle("open");
       });
@@ -2489,13 +2432,31 @@
       svgBtn.addEventListener("click", saveSvgFile);
 
       const ro = new ResizeObserver(() => {
-        handleContainerResize();
+        if (panZoom) {
+          try {
+            panZoom.resize();
+            panZoom.updateBBox();
+          } catch (err) {
+            tryInitPanZoom();
+          }
+        } else {
+          tryInitPanZoom();
+        }
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          handleContainerResize();
+          if (panZoom) {
+            try {
+              panZoom.resize();
+              panZoom.updateBBox();
+            } catch (err) {
+              tryInitPanZoom();
+            }
+          } else {
+            tryInitPanZoom();
+          }
         }
       });
 
