@@ -27,19 +27,21 @@
     #pedigree-container {
       width: 100vw;
       height: 100vh;
-      position: relative;
-      overflow: hidden;
-      background: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
     }
 
     #pedigree-svg {
-      width: 100%;
-      height: 100%;
       display: block;
-      background: #fff;
+      width: 100% !important;
+      height: 100% !important;
+      transform: none !important;
+      margin: 0 auto !important;
+      background: #fff !important;
       touch-action: none !important;
       -ms-touch-action: none !important;
     }
@@ -255,15 +257,35 @@
         display: none !important;
       }
 
-      html, body,
-      #pedigree-container,
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden !important;
+        background: white;
+      }
+
+      #pedigree-container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background: white;
+        overflow: hidden;
+      }
+
       #pedigree-svg {
-        margin: 0 !important;
-        padding: 0 !important;
         width: 100% !important;
         height: 100% !important;
-        overflow: hidden !important;
-        background: #fff !important;
+        transform: none !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
       }
 
       #viewport {
@@ -570,6 +592,9 @@
       let pinchWired = false;
       let renderNonce = 0;
       let initialized = false;
+      let packedParams = null;
+      let suppressAutoFit = false;
+      let lastPanZoomState = null;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -627,33 +652,19 @@
 
       const boxDefs = [
         { id: "main",   gen: 1, sexType: "main",   titleChain: ["crabbitry","name"],     fields: [["Color","color"],["Ear#","ear number"],["Weight","weight"],["Sex","sex"],["Legs","legs"],["Reg#","reg"],["GC#","gc"],["DOB","dob"],["Ear Length","earl"]], extra: ["customdata"], wins: "win1" },
-
         { id: "sire",   gen: 2, sexType: "male",   titleChain: ["srabbitry","sire"],     fields: [["Color","scolor"],["Ear#","sear"],["Weight","sweight"],["Sex","ssex"],["Legs","slegs"],["Reg#","sreg"],["GC#","sgc"],["DOB","sdob"],["Ear Length","searl"]], extra: ["scustomdata"], wins: "swin1" },
-
         { id: "dam",    gen: 2, sexType: "female", titleChain: ["drabbitry","dam"],      fields: [["Color","dcolor"],["Ear#","dear"],["Weight","dweight"],["Sex","dsex"],["Legs","dlegs"],["Reg#","dreg"],["GC#","dgc"],["DOB","ddob"],["Ear Length","dearl"]], extra: ["dcustomdata"], wins: "dwin1" },
-
         { id: "ssire",  gen: 3, sexType: "male",   titleChain: ["ssrabbitry","ssire"],   fields: [["Color","sscolor"],["Ear#","ssear"],["Weight","ssweight"],["Sex","sssex"],["Legs","sslegs"],["Reg#","ssreg"],["GC#","ssgc"],["DOB","ssdob"],["Ear Length","ssearl"]], extra: ["sscustomdata"], wins: "sswin1" },
-
         { id: "sdam",   gen: 3, sexType: "female", titleChain: ["sdrabbitry","sdam"],    fields: [["Color","sdcolor"],["Ear#","sdear"],["Weight","sdweight"],["Sex","sdsex"],["Legs","sdlegs"],["Reg#","sdreg"],["GC#","sdgc"],["DOB","sddob"],["Ear Length","sdearl"]], extra: ["sdcustomdata"], wins: "sdwin1" },
-
         { id: "dsire",  gen: 3, sexType: "male",   titleChain: ["dsrabbitry","dsire"],   fields: [["Color","dscolor"],["Ear#","dsear"],["Weight","dsweight"],["Sex","dssex"],["Legs","dslegs"],["Reg#","dsreg"],["GC#","dsgc"],["DOB","dsdob"],["Ear Length","dsearl"]], extra: ["dscustomdata"], wins: "dswin1" },
-
         { id: "ddam",   gen: 3, sexType: "female", titleChain: ["ddrabbitry","ddam"],    fields: [["Color","ddcolor"],["Ear#","ddear"],["Weight","ddweight"],["Sex","ddsex"],["Legs","ddlegs"],["Reg#","ddreg"],["GC#","ddgc"],["DOB","dddob"],["Ear Length","ddearl"]], extra: ["ddcustomdata"], wins: "ddwin1" },
-
         { id: "sssire", gen: 4, sexType: "male",   titleChain: ["sssrabbitry","sssire"], fields: [["Color","ssscolor"],["Ear#","sssear"],["Weight","sssweight"],["Sex","ssssex"],["Legs","ssslegs"],["Reg#","sssreg"],["GC#","sssgc"],["DOB","sssdob"],["Ear Length","sssearl"]], extra: ["ssscustomdata"], wins: "" },
-
         { id: "ssdam",  gen: 4, sexType: "female", titleChain: ["ssdrabbitry","ssdam"],  fields: [["Color","ssdcolor"],["Ear#","ssdear"],["Weight","ssdweight"],["Sex","ssdsex"],["Legs","ssdlegs"],["Reg#","ssdreg"],["GC#","ssdgc"],["DOB","ssddob"],["Ear Length","ssdearl"]], extra: ["ssdcustomdata"], wins: "" },
-
         { id: "sdsire", gen: 4, sexType: "male",   titleChain: ["sdsrabbitry","sdsire"], fields: [["Color","sdscolor"],["Ear#","sdsear"],["Weight","sdsweight"],["Sex","sdssex"],["Legs","sdslegs"],["Reg#","sdsreg"],["GC#","sdsgc"],["DOB","sdsdob"],["Ear Length","sdsearl"]], extra: ["sdscustomdata"], wins: "" },
-
         { id: "sddam",  gen: 4, sexType: "female", titleChain: ["sddrabbitry","sddam"],  fields: [["Color","sddcolor"],["Ear#","sddear"],["Weight","sddweight"],["Sex","sddsex"],["Legs","sddlegs"],["Reg#","sddreg"],["GC#","sddgc"],["DOB","sdddob"],["Ear Length","sddearl"]], extra: ["sddcustomdata"], wins: "" },
-
         { id: "dssire", gen: 4, sexType: "male",   titleChain: ["dssrabbitry","dssire"], fields: [["Color","dsscolor"],["Ear#","dssear"],["Weight","dssweight"],["Sex","dsssex"],["Legs","dsslegs"],["Reg#","dssreg"],["GC#","dssgc"],["DOB","dssdob"],["Ear Length","dssearl"]], extra: ["dsscustomdata"], wins: "" },
-
         { id: "dsdam",  gen: 4, sexType: "female", titleChain: ["dsdrabbitry","dsdam"],  fields: [["Color","dsdcolor"],["Ear#","dsdear"],["Weight","dsdweight"],["Sex","dsdsex"],["Legs","dsdlegs"],["Reg#","dsdreg"],["GC#","dsdgc"],["DOB","dsddob"],["Ear Length","dsdearl"]], extra: ["dsdcustomdata"], wins: "" },
-
         { id: "ddsire", gen: 4, sexType: "male",   titleChain: ["ddsrabbitry","ddsire"], fields: [["Color","ddscolor"],["Ear#","ddsear"],["Weight","ddsweight"],["Sex","ddssex"],["Legs","ddslegs"],["Reg#","ddsreg"],["GC#","ddsgc"],["DOB","ddsdob"],["Ear Length","ddsearl"]], extra: ["ddscustomdata"], wins: "" },
-
         { id: "dddam",  gen: 4, sexType: "female", titleChain: ["dddrabbitry","dddam"],  fields: [["Color","dddcolor"],["Ear#","dddear"],["Weight","dddweight"],["Sex","dddsex"],["Legs","dddlegs"],["Reg#","dddreg"],["GC#","dddgc"],["DOB","ddddob"],["Ear Length","dddearl"]], extra: ["dddcustomdata"], wins: "" }
       ];
 
@@ -677,7 +688,35 @@
         params = getSearchParams();
       }
 
+      function base64ToUtf8(str) {
+        return decodeURIComponent(
+          Array.from(atob(str))
+            .map(c => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+            .join("")
+        );
+      }
+
+      function loadPackedParams() {
+        const search = new URLSearchParams(window.location.search);
+        const packed = search.get("p");
+
+        if (!packed) {
+          packedParams = null;
+          return;
+        }
+
+        try {
+          packedParams = JSON.parse(base64ToUtf8(decodeURIComponent(packed)));
+        } catch (err) {
+          console.error("Failed to decode packed pedigree data:", err);
+          packedParams = null;
+        }
+      }
+
       function getRawParam(name) {
+        if (packedParams && Object.prototype.hasOwnProperty.call(packedParams, name)) {
+          return packedParams[name] || "";
+        }
         return params.get(name) || "";
       }
 
@@ -770,17 +809,67 @@
         };
       }
 
+      window.computeFit = computeFit;
+
       function fitToContainer() {
         if (!panZoom) return;
         const fit = computeFit();
         if (!fit) return;
+
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
+        lastPanZoomState = {
+          zoom: fit.scale,
+          pan: { ...fit.pan }
+        };
       }
 
-      function tryInitPanZoom(state = null) {
+      function capturePanZoomState() {
+        if (!panZoom) return lastPanZoomState;
+        try {
+          const state = {
+            zoom: panZoom.getZoom(),
+            pan: panZoom.getPan()
+          };
+          if (
+            isFinite(state.zoom) &&
+            state.pan &&
+            isFinite(state.pan.x) &&
+            isFinite(state.pan.y)
+          ) {
+            lastPanZoomState = {
+              zoom: state.zoom,
+              pan: { x: state.pan.x, y: state.pan.y }
+            };
+            return lastPanZoomState;
+          }
+        } catch (err) {}
+        return lastPanZoomState;
+      }
+
+      function restorePanZoomState(state) {
+        if (!panZoom || !state) return false;
+        try {
+          if (isFinite(state.zoom)) panZoom.zoom(state.zoom);
+          if (state.pan && isFinite(state.pan.x) && isFinite(state.pan.y)) {
+            panZoom.pan({ x: state.pan.x, y: state.pan.y });
+          }
+          lastPanZoomState = {
+            zoom: state.zoom,
+            pan: { x: state.pan.x, y: state.pan.y }
+          };
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function tryInitPanZoom() {
         if (initialized) return;
-        if (typeof window.svgPanZoom !== "function") return;
+        if (typeof window.svgPanZoom !== "function") {
+          console.error("svg-pan-zoom not loaded.");
+          return;
+        }
 
         const vb = svg.viewBox.baseVal;
         const cw = container.clientWidth;
@@ -794,30 +883,29 @@
           mouseWheelZoomEnabled: false,
           controlIconsEnabled: false,
           fit: false,
-          center: false,
+          center: true,
           minZoom: 0.25,
           maxZoom: 10,
-          dblClickZoomEnabled: true
+          dblClickZoomEnabled: true,
+          onUpdatedCTM: function () {}
         });
 
         window.panZoomInstance = panZoom;
+        initialized = true;
 
-        if (state && isFinite(state.zoom)) {
-          panZoom.zoom(state.zoom);
-          panZoom.pan(state.pan || { x: 0, y: 0 });
-        } else {
+        if (!restorePanZoomState(lastPanZoomState)) {
           fitToContainer();
         }
 
         wireWheelZoom();
         enablePointerPan();
         enablePinchZoom();
-        initialized = true;
       }
 
-      function refreshPanZoom(state = null) {
+      function refreshPanZoom(state = null, shouldFit = false) {
         if (!panZoom) {
-          tryInitPanZoom(state);
+          tryInitPanZoom();
+          if (state && panZoom) restorePanZoomState(state);
           return;
         }
 
@@ -825,13 +913,17 @@
           panZoom.resize();
           panZoom.updateBBox();
 
-          if (state && isFinite(state.zoom)) {
-            panZoom.zoom(state.zoom);
-            panZoom.pan(state.pan || { x: 0, y: 0 });
+          if (shouldFit) {
+            fitToContainer();
+          } else if (state) {
+            restorePanZoomState(state);
+          } else if (lastPanZoomState) {
+            restorePanZoomState(lastPanZoomState);
           }
         } catch (err) {
           destroyPanZoom();
-          tryInitPanZoom(state);
+          tryInitPanZoom();
+          if (state && panZoom) restorePanZoomState(state);
         }
       }
 
@@ -1036,9 +1128,10 @@
       }
 
       function fitTextLinesToBox(lines, boxH) {
-        const topPad = 11;
-        const bottomPad = 4;
-        const usableH = boxH - topPad - bottomPad;
+        const topPadMin = 8;
+        const bottomPadMin = 8;
+        const usableH = boxH - topPadMin - bottomPadMin;
+
         let used = 0;
         const visible = [];
 
@@ -1049,7 +1142,8 @@
           used += metrics.lineHeight;
         }
 
-        return { visible, topPad };
+        const startY = Math.max(topPadMin, (boxH - used) / 2);
+        return { visible, startY };
       }
 
       function drawWins(group, def, x, y, boxW, boxH) {
@@ -1092,19 +1186,29 @@
         const fitted = fitTextLinesToBox(textLines, boxH);
         const padX = 8;
 
-        const t = makeEl("text", { x: x + padX, y: y + fitted.topPad });
+        const t = makeEl("text", {
+          x: x + padX,
+          y: y + fitted.startY
+        });
+
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
+        t.setAttribute("dominant-baseline", "hanging");
 
-        fitted.visible.forEach((line, i) => {
+        let currentY = y + fitted.startY;
+
+        fitted.visible.forEach((line) => {
           const ts = makeEl("tspan", {
             x: x + padX,
-            dy: i === 0 ? 0 : line.metrics.lineHeight
+            y: currentY
           });
           ts.textContent = line.text;
           ts.style.fontSize = line.metrics.fontSize + "px";
           ts.style.fontWeight = line.metrics.weight;
+          ts.setAttribute("dominant-baseline", "hanging");
           t.appendChild(ts);
+
+          currentY += line.metrics.lineHeight;
         });
 
         group.appendChild(t);
@@ -1177,22 +1281,8 @@
 
         const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
 
-        addPath(g, `
-          M 0 0
-          C 24 0, 42 2, 58 10
-          C 84 22, 98 40, 102 66
-          C 88 62, 75 58, 64 48
-          C 54 40, 46 28, 42 16
-          C 35 36, 22 54, 0 72
-        `, primary, 3, "none");
-
-        addPath(g, `
-          M 14 14
-          C 30 12, 44 16, 58 24
-          C 72 32, 80 42, 82 58
-          C 72 52, 62 48, 54 40
-          C 44 31, 36 22, 32 14
-        `, secondary, 2, "none");
+        addPath(g, `M 0 0 C 24 0, 42 2, 58 10 C 84 22, 98 40, 102 66 C 88 62, 75 58, 64 48 C 54 40, 46 28, 42 16 C 35 36, 22 54, 0 72`, primary, 3, "none");
+        addPath(g, `M 14 14 C 30 12, 44 16, 58 24 C 72 32, 80 42, 82 58 C 72 52, 62 48, 54 40 C 44 31, 36 22, 32 14`, secondary, 2, "none");
 
         addCircle(g, 22, 22, 4.5, secondary, primary, 1.5);
         addCircle(g, 58, 24, 3.6, secondary, primary, 1.2);
@@ -1220,18 +1310,7 @@
         const midY = y + height / 2;
 
         group.appendChild(makeEl("path", {
-          d: `
-            M ${left+18} ${y}
-            L ${right-18} ${y}
-            Q ${right} ${y} ${right} ${y+18}
-            L ${right} ${y+height-18}
-            Q ${right} ${y+height} ${right-18} ${y+height}
-            L ${left+18} ${y+height}
-            Q ${left} ${y+height} ${left} ${y+height-18}
-            L ${left} ${y+18}
-            Q ${left} ${y} ${left+18} ${y}
-            Z
-          `,
+          d: `M ${left+18} ${y} L ${right-18} ${y} Q ${right} ${y} ${right} ${y+18} L ${right} ${y+height-18} Q ${right} ${y+height} ${right-18} ${y+height} L ${left+18} ${y+height} Q ${left} ${y+height} ${left} ${y+height-18} L ${left} ${y+18} Q ${left} ${y} ${left+18} ${y} Z`,
           fill: secondary,
           stroke: primary,
           "stroke-width": 3
@@ -1255,12 +1334,7 @@
         const g = makeEl("g", { transform: `translate(${x},${y}) scale(${flipX},1)` });
         addPath(g, `M 0 52 C 18 40, 28 26, 42 0`, primary, 2.2);
 
-        [
-          [10, 42, 12, -20],
-          [18, 34, 12, -16],
-          [26, 25, 11, -12],
-          [34, 15, 10, -8]
-        ].forEach(([lx, ly, s, rot]) => {
+        [[10, 42, 12, -20],[18, 34, 12, -16],[26, 25, 11, -12],[34, 15, 10, -8]].forEach(([lx, ly, s, rot]) => {
           g.appendChild(makeEl("ellipse", {
             cx: lx, cy: ly, rx: s, ry: s * 0.45,
             fill: secondary, stroke: primary, "stroke-width": 1.5,
@@ -1385,18 +1459,10 @@
         const midY = y + h / 2;
 
         group.appendChild(makeEl("path", {
-          d: `
-            M ${x+20} ${y}
-            L ${x+w-20} ${y}
-            Q ${x+w} ${y} ${x+w} ${y+18}
-            L ${x+w} ${y+h-18}
-            Q ${x+w} ${y+h} ${x+w-20} ${y+h}
-            L ${x+20} ${y+h}
-            Q ${x} ${y+h} ${x} ${y+h-18}
-            L ${x} ${y+18}
-            Q ${x} ${y} ${x+20} ${y}
-            Z
-          `,
+          d: `M ${x+20} ${y} L ${x+w-20} ${y} Q ${x+w} ${y} ${x+w} ${y+18}
+              L ${x+w} ${y+h-18} Q ${x+w} ${y+h} ${x+w-20} ${y+h}
+              L ${x+20} ${y+h} Q ${x} ${y+h} ${x} ${y+h-18}
+              L ${x} ${y+18} Q ${x} ${y} ${x+20} ${y} Z`,
           fill: "#ffffff",
           stroke: primary,
           "stroke-width": 3
@@ -1499,12 +1565,10 @@
             addRect(group, x + 14, y + 14, w - 28, h - 28, secondary, 3);
             addRect(group, x + 28, y + 28, w - 56, h - 56, primary, 1.8);
             addRect(group, x + 42, y + 42, w - 84, h - 84, secondary, 1.1);
-
             drawBeadLine(group, x + 70, y + 20, x + w - 70, y + 20, 26, 2.8, secondary, primary, 0.8);
             drawBeadLine(group, x + 70, y + h - 20, x + w - 70, y + h - 20, 26, 2.8, secondary, primary, 0.8);
             drawBeadLine(group, x + 20, y + 70, x + 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
             drawBeadLine(group, x + w - 20, y + 70, x + w - 20, y + h - 70, 18, 2.8, secondary, primary, 0.8);
-
             drawPetalMedallion(group, x + 54, y + 54, 15, primary, secondary);
             drawPetalMedallion(group, x + w - 54, y + 54, 15, primary, secondary);
             drawPetalMedallion(group, x + 54, y + h - 54, 15, primary, secondary);
@@ -1515,12 +1579,10 @@
             addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
             addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
             addRect(group, x + 44, y + 44, w - 88, h - 88, primary, 1.1);
-
             drawCornerFlourish(group, x + 28, y + 28, primary, secondary, "tl");
             drawCornerFlourish(group, x + w - 28, y + 28, primary, secondary, "tr");
             drawCornerFlourish(group, x + 28, y + h - 28, primary, secondary, "bl");
             drawCornerFlourish(group, x + w - 28, y + h - 28, primary, secondary, "br");
-
             drawCornerShell(group, x + 72, y + 72, primary, secondary, "tl");
             drawCornerShell(group, x + w - 72, y + 72, primary, secondary, "tr");
             drawCornerShell(group, x + 72, y + h - 72, primary, secondary, "bl");
@@ -1531,10 +1593,8 @@
             addRect(group, x + 16, y + 18, w - 32, h - 36, primary, 5.5);
             addRect(group, x + 34, y + 36, w - 68, h - 72, secondary, 2.5);
             addRect(group, x + 50, y + 52, w - 100, h - 104, primary, 1.2);
-
             drawRibbonCrest(group, cx, y + 18, 270, 48, primary, secondary);
             drawBannerPlate(group, cx, y + h - 64, 250, 42, primary, secondary);
-
             drawPetalMedallion(group, x + 66, y + 44, 11, primary, secondary);
             drawPetalMedallion(group, x + w - 66, y + 44, 11, primary, secondary);
             break;
@@ -1542,14 +1602,11 @@
           case "royalArch":
             addRect(group, x + 18, y + 50, w - 36, h - 66, primary, 5);
             addRect(group, x + 36, y + 68, w - 72, h - 102, secondary, 2.2);
-
             addPath(group, `M ${x+120} ${y+50} Q ${cx} ${y-46} ${x+w-120} ${y+50}`, primary, 6);
             addPath(group, `M ${x+158} ${y+66} Q ${cx} ${y+2} ${x+w-158} ${y+66}`, secondary, 2.6);
-
             drawSunburst(group, cx, y + 28, 14, primary, secondary);
             drawLaurelSprig(group, cx - 54, y + 42, primary, secondary, -1);
             drawLaurelSprig(group, cx + 54, y + 42, primary, secondary, 1);
-
             addLine(group, x + 70, y + 50, x + 70, y + h - 18, secondary, 1.2);
             addLine(group, x + w - 70, y + 50, x + w - 70, y + h - 18, secondary, 1.2);
             break;
@@ -1558,10 +1615,8 @@
             addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 4.5);
             addRect(group, x + 28, y + 28, w - 56, h - 56, secondary, 2.2);
             addRect(group, x + 42, y + 42, w - 84, h - 84, primary, 1.2);
-
             drawFretBand(group, x + 18, y + 18, w - 36, h - 36, primary, secondary);
             drawBracketCorners(group, x + 24, y + 24, w - 48, h - 48, primary, secondary);
-
             addDiamond(group, cx, y + 30, 18, 18, secondary, primary, 1.2);
             addDiamond(group, cx, y + h - 30, 18, 18, secondary, primary, 1.2);
             break;
@@ -1570,10 +1625,8 @@
             drawScallopBand(group, x + 14, y + 14, w - 28, h - 28, primary, secondary);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1);
             addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1);
-
             drawBeadLine(group, x + 54, y + 54, x + w - 54, y + 54, 22, 2.2, secondary, primary, 0.8);
             drawBeadLine(group, x + 54, y + h - 54, x + w - 54, y + h - 54, 22, 2.2, secondary, primary, 0.8);
-
             drawPetalMedallion(group, x + 54, y + 54, 10, primary, secondary);
             drawPetalMedallion(group, x + w - 54, y + 54, 10, primary, secondary);
             drawPetalMedallion(group, x + 54, y + h - 54, 10, primary, secondary);
@@ -1584,15 +1637,12 @@
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
             addRect(group, x + 32, y + 32, w - 64, h - 64, secondary, 1.8);
             addRect(group, x + 46, y + 46, w - 92, h - 92, primary, 1);
-
             drawCornerFlourish(group, x + 24, y + 24, primary, secondary, "tl");
             drawCornerFlourish(group, x + w - 24, y + 24, primary, secondary, "tr");
             drawCornerFlourish(group, x + 24, y + h - 24, primary, secondary, "bl");
             drawCornerFlourish(group, x + w - 24, y + h - 24, primary, secondary, "br");
-
             addPath(group, `M ${x+120} ${y+26} C ${cx-180} ${y+34}, ${cx-80} ${y+8}, ${cx} ${y+26}
                             C ${cx+80} ${y+44}, ${cx+180} ${y+18}, ${x+w-120} ${y+26}`, secondary, 2.2);
-
             addPath(group, `M ${x+120} ${y+h-26} C ${cx-180} ${y+h-34}, ${cx-80} ${y+h-8}, ${cx} ${y+h-26}
                             C ${cx+80} ${y+h-44}, ${cx+180} ${y+h-18}, ${x+w-120} ${y+h-26}`, secondary, 2.2);
             break;
@@ -1601,10 +1651,8 @@
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4.5, "none", 22, 22);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2.1, "none", 14, 14);
             addRect(group, x + 48, y + 48, w - 96, h - 96, primary, 1.1, "none", 8, 8);
-
             drawBannerPlate(group, cx, y + 18, 240, 42, primary, secondary);
             drawNotchTicks(group, x + 18, y + 18, w - 36, h - 36, secondary);
-
             addDiamond(group, x + 52, cy, 16, 16, secondary, primary, 1.1);
             addDiamond(group, x + w - 52, cy, 16, 16, secondary, primary, 1.1);
             break;
@@ -1613,14 +1661,11 @@
             addRect(group, x + 16, y + 16, w - 32, h - 32, primary, 4);
             addRect(group, x + 34, y + 34, w - 68, h - 68, secondary, 2);
             addRect(group, x + 50, y + 50, w - 100, h - 100, primary, 1.1);
-
             drawSideVine(group, x + 28, y + 72, y + h - 72, primary, secondary, 1);
             drawSideVine(group, x + w - 28, y + 72, y + h - 72, primary, secondary, -1);
-
             drawLeaf(group, cx - 32, y + 34, 1.0, primary, secondary, 1);
             drawLeaf(group, cx + 32, y + 34, 1.0, primary, secondary, -1);
             drawPetalMedallion(group, cx, y + 34, 10, primary, secondary);
-
             drawLeaf(group, cx - 32, y + h - 34, 1.0, primary, secondary, 1);
             drawLeaf(group, cx + 32, y + h - 34, 1.0, primary, secondary, -1);
             drawPetalMedallion(group, cx, y + h - 34, 10, primary, secondary);
@@ -1630,15 +1675,12 @@
             addRect(group, x + 10, y + 10, w - 20, h - 20, primary, 7);
             addRect(group, x + 24, y + 24, w - 48, h - 48, secondary, 2.8);
             addRect(group, x + 40, y + 40, w - 80, h - 80, primary, 1.2);
-
             drawRibbonCrest(group, cx, y + 18, 250, 44, primary, secondary);
             drawBannerPlate(group, cx, y + h - 60, 230, 40, primary, secondary);
-
             drawRosette(group, x + 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + 54, 18, primary, secondary);
             drawRosette(group, x + 54, y + h - 54, 18, primary, secondary);
             drawRosette(group, x + w - 54, y + h - 54, 18, primary, secondary);
-
             drawSunburst(group, cx, y + 46, 11, primary, secondary);
             break;
         }
@@ -1706,10 +1748,7 @@
         if (settings.watermarkSize != null) watermarkSize.value = settings.watermarkSize;
         if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
 
-        if (settings.fontFamily) {
-          applyFont(settings.fontFamily, false);
-        }
-
+        if (settings.fontFamily) applyFont(settings.fontFamily, false);
         if (shouldRender) render(false);
       }
 
@@ -1765,10 +1804,7 @@
       function render(keepZoom = true) {
         refreshParams();
 
-        const currentState = panZoom ? {
-          pan: panZoom.getPan(),
-          zoom: panZoom.getZoom()
-        } : null;
+        const currentState = keepZoom ? capturePanZoomState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1934,12 +1970,27 @@
         requestAnimationFrame(() => {
           if (myNonce !== renderNonce) return;
 
+          suppressAutoFit = true;
+
           if (!panZoom) {
-            tryInitPanZoom(keepZoom ? currentState : null);
+            tryInitPanZoom();
+            if (keepZoom && currentState && panZoom) {
+              restorePanZoomState(currentState);
+            } else if (!keepZoom) {
+              fitToContainer();
+            }
           } else {
-            refreshPanZoom(keepZoom ? currentState : null);
-            if (!keepZoom) fitToContainer();
+            refreshPanZoom(currentState, false);
+            if (!keepZoom) {
+              fitToContainer();
+            }
           }
+
+          capturePanZoomState();
+
+          requestAnimationFrame(() => {
+            suppressAutoFit = false;
+          });
         });
       }
 
@@ -2230,6 +2281,7 @@
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
+            capturePanZoomState();
           }
         }, { passive: false });
 
@@ -2254,10 +2306,18 @@
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
+          capturePanZoomState();
         });
 
-        svg.addEventListener("pointerup", () => { isPanning = false; });
-        svg.addEventListener("pointercancel", () => { isPanning = false; });
+        svg.addEventListener("pointerup", () => {
+          isPanning = false;
+          capturePanZoomState();
+        });
+
+        svg.addEventListener("pointercancel", () => {
+          isPanning = false;
+          capturePanZoomState();
+        });
 
         pointerWired = true;
       }
@@ -2293,11 +2353,13 @@
             };
 
             panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
+            capturePanZoomState();
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
+          capturePanZoomState();
         });
 
         pinchWired = true;
@@ -2431,37 +2493,72 @@
       imageBtn.addEventListener("click", saveSvgAsPng);
       svgBtn.addEventListener("click", saveSvgFile);
 
+      let lastContainerSize = {
+        width: 0,
+        height: 0
+      };
+
       const ro = new ResizeObserver(() => {
-        if (panZoom) {
-          try {
-            panZoom.resize();
-            panZoom.updateBBox();
-          } catch (err) {
-            tryInitPanZoom();
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        if (!width || !height) return;
+
+        const sizeChanged =
+          width !== lastContainerSize.width ||
+          height !== lastContainerSize.height;
+
+        lastContainerSize = { width, height };
+
+        if (!sizeChanged) return;
+        if (suppressAutoFit) return;
+
+        const state = capturePanZoomState();
+
+        if (!initialized) {
+          tryInitPanZoom();
+          return;
+        }
+
+        try {
+          panZoom.resize();
+          panZoom.updateBBox();
+
+          if (!restorePanZoomState(state)) {
+            fitToContainer();
           }
-        } else {
+        } catch (err) {
+          destroyPanZoom();
           tryInitPanZoom();
         }
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          if (panZoom) {
-            try {
-              panZoom.resize();
-              panZoom.updateBBox();
-            } catch (err) {
-              tryInitPanZoom();
-            }
-          } else {
-            tryInitPanZoom();
+        if (document.visibilityState !== "visible") return;
+
+        const state = capturePanZoomState();
+
+        if (!initialized) {
+          tryInitPanZoom();
+          return;
+        }
+
+        try {
+          panZoom.resize();
+          panZoom.updateBBox();
+          if (!restorePanZoomState(state)) {
+            fitToContainer();
           }
+        } catch (err) {
+          destroyPanZoom();
+          tryInitPanZoom();
         }
       });
 
       window.addEventListener("load", () => {
         refreshParams();
+        loadPackedParams();
         resetDefaults(false);
 
         const savedSettings = getSavedSettingsFromUrl();
