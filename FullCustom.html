@@ -812,10 +812,47 @@
 
       function fitToContainer() {
         if (!panZoom) return;
+
         const fit = computeFit();
         if (!fit) return;
+
+        panZoom.resetZoom();
+        panZoom.resetPan();
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
+      }
+
+      function getViewState() {
+        if (!panZoom) return null;
+        try {
+          return {
+            zoom: panZoom.getZoom(),
+            pan: panZoom.getPan()
+          };
+        } catch (err) {
+          return null;
+        }
+      }
+
+      function restoreViewState(viewState) {
+        if (!panZoom || !viewState) return false;
+
+        try {
+          const zoom = Number(viewState.zoom);
+          const pan = viewState.pan;
+
+          if (!isFinite(zoom) || !pan || !isFinite(pan.x) || !isFinite(pan.y) || zoom <= 0) {
+            return false;
+          }
+
+          panZoom.resetZoom();
+          panZoom.resetPan();
+          panZoom.zoom(zoom);
+          panZoom.pan({ x: pan.x, y: pan.y });
+          return true;
+        } catch (err) {
+          return false;
+        }
       }
 
       function tryInitPanZoom() {
@@ -872,7 +909,7 @@
         selectedFontPreview.style.fontFamily = fontValue;
         document.documentElement.style.setProperty("--menu-font", fontValue);
         setActiveFontOption(fontValue);
-        if (shouldRender) render(true);
+        if (shouldRender) render("preserve");
       }
 
       function getMainRabbitSex() {
@@ -1644,7 +1681,7 @@
         };
       }
 
-      function applySettings(settings, shouldRender = true) {
+      function applySettings(settings, mode = "fit") {
         if (!settings || typeof settings !== "object") return;
 
         if (settings.borderStyle) borderStyleInput.value = settings.borderStyle;
@@ -1675,7 +1712,7 @@
         if (settings.rabbitPhotoEnabled != null) toggleRabbitPhoto.checked = !!settings.rabbitPhotoEnabled;
 
         if (settings.fontFamily) applyFont(settings.fontFamily, false);
-        if (shouldRender) render(false);
+        render(mode);
       }
 
       function getSavedSettingsFromUrl() {
@@ -1727,8 +1764,10 @@
         }
       }
 
-      function render(keepZoom = true) {
+      function render(mode = "preserve") {
         refreshParams();
+
+        const previousViewState = (mode === "preserve" && panZoom) ? getViewState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1829,7 +1868,7 @@
           const photoX = main.x + (boxW - photoW) / 2;
           const photoY = main.y - photoH - meta.photoGap;
 
-          const clipId = "rabbit-photo-clip";
+          const clipId = "rabbit-photo-clip-" + myNonce;
           const defs = makeEl("defs");
           const clip = makeEl("clipPath", { id: clipId });
           clip.appendChild(makeEl("rect", {
@@ -1899,13 +1938,18 @@
             return;
           }
 
-          if (keepZoom) return;
-
           suppressAutoFit = true;
+
           try {
             panZoom.resize();
             panZoom.updateBBox();
-            fitToContainer();
+
+            if (mode === "fit") {
+              fitToContainer();
+            } else {
+              const restored = restoreViewState(previousViewState);
+              if (!restored) fitToContainer();
+            }
           } catch (err) {
             destroyPanZoom();
             tryInitPanZoom();
@@ -2312,7 +2356,7 @@
         saveStatus.textContent = "";
         applyFont(defaults.fontFamily, false);
 
-        if (shouldRender) render(false);
+        if (shouldRender) render("fit");
       }
 
       menuToggle.addEventListener("click", () => {
@@ -2333,7 +2377,7 @@
       fontOptions.forEach(option => {
         option.addEventListener("click", () => {
           applyFont(option.dataset.font, false);
-          render(true);
+          render("preserve");
           fontPicker.classList.remove("open");
         });
       });
@@ -2346,12 +2390,12 @@
 
       colorPreset.addEventListener("change", () => {
         applyPresetIfNeeded();
-        render(true);
+        render("preserve");
       });
 
       borderColorPreset.addEventListener("change", () => {
         applyBorderPresetIfNeeded();
-        render(true);
+        render("preserve");
       });
 
       [
@@ -2378,7 +2422,7 @@
         watermarkOpacity,
         watermarkSize,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("input", () => render(true)));
+      ].forEach(el => el.addEventListener("input", () => render("preserve")));
 
       [
         mainSexColorToggle,
@@ -2388,9 +2432,9 @@
         toggleShowWins,
         toggleWatermark,
         toggleRabbitPhoto
-      ].forEach(el => el.addEventListener("change", () => render(true)));
+      ].forEach(el => el.addEventListener("change", () => render("preserve")));
 
-      layoutOrientation.addEventListener("change", () => render(false));
+      layoutOrientation.addEventListener("change", () => render("fit"));
 
       [borderPrimaryColor, borderSecondaryColor].forEach(el => {
         el.addEventListener("input", () => {
@@ -2471,10 +2515,10 @@
 
         const savedSettings = getSavedSettingsFromUrl();
         if (savedSettings) {
-          applySettings(savedSettings, false);
+          applySettings(savedSettings, "fit");
+        } else {
+          render("fit");
         }
-
-        render(false);
       });
     })();
   </script>
