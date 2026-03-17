@@ -822,39 +822,6 @@
         panZoom.pan(fit.pan);
       }
 
-      function getViewState() {
-        if (!panZoom) return null;
-        try {
-          return {
-            zoom: panZoom.getZoom(),
-            pan: panZoom.getPan()
-          };
-        } catch (err) {
-          return null;
-        }
-      }
-
-      function restoreViewState(viewState) {
-        if (!panZoom || !viewState) return false;
-
-        try {
-          const zoom = Number(viewState.zoom);
-          const pan = viewState.pan;
-
-          if (!isFinite(zoom) || !pan || !isFinite(pan.x) || !isFinite(pan.y) || zoom <= 0) {
-            return false;
-          }
-
-          panZoom.resetZoom();
-          panZoom.resetPan();
-          panZoom.zoom(zoom);
-          panZoom.pan({ x: pan.x, y: pan.y });
-          return true;
-        } catch (err) {
-          return false;
-        }
-      }
-
       function tryInitPanZoom() {
         if (initialized) return;
         if (typeof window.svgPanZoom !== "function") {
@@ -1767,8 +1734,6 @@
       function render(mode = "preserve") {
         refreshParams();
 
-        const previousViewState = (mode === "preserve" && panZoom) ? getViewState() : null;
-
         renderNonce += 1;
         const myNonce = renderNonce;
 
@@ -1938,18 +1903,14 @@
             return;
           }
 
+          if (mode === "preserve") return;
+
           suppressAutoFit = true;
 
           try {
             panZoom.resize();
             panZoom.updateBBox();
-
-            if (mode === "fit") {
-              fitToContainer();
-            } else {
-              const restored = restoreViewState(previousViewState);
-              if (!restored) fitToContainer();
-            }
+            fitToContainer();
           } catch (err) {
             destroyPanZoom();
             tryInitPanZoom();
