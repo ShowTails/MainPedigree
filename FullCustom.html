@@ -44,6 +44,8 @@
       background: #fff !important;
       touch-action: none !important;
       -ms-touch-action: none !important;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     #menu-toggle {
@@ -593,7 +595,7 @@
       let renderNonce = 0;
       let initialized = false;
       let packedParams = null;
-      let suppressAutoFit = false;
+      let suppressResizeHandling = false;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -808,53 +810,12 @@
         };
       }
 
-      window.computeFit = computeFit;
-
       function fitToContainer() {
         if (!panZoom) return;
-
         const fit = computeFit();
         if (!fit) return;
-
-        panZoom.resetZoom();
-        panZoom.resetPan();
         panZoom.zoom(fit.scale);
         panZoom.pan(fit.pan);
-      }
-
-      function tryInitPanZoom() {
-        if (initialized) return;
-        if (typeof window.svgPanZoom !== "function") {
-          console.error("svg-pan-zoom not loaded.");
-          return;
-        }
-
-        const vb = svg.viewBox.baseVal;
-        const cw = container.clientWidth;
-        const ch = container.clientHeight;
-        if (!validBox(vb) || !cw || !ch) return;
-
-        panZoom = svgPanZoom(svg, {
-          viewportSelector: "#viewport",
-          panEnabled: true,
-          zoomEnabled: true,
-          mouseWheelZoomEnabled: false,
-          controlIconsEnabled: false,
-          fit: false,
-          center: true,
-          minZoom: 0.25,
-          maxZoom: 10,
-          dblClickZoomEnabled: true,
-          onUpdatedCTM: function () {}
-        });
-
-        window.panZoomInstance = panZoom;
-        initialized = true;
-
-        fitToContainer();
-        wireWheelZoom();
-        enablePointerPan();
-        enablePinchZoom();
       }
 
       function getCurrentFont() {
@@ -1022,7 +983,8 @@
 
         def.fields.forEach(([label, key]) => {
           if (!shouldShowField(label)) return;
-          lines.push({ text: `${label}: ${getParam(key)}`, type: "field" });
+          const value = getParam(key);
+          if (value) lines.push({ text: `${label}: ${value}`, type: "field" });
         });
 
         if (toggleShowCustom.checked) {
@@ -1045,14 +1007,14 @@
         if (line.type === "title") {
           return {
             fontSize: nameSize,
-            lineHeight: Math.max(nameSize, bodySize + 1),
+            lineHeight: Math.max(nameSize + 1, bodySize + 2),
             weight: "700"
           };
         }
 
         return {
           fontSize: bodySize,
-          lineHeight: Math.max(bodySize, 10),
+          lineHeight: Math.max(bodySize + 1, 11),
           weight: "400"
         };
       }
@@ -1731,8 +1693,101 @@
         }
       }
 
+      function getViewState() {
+        if (!panZoom || !initialized) return null;
+
+        const zoom = panZoom.getZoom();
+        const pan = panZoom.getPan();
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+
+        if (!isFinite(zoom) || zoom <= 0 || !cw || !ch) return null;
+
+        return {
+          zoom,
+          centerSvgX: (cw / 2 - pan.x) / zoom,
+          centerSvgY: (ch / 2 - pan.y) / zoom
+        };
+      }
+
+      function restoreViewState(state) {
+        if (!panZoom || !state) return false;
+
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!cw || !ch) return false;
+
+        const zoom = Math.max(0.25, Math.min(10, Number(state.zoom) || 1));
+        const pan = {
+          x: (cw / 2) - (state.centerSvgX * zoom),
+          y: (ch / 2) - (state.centerSvgY * zoom)
+        };
+
+        try {
+          panZoom.zoom(zoom);
+          panZoom.pan(pan);
+          return true;
+        } catch (err) {
+          return false;
+        }
+      }
+
+      function refreshPanZoomKeepView(savedView) {
+        if (!panZoom) return;
+        try {
+          panZoom.resize();
+          panZoom.updateBBox();
+          if (!savedView || !restoreViewState(savedView)) {
+            fitToContainer();
+          }
+        } catch (err) {
+          destroyPanZoom();
+          tryInitPanZoom(savedView);
+        }
+      }
+
+      function tryInitPanZoom(savedView = null) {
+        if (initialized) return;
+        if (typeof window.svgPanZoom !== "function") {
+          console.error("svg-pan-zoom not loaded.");
+          return;
+        }
+
+        const vb = svg.viewBox.baseVal;
+        const cw = container.clientWidth;
+        const ch = container.clientHeight;
+        if (!validBox(vb) || !cw || !ch) return;
+
+        panZoom = svgPanZoom(svg, {
+          viewportSelector: "#viewport",
+          panEnabled: true,
+          zoomEnabled: true,
+          mouseWheelZoomEnabled: false,
+          controlIconsEnabled: false,
+          fit: false,
+          center: false,
+          minZoom: 0.25,
+          maxZoom: 10,
+          dblClickZoomEnabled: true,
+          onUpdatedCTM: function () {}
+        });
+
+        window.panZoomInstance = panZoom;
+        initialized = true;
+
+        if (!savedView || !restoreViewState(savedView)) {
+          fitToContainer();
+        }
+
+        wireWheelZoom();
+        enablePointerPan();
+        enablePinchZoom();
+      }
+
       function render(mode = "preserve") {
         refreshParams();
+
+        const savedView = mode === "preserve" ? getViewState() : null;
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1899,26 +1954,23 @@
           if (myNonce !== renderNonce) return;
 
           if (!panZoom) {
-            tryInitPanZoom();
+            tryInitPanZoom(savedView);
             return;
           }
 
-          if (mode === "preserve") return;
-
-          suppressAutoFit = true;
-
-          try {
-            panZoom.resize();
-            panZoom.updateBBox();
-            fitToContainer();
-          } catch (err) {
-            destroyPanZoom();
-            tryInitPanZoom();
+          if (mode === "fit") {
+            try {
+              panZoom.resize();
+              panZoom.updateBBox();
+              fitToContainer();
+            } catch (err) {
+              destroyPanZoom();
+              tryInitPanZoom(null);
+            }
+            return;
           }
 
-          requestAnimationFrame(() => {
-            suppressAutoFit = false;
-          });
+          refreshPanZoomKeepView(savedView);
         });
       }
 
@@ -2220,28 +2272,34 @@
 
         let isPanning = false;
         let start = { x: 0, y: 0 };
+        let activePointerId = null;
 
         svg.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "touch") return;
           isPanning = true;
+          activePointerId = e.pointerId;
           start = { x: e.clientX, y: e.clientY };
           if (svg.setPointerCapture) svg.setPointerCapture(e.pointerId);
         });
 
         svg.addEventListener("pointermove", (e) => {
           if (!isPanning || !panZoom) return;
+          if (activePointerId !== null && e.pointerId !== activePointerId) return;
+
           const dx = e.clientX - start.x;
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
         });
 
-        svg.addEventListener("pointerup", () => {
+        function stopPointerPan() {
           isPanning = false;
-        });
+          activePointerId = null;
+        }
 
-        svg.addEventListener("pointercancel", () => {
-          isPanning = false;
-        });
+        svg.addEventListener("pointerup", stopPointerPan);
+        svg.addEventListener("pointercancel", stopPointerPan);
+        svg.addEventListener("pointerleave", stopPointerPan);
 
         pointerWired = true;
       }
@@ -2395,7 +2453,7 @@
         toggleRabbitPhoto
       ].forEach(el => el.addEventListener("change", () => render("preserve")));
 
-      layoutOrientation.addEventListener("change", () => render("fit"));
+      layoutOrientation.addEventListener("change", () => render("preserve"));
 
       [borderPrimaryColor, borderSecondaryColor].forEach(el => {
         el.addEventListener("input", () => {
@@ -2421,9 +2479,10 @@
       };
 
       const ro = new ResizeObserver(() => {
+        if (suppressResizeHandling) return;
+
         const width = container.clientWidth;
         const height = container.clientHeight;
-
         if (!width || !height) return;
 
         const sizeChanged =
@@ -2431,42 +2490,34 @@
           height !== lastContainerSize.height;
 
         lastContainerSize = { width, height };
-
         if (!sizeChanged) return;
-        if (suppressAutoFit) return;
+
+        const savedView = getViewState();
 
         if (!initialized) {
-          tryInitPanZoom();
+          tryInitPanZoom(savedView);
           return;
         }
 
-        try {
-          panZoom.resize();
-          panZoom.updateBBox();
-          fitToContainer();
-        } catch (err) {
-          destroyPanZoom();
-          tryInitPanZoom();
-        }
+        suppressResizeHandling = true;
+        requestAnimationFrame(() => {
+          refreshPanZoomKeepView(savedView);
+          suppressResizeHandling = false;
+        });
       });
       ro.observe(container);
 
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState !== "visible") return;
 
+        const savedView = getViewState();
+
         if (!initialized) {
-          tryInitPanZoom();
+          tryInitPanZoom(savedView);
           return;
         }
 
-        try {
-          panZoom.resize();
-          panZoom.updateBBox();
-          fitToContainer();
-        } catch (err) {
-          destroyPanZoom();
-          tryInitPanZoom();
-        }
+        refreshPanZoomKeepView(savedView);
       });
 
       window.addEventListener("load", () => {
