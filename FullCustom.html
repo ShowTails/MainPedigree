@@ -658,6 +658,7 @@
       let packedParams = null;
       let suspendResize = false;
       let lastStableTransform = "";
+      let initialCameraLocked = false;
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -858,11 +859,8 @@
       }
 
       function setViewportTransform(transformValue) {
-        if (transformValue) {
-          viewport.setAttribute("transform", transformValue);
-        } else {
-          viewport.removeAttribute("transform");
-        }
+        if (transformValue) viewport.setAttribute("transform", transformValue);
+        else viewport.removeAttribute("transform");
       }
 
       function destroyPanZoom() {
@@ -906,6 +904,12 @@
         panZoom.pan(fit.pan);
       }
 
+      function lockCurrentCamera(force = false) {
+        const current = getViewportTransform();
+        if (current) lastStableTransform = current;
+        if (current || force) initialCameraLocked = true;
+      }
+
       function tryInitPanZoom(doInitialFit = true) {
         if (initialized) return;
         if (typeof window.svgPanZoom !== "function") {
@@ -930,7 +934,8 @@
           maxZoom: 10,
           dblClickZoomEnabled: true,
           onUpdatedCTM: function () {
-            lastStableTransform = getViewportTransform();
+            const current = getViewportTransform();
+            if (current) lastStableTransform = current;
           }
         });
 
@@ -939,13 +944,17 @@
 
         if (doInitialFit) {
           fitToContainer();
+          lockCurrentCamera(true);
           requestAnimationFrame(() => {
-            lastStableTransform = getViewportTransform();
+            lockCurrentCamera(true);
+            requestAnimationFrame(() => {
+              lockCurrentCamera(true);
+            });
           });
+          setTimeout(() => lockCurrentCamera(true), 0);
+          setTimeout(() => lockCurrentCamera(true), 40);
         } else {
-          requestAnimationFrame(() => {
-            lastStableTransform = getViewportTransform();
-          });
+          lockCurrentCamera(false);
         }
 
         wireWheelZoom();
@@ -1106,66 +1115,82 @@
         };
       }
 
+      function makeSingleLine(label, value) {
+        return { type: "single", label, value };
+      }
+
+      function makePairLine(leftLabel, leftValue, rightLabel, rightValue) {
+        return {
+          type: "pair",
+          leftLabel,
+          leftValue,
+          rightLabel,
+          rightValue
+        };
+      }
+
       function buildBoxText(def) {
         const lines = [];
-        lines.push({ text: getChain(def.titleChain), type: "title" });
+        lines.push({ type: "title", text: getChain(def.titleChain) });
 
         const fieldMap = {};
         def.fields.forEach(([label, key]) => {
           fieldMap[label] = getParam(key);
         });
 
-        function addSingle(label) {
+        function addSingle(label, enabled = true) {
           const value = fieldMap[label];
-          if (!value) return;
-          lines.push({ text: `${label}: ${value}`, type: "field" });
+          if (!enabled || !value) return;
+          lines.push(makeSingleLine(label, value));
         }
 
-        function addCombined(labelA, labelB, enabledA, enabledB) {
+        function addPair(labelA, enabledA, labelB, enabledB) {
           const valueA = fieldMap[labelA];
           const valueB = fieldMap[labelB];
-          const parts = [];
+          const hasA = enabledA && !!valueA;
+          const hasB = enabledB && !!valueB;
 
-          if (enabledA && valueA) parts.push(`${labelA}: ${valueA}`);
-          if (enabledB && valueB) parts.push(`${labelB}: ${valueB}`);
-
-          if (parts.length) {
-            lines.push({ text: parts.join("   "), type: "field" });
+          if (hasA && hasB) {
+            lines.push(makePairLine(labelA, valueA, labelB, valueB));
+          } else if (hasA) {
+            lines.push(makeSingleLine(labelA, valueA));
+          } else if (hasB) {
+            lines.push(makeSingleLine(labelB, valueB));
           }
         }
 
+        addSingle("Color", true);
+
         if (toggleCombineEarWeight.checked) {
-          addCombined("Ear#", "Weight", toggleShowEar.checked, toggleShowWeight.checked);
+          addPair("Ear#", toggleShowEar.checked, "Weight", toggleShowWeight.checked);
         } else {
-          if (toggleShowEar.checked) addSingle("Ear#");
-          if (toggleShowWeight.checked) addSingle("Weight");
+          addSingle("Ear#", toggleShowEar.checked);
+          addSingle("Weight", toggleShowWeight.checked);
         }
 
         if (toggleCombineSexLegs.checked) {
-          addCombined("Sex", "Legs", toggleShowSex.checked, toggleShowLegs.checked);
+          addPair("Sex", toggleShowSex.checked, "Legs", toggleShowLegs.checked);
         } else {
-          if (toggleShowSex.checked) addSingle("Sex");
-          if (toggleShowLegs.checked) addSingle("Legs");
+          addSingle("Sex", toggleShowSex.checked);
+          addSingle("Legs", toggleShowLegs.checked);
         }
-
-        addSingle("Color");
 
         if (toggleCombineRegGc.checked) {
-          addCombined("Reg#", "GC#", toggleShowReg.checked, toggleShowGc.checked);
+          addPair("Reg#", toggleShowReg.checked, "GC#", toggleShowGc.checked);
         } else {
-          if (toggleShowReg.checked) addSingle("Reg#");
-          if (toggleShowGc.checked) addSingle("GC#");
+          addSingle("Reg#", toggleShowReg.checked);
+          addSingle("GC#", toggleShowGc.checked);
         }
 
-        if (toggleShowDob.checked) addSingle("DOB");
-        if (toggleShowEarl.checked) addSingle("Ear Length");
+        addSingle("DOB", toggleShowDob.checked);
+        addSingle("Ear Length", toggleShowEarl.checked);
 
         if (toggleShowCustom.checked) {
           def.extra.forEach(key => {
             const raw = getParam(key);
             if (!raw) return;
             raw.replace(/\\n/g, "\n").split("\n").forEach(line => {
-              if (line.trim()) lines.push({ text: line.trim(), type: "extra" });
+              if (line.trim()) lines.push({ type: "text", text: line.trim() });
             });
           });
         }
@@ -1187,7 +1212,7 @@
 
         return {
           fontSize: bodySize,
-          lineHeight: Math.max(bodySize + 1, 11),
+          lineHeight: Math.max(bodySize + 2, 12),
           weight: "400"
         };
       }
@@ -1239,6 +1264,48 @@
         group.appendChild(textEl);
       }
 
+      function drawLineContent(textEl, line, x, y, boxW) {
+        const metrics = line.metrics;
+        const bodySize = metrics.fontSize;
+        const pairSecondColX = x + Math.max(108, boxW * 0.53);
+
+        if (line.type === "title" || line.type === "text") {
+          const ts = makeEl("tspan", { x, y });
+          ts.textContent = line.text || "";
+          ts.style.fontSize = metrics.fontSize + "px";
+          ts.style.fontWeight = metrics.weight;
+          ts.setAttribute("dominant-baseline", "hanging");
+          textEl.appendChild(ts);
+          return;
+        }
+
+        if (line.type === "single") {
+          const ts = makeEl("tspan", { x, y });
+          ts.textContent = `${line.label}: ${line.value}`;
+          ts.style.fontSize = bodySize + "px";
+          ts.style.fontWeight = metrics.weight;
+          ts.setAttribute("dominant-baseline", "hanging");
+          textEl.appendChild(ts);
+          return;
+        }
+
+        if (line.type === "pair") {
+          const left = makeEl("tspan", { x, y });
+          left.textContent = `${line.leftLabel}: ${line.leftValue}`;
+          left.style.fontSize = bodySize + "px";
+          left.style.fontWeight = metrics.weight;
+          left.setAttribute("dominant-baseline", "hanging");
+          textEl.appendChild(left);
+
+          const right = makeEl("tspan", { x: pairSecondColX, y });
+          right.textContent = `${line.rightLabel}: ${line.rightValue}`;
+          right.style.fontSize = bodySize + "px";
+          right.style.fontWeight = metrics.weight;
+          right.setAttribute("dominant-baseline", "hanging");
+          textEl.appendChild(right);
+        }
+      }
+
       function drawBox(group, winsLayer, def, x, y, boxW, boxH) {
         const fill = getBoxFill(def.sexType);
 
@@ -1262,21 +1329,11 @@
 
         t.style.fontFamily = getCurrentFont();
         t.style.fill = fontColor.value;
-        t.setAttribute("dominant-baseline", "hanging");
 
         let currentY = y + fitted.startY;
 
         fitted.visible.forEach((line) => {
-          const ts = makeEl("tspan", {
-            x: x + padX,
-            y: currentY
-          });
-          ts.textContent = line.text;
-          ts.style.fontSize = line.metrics.fontSize + "px";
-          ts.style.fontWeight = line.metrics.weight;
-          ts.setAttribute("dominant-baseline", "hanging");
-          t.appendChild(ts);
-
+          drawLineContent(t, line, x + padX, currentY, boxW);
           currentY += line.metrics.lineHeight;
         });
 
@@ -1349,11 +1406,14 @@
         if (corner === "br") { sx = -1; sy = -1; }
 
         const g = makeEl("g", { transform: `translate(${x},${y}) scale(${sx},${sy})` });
+
         addPath(g, `M 0 0 C 24 0, 42 2, 58 10 C 84 22, 98 40, 102 66 C 88 62, 75 58, 64 48 C 54 40, 46 28, 42 16 C 35 36, 22 54, 0 72`, primary, 3, "none");
         addPath(g, `M 14 14 C 30 12, 44 16, 58 24 C 72 32, 80 42, 82 58 C 72 52, 62 48, 54 40 C 44 31, 36 22, 32 14`, secondary, 2, "none");
+
         addCircle(g, 22, 22, 4.5, secondary, primary, 1.5);
         addCircle(g, 58, 24, 3.6, secondary, primary, 1.2);
         addCircle(g, 80, 58, 3.6, secondary, primary, 1.2);
+
         group.appendChild(g);
       }
 
@@ -2069,24 +2129,34 @@
 
           if (!panZoom) {
             tryInitPanZoom(mode !== "preserve");
+
             if (mode === "preserve" && preservedTransform) {
               setViewportTransform(preservedTransform);
               lastStableTransform = preservedTransform;
+              initialCameraLocked = true;
             }
+
             return;
           }
 
           if (mode === "preserve") {
-            if (preservedTransform) {
-              setViewportTransform(preservedTransform);
-              lastStableTransform = preservedTransform;
+            const restoreTransform =
+              preservedTransform ||
+              lastStableTransform ||
+              getViewportTransform();
+
+            if (restoreTransform) {
+              setViewportTransform(restoreTransform);
+              lastStableTransform = restoreTransform;
+              initialCameraLocked = true;
             }
             return;
           }
 
           fitToContainer();
+          lockCurrentCamera(true);
           requestAnimationFrame(() => {
-            lastStableTransform = getViewportTransform();
+            lockCurrentCamera(true);
           });
         });
       }
@@ -2378,6 +2448,7 @@
           e.preventDefault();
           if (isFinite(point.x) && isFinite(point.y)) {
             panZoom.zoomAtPoint(factor, point);
+            lockCurrentCamera(false);
           }
         }, { passive: false });
 
@@ -2407,11 +2478,13 @@
           const dy = e.clientY - start.y;
           panZoom.panBy({ x: dx, y: dy });
           start = { x: e.clientX, y: e.clientY };
+          lockCurrentCamera(false);
         });
 
         function stopPointerPan() {
           isPanning = false;
           activePointerId = null;
+          lockCurrentCamera(false);
         }
 
         svg.addEventListener("pointerup", stopPointerPan);
@@ -2452,11 +2525,13 @@
             };
 
             panZoom.zoomAtPoint(startZoom * zoomRatio, mid);
+            lockCurrentCamera(false);
           }
         }, { passive: false });
 
         svg.addEventListener("touchend", () => {
           pinchStart = null;
+          lockCurrentCamera(false);
         });
 
         pinchWired = true;
@@ -2651,11 +2726,11 @@
           return;
         }
 
-        const currentTransform = getViewportTransform();
+        const currentTransform = lastStableTransform || getViewportTransform();
         suspendResize = true;
 
         requestAnimationFrame(() => {
-          setViewportTransform(currentTransform);
+          if (currentTransform) setViewportTransform(currentTransform);
           suspendResize = false;
         });
       });
@@ -2665,9 +2740,9 @@
         if (document.visibilityState !== "visible") return;
         if (!initialized) return;
 
-        const currentTransform = getViewportTransform();
+        const currentTransform = lastStableTransform || getViewportTransform();
         requestAnimationFrame(() => {
-          setViewportTransform(currentTransform);
+          if (currentTransform) setViewportTransform(currentTransform);
         });
       });
 
@@ -2682,6 +2757,14 @@
         } else {
           render("fit");
         }
+
+        requestAnimationFrame(() => {
+          lockCurrentCamera(true);
+          requestAnimationFrame(() => {
+            lockCurrentCamera(true);
+          });
+        });
+        setTimeout(() => lockCurrentCamera(true), 40);
       });
     })();
   </script>
