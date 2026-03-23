@@ -384,18 +384,67 @@
 
     <div class="menu-section">
       <label>Rabbit Box Data Visibility</label>
+
+      <div class="toggle-row">
+        <span>Show Reg#</span>
+        <input type="checkbox" id="toggle-show-reg" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show GC#</span>
+        <input type="checkbox" id="toggle-show-gc" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Combine Reg# + GC#</span>
+        <input type="checkbox" id="toggle-combine-reg-gc" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show Ear#</span>
+        <input type="checkbox" id="toggle-show-ear" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show Weight</span>
+        <input type="checkbox" id="toggle-show-weight" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Combine Ear# + Weight</span>
+        <input type="checkbox" id="toggle-combine-ear-weight" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show Sex</span>
+        <input type="checkbox" id="toggle-show-sex" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Show Legs</span>
+        <input type="checkbox" id="toggle-show-legs" checked>
+      </div>
+
+      <div class="toggle-row">
+        <span>Combine Sex + Legs</span>
+        <input type="checkbox" id="toggle-combine-sex-legs" checked>
+      </div>
+
       <div class="toggle-row">
         <span>DOB</span>
         <input type="checkbox" id="toggle-show-dob" checked>
       </div>
+
       <div class="toggle-row">
         <span>Ear Length</span>
         <input type="checkbox" id="toggle-show-earl" checked>
       </div>
+
       <div class="toggle-row">
         <span>Custom</span>
         <input type="checkbox" id="toggle-show-custom" checked>
       </div>
+
       <div class="toggle-row" style="margin-bottom:0;">
         <span>Wins</span>
         <input type="checkbox" id="toggle-show-wins" checked>
@@ -550,6 +599,18 @@
       const maleBoxColor = document.getElementById("male-box-color");
       const femaleBoxColor = document.getElementById("female-box-color");
 
+      const toggleShowReg = document.getElementById("toggle-show-reg");
+      const toggleShowGc = document.getElementById("toggle-show-gc");
+      const toggleCombineRegGc = document.getElementById("toggle-combine-reg-gc");
+
+      const toggleShowEar = document.getElementById("toggle-show-ear");
+      const toggleShowWeight = document.getElementById("toggle-show-weight");
+      const toggleCombineEarWeight = document.getElementById("toggle-combine-ear-weight");
+
+      const toggleShowSex = document.getElementById("toggle-show-sex");
+      const toggleShowLegs = document.getElementById("toggle-show-legs");
+      const toggleCombineSexLegs = document.getElementById("toggle-combine-sex-legs");
+
       const toggleShowDob = document.getElementById("toggle-show-dob");
       const toggleShowEarl = document.getElementById("toggle-show-earl");
       const toggleShowCustom = document.getElementById("toggle-show-custom");
@@ -596,6 +657,7 @@
       let initialized = false;
       let packedParams = null;
       let suspendResize = false;
+      let lastStableTransform = "";
 
       const defaults = {
         borderStyle: "classicDouble",
@@ -607,10 +669,24 @@
         main: "#ffffff",
         male: "#cce5ff",
         female: "#f8d7da",
+
+        showReg: true,
+        showGc: true,
+        combineRegGc: true,
+
+        showEar: true,
+        showWeight: true,
+        combineEarWeight: true,
+
+        showSex: true,
+        showLegs: true,
+        combineSexLegs: true,
+
         showDob: true,
         showEarl: true,
         showCustom: true,
         showWins: true,
+
         fontColor: "#000000",
         fontFamily: "Arial, sans-serif",
         layout: "landscape",
@@ -853,7 +929,9 @@
           minZoom: 0.25,
           maxZoom: 10,
           dblClickZoomEnabled: true,
-          onUpdatedCTM: function () {}
+          onUpdatedCTM: function () {
+            lastStableTransform = getViewportTransform();
+          }
         });
 
         window.panZoomInstance = panZoom;
@@ -861,6 +939,13 @@
 
         if (doInitialFit) {
           fitToContainer();
+          requestAnimationFrame(() => {
+            lastStableTransform = getViewportTransform();
+          });
+        } else {
+          requestAnimationFrame(() => {
+            lastStableTransform = getViewportTransform();
+          });
         }
 
         wireWheelZoom();
@@ -1021,22 +1106,59 @@
         };
       }
 
-      function shouldShowField(label) {
-        if (label === "DOB") return toggleShowDob.checked;
-        if (label === "Ear Length") return toggleShowEarl.checked;
-        return true;
-      }
-
       function buildBoxText(def) {
         const lines = [];
         lines.push({ text: getChain(def.titleChain), type: "title" });
 
+        const fieldMap = {};
         def.fields.forEach(([label, key]) => {
-          if (!shouldShowField(label)) return;
-          const value = getParam(key);
+          fieldMap[label] = getParam(key);
+        });
+
+        function addSingle(label) {
+          const value = fieldMap[label];
           if (!value) return;
           lines.push({ text: `${label}: ${value}`, type: "field" });
-        });
+        }
+
+        function addCombined(labelA, labelB, enabledA, enabledB) {
+          const valueA = fieldMap[labelA];
+          const valueB = fieldMap[labelB];
+          const parts = [];
+
+          if (enabledA && valueA) parts.push(`${labelA}: ${valueA}`);
+          if (enabledB && valueB) parts.push(`${labelB}: ${valueB}`);
+
+          if (parts.length) {
+            lines.push({ text: parts.join("   "), type: "field" });
+          }
+        }
+
+        if (toggleCombineEarWeight.checked) {
+          addCombined("Ear#", "Weight", toggleShowEar.checked, toggleShowWeight.checked);
+        } else {
+          if (toggleShowEar.checked) addSingle("Ear#");
+          if (toggleShowWeight.checked) addSingle("Weight");
+        }
+
+        if (toggleCombineSexLegs.checked) {
+          addCombined("Sex", "Legs", toggleShowSex.checked, toggleShowLegs.checked);
+        } else {
+          if (toggleShowSex.checked) addSingle("Sex");
+          if (toggleShowLegs.checked) addSingle("Legs");
+        }
+
+        addSingle("Color");
+
+        if (toggleCombineRegGc.checked) {
+          addCombined("Reg#", "GC#", toggleShowReg.checked, toggleShowGc.checked);
+        } else {
+          if (toggleShowReg.checked) addSingle("Reg#");
+          if (toggleShowGc.checked) addSingle("GC#");
+        }
+
+        if (toggleShowDob.checked) addSingle("DOB");
+        if (toggleShowEarl.checked) addSingle("Ear Length");
 
         if (toggleShowCustom.checked) {
           def.extra.forEach(key => {
@@ -1079,10 +1201,10 @@
         const visible = [];
 
         for (const line of lines) {
-          const metrics = getLineRenderMetrics(line);
+          const metrics = line.metrics || getLineRenderMetrics(line);
           if (used + metrics.lineHeight > usableH) break;
           visible.push({ ...line, metrics });
-          used += line.metrics ? line.metrics.lineHeight : metrics.lineHeight;
+          used += metrics.lineHeight;
         }
 
         const startY = Math.max(topPadMin, (boxH - used) / 2);
@@ -1354,6 +1476,7 @@
         addCircle(g, 18, 18, 3.5, secondary, primary, 1.1);
         addCircle(g, 34, 26, 3, secondary, primary, 1);
         addCircle(g, 48, 42, 2.8, secondary, primary, 1);
+
         group.appendChild(g);
       }
 
@@ -1640,10 +1763,24 @@
           main: mainBoxColor.value,
           male: maleBoxColor.value,
           female: femaleBoxColor.value,
+
+          showReg: toggleShowReg.checked,
+          showGc: toggleShowGc.checked,
+          combineRegGc: toggleCombineRegGc.checked,
+
+          showEar: toggleShowEar.checked,
+          showWeight: toggleShowWeight.checked,
+          combineEarWeight: toggleCombineEarWeight.checked,
+
+          showSex: toggleShowSex.checked,
+          showLegs: toggleShowLegs.checked,
+          combineSexLegs: toggleCombineSexLegs.checked,
+
           showDob: toggleShowDob.checked,
           showEarl: toggleShowEarl.checked,
           showCustom: toggleShowCustom.checked,
           showWins: toggleShowWins.checked,
+
           fontColor: fontColor.value,
           fontFamily: getCurrentFont(),
           layout: layoutOrientation.value,
@@ -1673,10 +1810,24 @@
         if (settings.main) mainBoxColor.value = settings.main;
         if (settings.male) maleBoxColor.value = settings.male;
         if (settings.female) femaleBoxColor.value = settings.female;
+
+        if (settings.showReg != null) toggleShowReg.checked = !!settings.showReg;
+        if (settings.showGc != null) toggleShowGc.checked = !!settings.showGc;
+        if (settings.combineRegGc != null) toggleCombineRegGc.checked = !!settings.combineRegGc;
+
+        if (settings.showEar != null) toggleShowEar.checked = !!settings.showEar;
+        if (settings.showWeight != null) toggleShowWeight.checked = !!settings.showWeight;
+        if (settings.combineEarWeight != null) toggleCombineEarWeight.checked = !!settings.combineEarWeight;
+
+        if (settings.showSex != null) toggleShowSex.checked = !!settings.showSex;
+        if (settings.showLegs != null) toggleShowLegs.checked = !!settings.showLegs;
+        if (settings.combineSexLegs != null) toggleCombineSexLegs.checked = !!settings.combineSexLegs;
+
         if (settings.showDob != null) toggleShowDob.checked = !!settings.showDob;
         if (settings.showEarl != null) toggleShowEarl.checked = !!settings.showEarl;
         if (settings.showCustom != null) toggleShowCustom.checked = !!settings.showCustom;
         if (settings.showWins != null) toggleShowWins.checked = !!settings.showWins;
+
         if (settings.fontColor) fontColor.value = settings.fontColor;
         if (settings.layout) layoutOrientation.value = settings.layout;
         if (settings.boxWidth != null) boxWidthInput.value = settings.boxWidth;
@@ -1747,7 +1898,10 @@
       function render(mode = "preserve") {
         refreshParams();
 
-        const preservedTransform = mode === "preserve" ? getViewportTransform() : "";
+        const preservedTransform =
+          mode === "preserve"
+            ? (lastStableTransform || getViewportTransform() || "")
+            : "";
 
         renderNonce += 1;
         const myNonce = renderNonce;
@@ -1917,16 +2071,23 @@
             tryInitPanZoom(mode !== "preserve");
             if (mode === "preserve" && preservedTransform) {
               setViewportTransform(preservedTransform);
+              lastStableTransform = preservedTransform;
             }
             return;
           }
 
           if (mode === "preserve") {
-            setViewportTransform(preservedTransform);
+            if (preservedTransform) {
+              setViewportTransform(preservedTransform);
+              lastStableTransform = preservedTransform;
+            }
             return;
           }
 
           fitToContainer();
+          requestAnimationFrame(() => {
+            lastStableTransform = getViewportTransform();
+          });
         });
       }
 
@@ -2311,10 +2472,24 @@
         mainBoxColor.value = defaults.main;
         maleBoxColor.value = defaults.male;
         femaleBoxColor.value = defaults.female;
+
+        toggleShowReg.checked = defaults.showReg;
+        toggleShowGc.checked = defaults.showGc;
+        toggleCombineRegGc.checked = defaults.combineRegGc;
+
+        toggleShowEar.checked = defaults.showEar;
+        toggleShowWeight.checked = defaults.showWeight;
+        toggleCombineEarWeight.checked = defaults.combineEarWeight;
+
+        toggleShowSex.checked = defaults.showSex;
+        toggleShowLegs.checked = defaults.showLegs;
+        toggleCombineSexLegs.checked = defaults.combineSexLegs;
+
         toggleShowDob.checked = defaults.showDob;
         toggleShowEarl.checked = defaults.showEarl;
         toggleShowCustom.checked = defaults.showCustom;
         toggleShowWins.checked = defaults.showWins;
+
         fontColor.value = defaults.fontColor;
         layoutOrientation.value = defaults.layout;
         boxWidthInput.value = defaults.boxWidth;
@@ -2381,10 +2556,22 @@
         mainBoxColor,
         maleBoxColor,
         femaleBoxColor,
+
+        toggleShowReg,
+        toggleShowGc,
+        toggleCombineRegGc,
+        toggleShowEar,
+        toggleShowWeight,
+        toggleCombineEarWeight,
+        toggleShowSex,
+        toggleShowLegs,
+        toggleCombineSexLegs,
+
         toggleShowDob,
         toggleShowEarl,
         toggleShowCustom,
         toggleShowWins,
+
         fontColor,
         boxWidthInput,
         boxHeightInput,
@@ -2401,6 +2588,17 @@
 
       [
         mainSexColorToggle,
+
+        toggleShowReg,
+        toggleShowGc,
+        toggleCombineRegGc,
+        toggleShowEar,
+        toggleShowWeight,
+        toggleCombineEarWeight,
+        toggleShowSex,
+        toggleShowLegs,
+        toggleCombineSexLegs,
+
         toggleShowDob,
         toggleShowEarl,
         toggleShowCustom,
